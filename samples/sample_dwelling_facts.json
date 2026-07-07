@@ -41,6 +41,7 @@
       "id": "guard-01",
       "name": "Second floor landing guard",
       "attributes": {
+        "guard_context": "interior_dwelling_unit",
         "fall_height_mm": { "value": 2750, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMt" },
         "guard_height_mm": { "value": 1070, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMu" },
         "max_opening_mm": { "value": 95, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMv" }
@@ -51,6 +52,7 @@
       "id": "guard-02",
       "name": "Rear deck guard",
       "attributes": {
+        "guard_context": "exterior_single_dwelling",
         "fall_height_mm": { "value": 1500, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONu" },
         "guard_height_mm": { "value": 880, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONv" }
       }

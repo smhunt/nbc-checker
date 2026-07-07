@@ -6,7 +6,7 @@
   "rules": [
     {
       "rule_id": "NBC-9.8.4.1-rise-private",
-      "provision": "NBC 2020 Sentence 9.8.4.1.(1)",
+      "provision": "NBC 2020 Sentence 9.8.4.1.(1) and Table 9.8.4.1.",
       "title": "Stair riser height — private stairs",
       "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
       "requires": {
@@ -17,18 +17,21 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except as provided in Article 9.8.4.7. and except for stairs serving areas only used as service rooms or service spaces, the rise, which is measured as the vertical nosing-to-nosing distance, shall comply with Table 9.8.4.1. [Table 9.8.4.1.: Private — Max. 200 mm, Min. 125 mm]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-22; verbatim in reference/nbc2020.txt)",
+          "VBBL 2019 Section 9.8 (NBC 2015-based), free.bcpublications.ca — identical values"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "125-200 mm CONFIRMED for private stairs; limits live in Table 9.8.4.1, cite updated. Rise measured as vertical nosing-to-nosing distance. 'Private' = stairs serving single dwelling units, houses with secondary suite incl. common spaces, or garages serving those. Exceptions not encoded: service room/space stairs, spiral stairs (9.8.4.7). Values unchanged from NBC 2015."
       }
     },
     {
       "rule_id": "NBC-9.8.4.2-run-private",
-      "provision": "NBC 2020 Sentence 9.8.4.2.(1)",
+      "provision": "NBC 2020 Sentence 9.8.4.2.(1) and Table 9.8.4.2.",
       "title": "Stair tread run — private stairs",
       "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
       "requires": {
@@ -39,18 +42,21 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except for stairs serving areas only used as service rooms or service spaces, the run shall comply with Table 9.8.4.2. [Table 9.8.4.2.: Private — Max. 355 mm, Min. 255 mm] 2) The depth of a rectangular tread shall be not less than its run and not more than its run plus 25 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 pp. 9-22/9-23; verbatim in reference/nbc2020.txt)",
+          "VBBL 2019 Section 9.8 (NBC 2015-based), free.bcpublications.ca — identical values"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "255-355 mm run CONFIRMED for private stairs (limits in Table 9.8.4.2). IMPORTANT: run and tread DEPTH are distinct — Sentence (2) requires run <= depth <= run+25 mm, so depth may legitimately reach 380 mm. Do NOT validate tread depth against 255-355. Fact-to-fact comparison (depth vs run) not expressible in engine v1 — future engine feature. 255 mm minimum dates from NBC 2015 (not a 2020 change)."
       }
     },
     {
       "rule_id": "NBC-9.8.2.1-width-private",
-      "provision": "NBC 2020 Article 9.8.2.1",
+      "provision": "NBC 2020 Sentence 9.8.2.1.(4)",
       "title": "Stair width — stairs within dwelling units",
       "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
       "requires": {
@@ -58,18 +64,21 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "4) Except as provided in Article 9.8.4.7., at least one stair between each floor level within a dwelling unit, and exterior stairs serving a single dwelling unit except required exit stairs, shall have a width of not less than 860 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-21; verbatim in reference/nbc2020.txt)",
+          "VBBL 2019 Section 9.8 (NBC 2015-based), free.bcpublications.ca — identical values"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "860 mm CONFIRMED for in-unit stairs — Sentence (4), cite corrected from article level. Sentence map: (1) required exit/public stairs, residential: >=900 mm; (2) exit stairs serving a single dwelling unit or secondary-suite house: >=860 mm; (4) in-unit + exterior single-dwelling stairs: >=860 mm. KNOWN OVER-STRICTNESS: Sentence (4) requires only AT LEAST ONE stair between each floor level to meet 860 mm; engine v1 checks every private flight. A 900 mm shared-stair rule is a future addition (needs service='shared' facts)."
       }
     },
     {
       "rule_id": "NBC-9.8.2.2-headroom-private",
-      "provision": "NBC 2020 Article 9.8.2.2",
+      "provision": "NBC 2020 Sentence 9.8.2.2.(3)",
       "title": "Headroom over stairs — private stairs",
       "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
       "requires": {
@@ -77,18 +86,21 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "3) Except as provided in Article 9.8.4.7., the clear height over stairs serving a single dwelling unit or a house with a secondary suite including their common spaces shall not be less than 1 950 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-21; verbatim in reference/nbc2020.txt)",
+          "VBBL 2019 Section 9.8 (NBC 2015-based), free.bcpublications.ca — identical values"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "1950 mm CONFIRMED for stairs serving a single dwelling unit — Sentence (3), cite corrected from article level. Sentence (1): measured vertically over the clear width, from line tangent to nosings to lowest point above. Sentence (2): general stairs >=2050 mm (future shared-stair rule). Sentence (4), NEW in NBC 2020: >=1850 mm under beams/ducting in secondary suites."
       }
     },
     {
       "rule_id": "NBC-9.8.7.4-handrail-height",
-      "provision": "NBC 2020 Article 9.8.7.4",
+      "provision": "NBC 2020 Sentence 9.8.7.4.(2)",
       "title": "Handrail height above stair nosing",
       "applies_to": { "entity_type": "handrail", "where": {} },
       "requires": {
@@ -99,76 +111,139 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "2) Except as provided in Sentence (3) and Clause 3.8.3.5.(1)(e), required handrails shall be 865 mm to 1 070 mm high. [Sentence (1): measured vertically from top of handrail to a line tangent to tread nosings, or to the ramp/floor/landing surface. Sentence (3): handrails installed in addition to required handrails need not comply.]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-28; verbatim in reference/nbc2020.txt)",
+          "Cross-checked: VBBL/bcpublications and code-consulting sources agree"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "865-1070 mm CONFIRMED, applies to REQUIRED handrails; v1 assumes every modeled handrail is required (supplementary handrails exempt per Sentence (3) — needs is_required fact to encode). History flag: pre-2015 max was 965 mm; Ontario only moved to 1070 in 2022 — do not trust older secondary sources."
       }
     },
     {
-      "rule_id": "NBC-9.8.8.3-guard-height-low",
-      "provision": "NBC 2020 Article 9.8.8.3",
-      "title": "Guard height — walking surface not more than 1800 mm above adjacent level",
+      "rule_id": "NBC-9.8.8.3-guard-height-interior-unit",
+      "provision": "NBC 2020 Sentence 9.8.8.3.(2)",
+      "title": "Guard height — guards within dwelling units",
       "applies_to": {
         "entity_type": "guard",
-        "where": { "fall_height_mm": { "op": "<=", "value": 1800 } }
+        "where": { "guard_context": "interior_dwelling_unit" }
       },
       "requires": {
         "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 900 } ]
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "2) All guards within dwelling units or within houses with a secondary suite including their common spaces shall be not less than 900 mm high.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-30; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "RE-ENCODED during V1: original two rules used a pure fall-height trigger (900 if <=1800, 1070 if >1800), which is NOT the article's structure. Actual structure: default 1070 (S1); interior in-unit guards 900 regardless of fall height (S2); exterior single-dwelling guards 900 only where walking surface <=1800 mm above finished ground (S3). This rule encodes S2. Requires new guard_context fact: interior_dwelling_unit | exterior_single_dwelling | other."
       }
     },
     {
-      "rule_id": "NBC-9.8.8.3-guard-height-high",
-      "provision": "NBC 2020 Article 9.8.8.3",
-      "title": "Guard height — walking surface more than 1800 mm above adjacent level",
+      "rule_id": "NBC-9.8.8.3-guard-height-ext-single-low",
+      "provision": "NBC 2020 Sentence 9.8.8.3.(3)",
+      "title": "Guard height — exterior guard serving one dwelling unit, walking surface not more than 1800 mm above finished ground",
       "applies_to": {
         "entity_type": "guard",
-        "where": { "fall_height_mm": { "op": ">", "value": 1800 } }
+        "where": {
+          "guard_context": "exterior_single_dwelling",
+          "fall_height_mm": { "op": "<=", "value": 1800 }
+        }
+      },
+      "requires": {
+        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 900 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "3) Exterior guards serving not more than one dwelling unit or a house with a secondary suite including their common spaces shall be not less than 900 mm high where the walking surface served by the guard is not more than 1 800 mm above the finished ground level.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-30; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "Encodes S3. fall_height_mm here means height of walking surface above finished ground level. See interior-unit rule notes for the re-encoding rationale."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.8.3-guard-height-ext-single-high",
+      "provision": "NBC 2020 Sentence 9.8.8.3.(1)",
+      "title": "Guard height — exterior guard serving one dwelling unit, walking surface more than 1800 mm above finished ground",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "exterior_single_dwelling",
+          "fall_height_mm": { "op": ">", "value": 1800 }
+        }
       },
       "requires": {
         "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ]
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except as provided in Sentences (2) and (3), all guards shall be not less than 1 070 mm high.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-30; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "S1 default applies because the S3 carve-out (exterior single-dwelling) is limited to walking surfaces <=1800 mm above finished ground. See interior-unit rule notes for the re-encoding rationale."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.8.3-guard-height-default",
+      "provision": "NBC 2020 Sentence 9.8.8.3.(1)",
+      "title": "Guard height — all other guards (common areas, guards serving more than one dwelling unit)",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": { "guard_context": "other" }
+      },
+      "requires": {
+        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), all guards shall be not less than 1 070 mm high.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-30; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "S1 default for guards matching neither carve-out. Sentence (4) is a measurement rule (top of guard to line through tread nosings for flights), not a height value. Ontario OBC adds extra sentences (920 mm exit stairs, 1500 mm >10 m above grade) — Ontario-only, not national text."
       }
     },
     {
       "rule_id": "NBC-9.8.8.5-guard-openings",
-      "provision": "NBC 2020 Article 9.8.8.5",
+      "provision": "NBC 2020 Sentence 9.8.8.5.(1)",
       "title": "Openings through guards — sphere rule",
       "applies_to": { "entity_type": "guard", "where": {} },
       "requires": {
-        "all": [ { "fact": "max_opening_mm", "op": "<=", "value": 100 } ]
+        "all": [ { "fact": "max_opening_mm", "op": "<", "value": 100 } ]
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except as permitted in Sentences (3) and (4), openings through guards shall be of a size that prevents the passage of a spherical object having a diameter of 100 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 pp. 9-30/9-31; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "100 mm sphere rule CONFIRMED for required guards. Operator corrected <= to <: an opening that admits a 100 mm sphere must be smaller than 100 mm, so max_opening_mm == 100 would not 'prevent passage'. Exceptions not encoded (out of dwelling scope or need more facts): S2 150 mm sphere for stair-triangle openings; S3 industrial 535 mm allowance; S4 non-required guards may alternatively permit a 200 mm sphere. Anti-climb is separate Article 9.8.8.6 (>4.2 m protected height)."
       }
     },
     {
