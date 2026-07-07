@@ -13,8 +13,38 @@
         "service": "private",
         "riser_height_mm": { "value": 190, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr" },
         "tread_run_mm": { "value": 255, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs" },
+        "tread_depth_mm": { "value": 265, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKv" },
         "clear_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt" },
-        "headroom_mm": { "value": 2050, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKu" }
+        "headroom_mm": { "value": 2050, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKu" },
+        "riser_adjacent_diff_mm": { "value": 3, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)" },
+        "riser_range_mm": { "value": 7, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)" },
+        "run_adjacent_diff_mm": { "value": 2, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)" },
+        "run_range_mm": { "value": 4, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)" },
+        "location": "interior",
+        "number_of_risers": 14,
+        "has_handrail": { "value": true, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKw" }
+      }
+    },
+    {
+      "entity_type": "stair_flight",
+      "id": "stair-03",
+      "name": "Common entrance stair (shared)",
+      "attributes": {
+        "service": "shared",
+        "clear_width_mm": { "value": 920, "confidence": 1.0, "source": "model.ifc#9V9My$a1e4gm5UVl30MSRy" },
+        "headroom_mm": { "value": 2010, "confidence": 1.0, "source": "model.ifc#9V9My$a1e4gm5UVl30MSRz" }
+      }
+    },
+    {
+      "entity_type": "landing",
+      "id": "landing-01",
+      "name": "Main stair mid-landing",
+      "attributes": {
+        "turn": "straight_or_less_than_90",
+        "serves_service": "private",
+        "stair_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt" },
+        "landing_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTSz" },
+        "landing_length_mm": { "value": 900, "confidence": 1.0, "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTS0" }
       }
     },
     {
@@ -25,7 +55,9 @@
         "service": "private",
         "riser_height_mm": { "value": 210, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLs" },
         "tread_run_mm": { "value": 240, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLt" },
-        "clear_width_mm": { "value": 860, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLu" }
+        "clear_width_mm": { "value": 860, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLu" },
+        "location": "interior",
+        "number_of_risers": 13
       }
     },
     {
@@ -33,7 +65,8 @@
       "id": "handrail-01",
       "name": "Main stair handrail",
       "attributes": {
-        "height_above_nosing_mm": { "value": 920, "confidence": 0.82, "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)" }
+        "height_above_nosing_mm": { "value": 920, "confidence": 0.82, "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)" },
+        "clearance_behind_mm": { "value": 40, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMw" }
       }
     },
     {
@@ -64,6 +97,8 @@
       "attributes": {
         "room_use": "bedroom",
         "is_egress_window": true,
+        "opens_into_window_well": true,
+        "window_well_clearance_mm": { "value": 800, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOx" },
         "unobstructed_open_area_m2": { "value": 0.38, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOv" },
         "min_opening_dimension_mm": { "value": 500, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOw" }
       }

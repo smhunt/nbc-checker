@@ -276,6 +276,253 @@
       }
     },
     {
+      "rule_id": "NBC-9.8.4.2-tread-depth",
+      "provision": "NBC 2020 Sentence 9.8.4.2.(2)",
+      "title": "Tread depth — rectangular treads (relative to run)",
+      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "requires": {
+        "all": [
+          { "fact": "tread_depth_mm", "op": ">=", "value_fact": "tread_run_mm", "offset": 0 },
+          { "fact": "tread_depth_mm", "op": "<=", "value_fact": "tread_run_mm", "offset": 25 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) The depth of a rectangular tread shall be not less than its run and not more than its run plus 25 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-23; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "First rule using engine fact-to-fact comparison (value_fact + offset). Depth is compared to the run measured on the same flight, so private depth may legitimately reach 380 mm — see 9.8.4.2 run rule notes."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.2.1-width-shared",
+      "provision": "NBC 2020 Sentence 9.8.2.1.(1)",
+      "title": "Stair width — required exit and public stairs, residential",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "shared" } },
+      "requires": {
+        "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 900 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2) and Article 9.8.4.7., required exit stairs and public stairs serving buildings of residential occupancy shall have a width of not less than 900 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-21; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "service='shared' fact denotes stairs not serving a single dwelling unit (exit/public stairs in residential buildings). Non-residential 8 mm/person sizing (Sentence (3)) not encoded. Spiral-stair exception 9.8.4.7 not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.2.2-headroom-shared",
+      "provision": "NBC 2020 Sentence 9.8.2.2.(2)",
+      "title": "Headroom over stairs — stairs not serving a single dwelling unit",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "shared" } },
+      "requires": {
+        "all": [ { "fact": "headroom_mm", "op": ">=", "value": 2050 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Except as provided in Sentences (3) and (4) and Article 9.8.4.7., the clear height over stairs shall not be less than 2 050 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-21; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "General clear-height sentence; the single-dwelling-unit carve-out (1950, Sentence (3)) is the separate headroom-private rule. Sentence (4) secondary-suite 1850 under beams/ducting not encoded (needs location facts)."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.4.4-riser-uniformity",
+      "provision": "NBC 2020 Sentence 9.8.4.4.(1)",
+      "title": "Uniformity of riser heights within a flight",
+      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "requires": {
+        "all": [
+          { "fact": "riser_adjacent_diff_mm", "op": "<=", "value": 5 },
+          { "fact": "riser_range_mm", "op": "<=", "value": 10 }
+        ]
+      },
+      "exceptions": [
+        { "description": "Sentence (2): except for required exit stairs, where the top or bottom riser adjoins a sloping finished walking surface (garage floor, driveway, sidewalk), riser height across the stair may vary by not more than 1 in 12 — not encoded (needs slope facts)." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2), risers shall be of uniform height in any one flight, with a maximum tolerance of a) 5 mm between adjacent treads or landings, and b) 10 mm between the tallest and shortest risers in a flight.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-23; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Facts are aggregates over the flight: riser_adjacent_diff_mm = max difference between adjacent risers; riser_range_mm = tallest minus shortest in the flight. Extractors must compute these from per-step data, never estimate."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.4.4-run-uniformity",
+      "provision": "NBC 2020 Sentence 9.8.4.4.(3)",
+      "title": "Uniformity of runs within a flight (rectangular treads)",
+      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "requires": {
+        "all": [
+          { "fact": "run_adjacent_diff_mm", "op": "<=", "value": 5 },
+          { "fact": "run_range_mm", "op": "<=", "value": 10 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "3) Rectangular treads shall have a uniform run with a maximum tolerance of a) 5 mm between adjacent treads, and b) 10 mm between the deepest and shallowest treads in a flight.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-23; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Tapered treads (Sentence (4)) measured 300 mm from handrail centre line — not encoded. Tread slope limit 1 in 50 (Sentence (5)) is a separate candidate rule (fact tread_slope)."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.6.3-landing-dims-private",
+      "provision": "NBC 2020 Sentences 9.8.6.3.(1)-(2)",
+      "title": "Landing dimensions — straight landings on private stairs",
+      "applies_to": {
+        "entity_type": "landing",
+        "where": { "turn": "straight_or_less_than_90", "serves_service": "private" }
+      },
+      "requires": {
+        "all": [
+          { "fact": "landing_width_mm", "op": ">=", "value_fact": "stair_width_mm", "offset": 0 },
+          { "fact": "landing_length_mm", "op": ">=", "value": 860 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) to (7), landings shall be at least as wide and as long as the width of the stair or ramp in which they occur. 2) Where the landing in a stairway or ramp does not turn or turns less than 90°, the length of the landing need not be more than the lesser of a) the required width of the stair or ramp, or b) 1 100 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-26; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Length threshold 860 derived deterministically: for private stairs the required width is 860 (9.8.2.1.(4)), so Sentence (2)'s cap 'lesser of required width or 1100' = 860. Width uses fact-to-fact vs the adjoining stair's actual width (Sentence (1)). Sentences (4)-(7) (differing widths, door swing, slope, side openings) not encoded. A shared-stair variant would use length >= 900."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.7.1-handrail-required-interior",
+      "provision": "NBC 2020 Sentences 9.8.7.1.(1) and (3)(a)",
+      "title": "Handrail required — interior private stairs with more than 2 risers",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private",
+          "location": "interior",
+          "number_of_risers": { "op": ">", "value": 2 }
+        }
+      },
+      "requires": {
+        "all": [ { "fact": "has_handrail", "op": "==", "value": true } ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) to (4), handrails shall be installed on stairs and ramps in accordance with Table 9.8.7.1. [Table: within a dwelling unit, straight stairs of any width: 1 side] 3) Handrails are not required for stairs and ramps serving a single dwelling unit, where a) interior stairs have not more than 2 risers, b) exterior stairs have not more than 3 risers, or c) ramps rise not more than 400 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 pp. 9-27/9-28; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "The Sentence (3)(a) exemption is encoded as the applicability trigger (number_of_risers > 2) rather than an engine exception, since engine exceptions grant blanket PASS. Curved-stair 2-handrail requirement and the 750 mm natural-path rule (Sentence (2)) not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.7.1-handrail-required-exterior",
+      "provision": "NBC 2020 Sentences 9.8.7.1.(1), (3)(b) and (4)",
+      "title": "Handrail required — exterior private stairs with more than 3 risers",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private",
+          "location": "exterior",
+          "number_of_risers": { "op": ">", "value": 3 }
+        }
+      },
+      "requires": {
+        "all": [ { "fact": "has_handrail", "op": "==", "value": true } ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "3) Handrails are not required for stairs and ramps serving a single dwelling unit, where ... b) exterior stairs have not more than 3 risers ... 4) Only one handrail is required on exterior stairs having more than 3 risers provided such stairs serve not more than one dwelling unit or a house with a secondary suite...",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 pp. 9-27/9-28; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Exemption (3)(b) encoded as applicability trigger (risers > 3). Sentence (4) confirms one handrail suffices for exterior single-dwelling stairs — has_handrail boolean captures that."
+      }
+    },
+    {
+      "rule_id": "NBC-9.8.7.5-handrail-clearance",
+      "provision": "NBC 2020 Sentence 9.8.7.5.(1)",
+      "title": "Clearance between handrail and surface behind it",
+      "applies_to": { "entity_type": "handrail", "where": {} },
+      "requires": {
+        "all": [ { "fact": "clearance_behind_mm", "op": ">=", "value": 50 } ]
+      },
+      "exceptions": [
+        { "description": "Clause (b): where the surface behind is rough or abrasive, the required clearance is 60 mm — encode via surface_rough fact in a future revision; checking 50 mm only is lenient for rough surfaces." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) The clearance between a handrail and the surface behind it shall be not less than a) 50 mm, or b) where said surface is rough or abrasive, 60 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 p. 9-28; verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Continual graspability (Sentence (2)) and projection limits (9.8.7.6, 100 mm into required width) are separate candidate rules."
+      }
+    },
+    {
+      "rule_id": "NBC-9.9.10.1-window-well-clearance",
+      "provision": "NBC 2020 Sentence 9.9.10.1.(3)",
+      "title": "Egress window well — clearance in front of window",
+      "applies_to": {
+        "entity_type": "window",
+        "where": { "is_egress_window": true, "opens_into_window_well": true }
+      },
+      "requires": {
+        "all": [ { "fact": "window_well_clearance_mm", "op": ">=", "value": 760 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "3) Where a window required in Sentence (1) opens into a window well, a clearance of not less than 760 mm shall be provided in front of the window.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2; verbatim in reference/nbc2020.txt)",
+          "Alberta STANDATA 23-BCV-001 (NBC(AE) 2023) — consistent"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (direct check of official NRC PDF text)",
+        "notes": "Sentences (4) (sash swing must not reduce clearance) and (5) (well enclosure openable without tools/keys) not encoded — need operation-type facts. Note A-9.9.10.1.(3): outward-opening awning windows measure the 760 mm beyond the outer sash edge."
+      }
+    },
+    {
       "rule_id": "NBC-9.5.3.1-ceiling-living",
       "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
       "title": "Ceiling height — living and dining rooms",
