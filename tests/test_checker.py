@@ -130,3 +130,43 @@ def test_determinism():
     rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
     f = {"project": {}, "entities": [mk_entity(x_mm=150)]}
     assert json.dumps(run_ruleset(rs, f)) == json.dumps(run_ruleset(rs, f))
+
+
+# --- Renovation scope (new_work_only) + jurisdiction ---
+
+def test_scope_skips_existing():
+    r = mk_rule(scope="new_work_only")
+    assert check_rule(r, [mk_entity(x_mm=50, work_status="existing")]) == []
+
+
+def test_scope_checks_new():
+    r = mk_rule(scope="new_work_only")
+    assert one(r, mk_entity(x_mm=50, work_status="new")).status == Status.FAIL
+
+
+def test_scope_default_in_scope_when_absent():
+    r = mk_rule(scope="new_work_only")
+    assert one(r, mk_entity(x_mm=150)).status == Status.PASS
+
+
+def test_no_scope_still_checks_existing():
+    r = mk_rule()  # no scope declared
+    assert one(r, mk_entity(x_mm=50, work_status="existing")).status == Status.FAIL
+
+
+def test_scope_existing_as_confidence_object():
+    r = mk_rule(scope="new_work_only")
+    e = mk_entity(x_mm=50, work_status={"value": "existing", "confidence": 1.0, "source": "plan note"})
+    assert check_rule(r, [e]) == []
+
+
+def test_jurisdiction_surfaced():
+    rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
+    f = {"project": {"jurisdiction": "Ontario"}, "entities": [mk_entity(x_mm=150)]}
+    assert run_ruleset(rs, f)["jurisdiction"] == "Ontario"
+
+
+def test_jurisdiction_absent_is_none():
+    rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
+    f = {"project": {}, "entities": [mk_entity(x_mm=150)]}
+    assert run_ruleset(rs, f)["jurisdiction"] is None

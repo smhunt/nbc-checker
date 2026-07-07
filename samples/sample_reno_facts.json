@@ -1,0 +1,49 @@
+{
+  "project": {
+    "name": "Sample Change-of-Use Renovation — Fish Market to Dwelling",
+    "jurisdiction": "Ontario",
+    "municipality": "Municipality of Bluewater, County of Huron, ON",
+    "sources": ["A1 Floor Plans & Elevations.pdf (drawing extraction)"],
+    "_note": "Demonstrates renovation scoping. Rules that declare \"scope\": \"new_work_only\" skip entities whose work_status is \"existing\". The NBC ruleset does not yet mark rules with scope, so nothing is skipped against it — the engine capability is what this sample exercises (see samples with a scope-aware ruleset, or tests/test_checker.py)."
+  },
+  "entities": [
+    {
+      "entity_type": "stair_flight",
+      "id": "stair-existing-01",
+      "name": "Existing stair to remain (main level)",
+      "attributes": {
+        "service": "private",
+        "work_status": { "value": "existing", "confidence": 1.0, "source": "A1 note: EXISTING STAIRS TO REMAIN AS IS" },
+        "riser_height_mm": { "value": 210, "confidence": 0.6, "source": "A1 (LLM extraction)" },
+        "location": "interior",
+        "number_of_risers": 14
+      }
+    },
+    {
+      "entity_type": "stair_flight",
+      "id": "stair-new-01",
+      "name": "New stair to upper dwelling",
+      "attributes": {
+        "service": "private",
+        "work_status": { "value": "new", "confidence": 1.0, "source": "A1 stair detail (new construction)" },
+        "riser_height_mm": { "value": 185, "confidence": 1.0, "source": "A1 stair detail" },
+        "tread_run_mm": { "value": 255, "confidence": 1.0, "source": "A1 stair detail" },
+        "clear_width_mm": { "value": 900, "confidence": 1.0, "source": "A1 stair detail" },
+        "location": "interior",
+        "number_of_risers": 15,
+        "has_handrail": { "value": true, "confidence": 1.0, "source": "A1 stair detail" }
+      }
+    },
+    {
+      "entity_type": "guard",
+      "id": "guard-new-deck",
+      "name": "New deck guard",
+      "attributes": {
+        "work_status": { "value": "new", "confidence": 1.0, "source": "A1 NEW DECK" },
+        "guard_context": "exterior_single_dwelling",
+        "fall_height_mm": { "value": 1400, "confidence": 1.0, "source": "A1 west elevation" },
+        "guard_height_mm": { "value": 900, "confidence": 1.0, "source": "A1 west elevation" }
+      }
+    }
+  ]
+}

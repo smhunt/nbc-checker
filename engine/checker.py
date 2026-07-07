@@ -130,9 +130,21 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
     target_type = rule["applies_to"]["entity_type"]
     where = rule["applies_to"].get("where", {})
 
+    new_work_only = rule.get("scope") == "new_work_only"
+
     for entity in entities:
         if entity.get("entity_type") != target_type:
             continue
+
+        # Renovation scoping: a rule marked "new_work_only" does not apply to
+        # existing-to-remain elements. work_status is treated like any fact.
+        # Absent work_status => in scope (greenfield default), so unscoped
+        # projects behave exactly as before. Present-but-low-confidence still
+        # evaluates — a reviewer can correct the status.
+        if new_work_only:
+            ws = _lookup(entity, "work_status")
+            if ws.present and ws.value == "existing":
+                continue
 
         applicability = _matches_where(entity, where)
         base = dict(
@@ -248,6 +260,7 @@ def run_ruleset(ruleset: dict, facts: dict) -> dict:
     return {
         "ruleset_id": ruleset["ruleset_id"],
         "code_edition": ruleset["code_edition"],
+        "jurisdiction": facts.get("project", {}).get("jurisdiction"),
         "project": facts.get("project", {}),
         "summary": summary,
         "results": [r.to_dict() for r in all_results],
