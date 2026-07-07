@@ -1,8 +1,8 @@
 {
   "ruleset_id": "nbc2020-part9-core",
   "code_edition": "NBC 2020",
-  "schema_version": "0.1.0",
-  "description": "Core prescriptive Part 9 rules for Housing and Small Buildings. RASE-inspired: Applicability, Requirement, Exception fields. All numeric values MUST be verified against the published NBC 2020 text before any demonstration (see prompt_plan.md task V1).",
+  "schema_version": "0.2.0",
+  "description": "Core prescriptive Part 9 rules for Housing and Small Buildings. RASE-inspired: Applicability, Requirement, Exception fields. All numeric values MUST be verified against the published NBC 2020 text before any demonstration (see prompt_plan.md task V1). Each rule carries a verification_notes object recording the evidence: quote (verbatim provision text), sources (URLs or document citations), verified_date (ISO date), reviewer, and free-text notes. verified_against_code_text may only be true when quote and sources are populated.",
   "rules": [
     {
       "rule_id": "NBC-9.8.4.1-rise-private",
@@ -17,7 +17,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.4.2-run-private",
@@ -32,7 +39,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.2.1-width-private",
@@ -44,7 +58,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.2.2-headroom-private",
@@ -56,7 +77,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.7.4-handrail-height",
@@ -71,7 +99,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.8.3-guard-height-low",
@@ -86,7 +121,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.8.3-guard-height-high",
@@ -101,7 +143,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.8.8.5-guard-openings",
@@ -113,7 +162,14 @@
       },
       "exceptions": [],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.9.10.1-egress-window-area",
@@ -130,7 +186,14 @@
         { "description": "Not required where the bedroom has a door leading directly to the exterior, or where sprinklered (verify exact NBC 2020 wording)", "fact": "has_exterior_door", "op": "==", "value": true }
       ],
       "unit_system": "mixed",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     },
     {
       "rule_id": "NBC-9.5.3.1-ceiling-living",
@@ -144,7 +207,14 @@
         { "description": "Sloped-ceiling / partial-area provisions in 9.5.3 apply; v1 engine evaluates flat minimum only (verify full sentence structure)" }
       ],
       "unit_system": "mm",
-      "verified_against_code_text": false
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": null,
+        "sources": [],
+        "verified_date": null,
+        "reviewer": null,
+        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+      }
     }
   ]
 }
