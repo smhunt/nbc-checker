@@ -98,6 +98,34 @@ def test_fail_dominates_regardless_of_order():
     assert one(r, mk_entity(x_mm=50)).status == Status.FAIL
 
 
+def vf_rule():
+    return mk_rule(requires={"all": [
+        {"fact": "depth_mm", "op": ">=", "value_fact": "run_mm", "offset": 0},
+        {"fact": "depth_mm", "op": "<=", "value_fact": "run_mm", "offset": 25}]})
+
+
+def test_value_fact_pass():
+    assert one(vf_rule(), mk_entity(depth_mm=260, run_mm=255)).status == Status.PASS
+
+
+def test_value_fact_fail():
+    assert one(vf_rule(), mk_entity(depth_mm=290, run_mm=255)).status == Status.FAIL
+
+
+def test_value_fact_ref_absent():
+    assert one(vf_rule(), mk_entity(depth_mm=260)).status == Status.INFO_NOT_AVAILABLE
+
+
+def test_value_fact_ref_uncertain():
+    e = mk_entity(depth_mm=260, run_mm={"value": 255, "confidence": 0.5, "source": "pdf"})
+    assert one(vf_rule(), e).status == Status.UNCERTAIN
+
+
+def test_value_fact_comparison_recorded():
+    res = one(vf_rule(), mk_entity(depth_mm=260, run_mm=255))
+    assert any("run_mm+25" in c for c in res.comparisons)
+
+
 def test_determinism():
     rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
     f = {"project": {}, "entities": [mk_entity(x_mm=150)]}

@@ -183,16 +183,46 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
                     f"{fl.confidence:.2f} < {CONFIDENCE_THRESHOLD} — requires human review"
                 )
                 continue
-            ok = OPS[req["op"]](fl.value, req["value"])
+
+            # Comparison target: a literal value, or another fact on the same
+            # entity (value_fact) plus an optional offset — e.g. tread depth
+            # must be >= run and <= run + 25 (NBC 9.8.4.2.(2)). The reference
+            # fact is gated exactly like the primary fact.
+            if "value_fact" in req:
+                ref = _lookup(entity, req["value_fact"])
+                facts_used.append({
+                    "fact": ref.name, "value": ref.value,
+                    "confidence": ref.confidence, "source": ref.source,
+                    "present": ref.present,
+                })
+                if not ref.present:
+                    status = _worse(status, Status.INFO_NOT_AVAILABLE)
+                    detail_parts.append(
+                        f"'{req['value_fact']}' (comparison reference) not found in extracted model")
+                    continue
+                if ref.confidence is not None and ref.confidence < CONFIDENCE_THRESHOLD:
+                    status = _worse(status, Status.UNCERTAIN)
+                    detail_parts.append(
+                        f"'{req['value_fact']}'={ref.value} (comparison reference) extracted "
+                        f"at confidence {ref.confidence:.2f} < {CONFIDENCE_THRESHOLD} — requires human review")
+                    continue
+                offset = req.get("offset", 0)
+                target = ref.value + offset
+                target_desc = f"{req['value_fact']}{f'+{offset}' if offset else ''} ({target})"
+            else:
+                target = req["value"]
+                target_desc = str(target)
+
+            ok = OPS[req["op"]](fl.value, target)
             comparisons.append(
-                f"{req['fact']} ({fl.value}) {req['op']} {req['value']} -> "
+                f"{req['fact']} ({fl.value}) {req['op']} {target_desc} -> "
                 f"{'OK' if ok else 'VIOLATION'}"
             )
             if not ok:
                 status = _worse(status, Status.FAIL)  # FAIL dominates all other statuses
                 detail_parts.append(
                     f"VIOLATION: {req['fact']}={fl.value}, "
-                    f"required {req['op']} {req['value']} per {rule['provision']}"
+                    f"required {req['op']} {target_desc} per {rule['provision']}"
                 )
 
         if status == Status.PASS and not detail_parts:
