@@ -30,40 +30,37 @@ ceiling height was wrong (2300 flat -> 2100 partial-area), guard heights re-enco
 the actual S1/S2/S3 structure, egress exception structure corrected. See progress.md
 Session 2 for the full list.
 
-### T1 — Expand ruleset to 25–30 Part 9 rules
-Candidates: 9.8.4.4 (uniformity of risers/runs), 9.8.6 (landings), 9.8.7.1 (where
-handrails required), 9.7 (windows/glazing), 9.5.5 (doorway sizes), 9.10.19 (smoke alarm
-locations — presence check), 9.36 prescriptive envelope values (climate-zone-dependent —
-good demo of parameterized rules).
+### T1 — Expand ruleset  ✅ DONE 2026-07-07 (38 rules, all verified)
+Delivered 9.8.4.4 uniformity, 9.8.6.3 landings, 9.8.7.1 handrails-required, 9.5.5 doorway
+sizes, 9.10.19.3 smoke alarms, 9.36.2.6 climate-zone envelope (parameterized demo), plus
+ceiling Table 9.5.3.1 rows and tread-depth (fact-to-fact). Every value verified verbatim.
 
-### T2 — Real IFC test models
-Download 2–3 open sample house IFC models (buildingSMART sample files, IFC.js samples,
-or model one in SketchUp/Blender+BlenderBIM). Extend extractor: derive riser height from
-geometry when RiserHeight attribute absent; pull Qto_ quantity sets; space heights from
-bounding geometry.
+### T2 — Real IFC test models  ✅ DONE 2026-07-07
+fetch_models.sh (FZK-Haus + buildingSMART). Extractor: attribute->pset->Qto chain, riser
+derived from Qto height/count, geometry bbox fallback for space height. Finding recorded:
+IfcStairFlight rare in real exports — needs vendor-pset mapping + i18n room-use.
 
-### T3 — PDF drawing extraction path (the "AI-assisted" half)
-Claude API vision on drawing sheets → same facts schema, confidence per fact, source =
-sheet + region. NEVER emit confidence 1.0 from LLM extraction. This is the core
-neuro-symbolic story: probabilistic extraction, deterministic judgment, human gate.
+### T3 — PDF drawing extraction path  ✅ DONE 2026-07-07
+extractors/pdf_extractor.py drives the claude CLI headless (no API key needed); confidence
+hard-capped at 0.89 in code so all LLM facts route to human review. Live-verified.
 
-### T4 — Review UI
-React artifact or small Vite app: results table filterable by status, click-through to
-facts + provision text, reviewer can confirm/correct UNCERTAIN facts → re-run →
-deterministic re-evaluation. This demonstrates EO4 (human-in-the-loop) for screenshots.
+### T4 — Review UI  ✅ DONE 2026-07-07
+FastAPI (:3099) + Vite/React (:3029), both HTTPS. Confirm/correct UNCERTAIN -> deterministic
+re-run, live-verified. Ports registered in PORTS.md.
 
-### T5 — Report export
-PDF + Excel export of the audit report (EO6). Include per-check provision citation and
-fact provenance. BCF export stretch goal.
+### T5 — Report export  ✅ DONE 2026-07-07
+engine/export.py PDF + Excel, byte-deterministic, provision + provenance per check. Wired to
+/api/export and run_check flags. BCF still a stretch goal.
 
-### T6 — Feasibility evidence document
-2–3 pages: architecture diagram, screenshots, sample reports, determinism demonstration
-(same input run 3×, identical SHA-256 of report), limitations honestly stated. This is
-the TRL 5–6 evidence attached to the proposal.
+### T6 — Feasibility evidence document  ✅ DONE 2026-07-07
+docs/feasibility-evidence.md + docs/determinism_demo.sh (5 runs -> identical SHA-256).
 
-### T7 — Proposal draft (parallel track from ~July 20)
-Map prototype to Essential Outcomes EO1–EO7 point by point. Team section: line up code
-consultant / P.Eng collaborator (Fanshawe network). Budget: 18 months, ≤$500K.
+### T7 — Proposal draft  ✅ DRAFT 2026-07-07 (needs business verification)
+docs/proposal-draft.md written. ⚠️ The official ISC challenge posting could NOT be found —
+ALL EO1–EO7 wording in the draft is interpolated and MUST be verified against the real
+Challenge Notice. Eligibility flags: Phase 1 prerequisite (Entry-at-Phase-2 pathway exists
+for TRL 5–9 proven with outside funding — our evidence fits), Canadian for-profit incorp
+required. Phase 2 ceiling ~$1M/2yr; $475K/18mo plan fits.
 
 ## Open decisions
 1. Rule format future: stay JSON or adopt/align with ACCORD open formats (BSDD, IDS)?

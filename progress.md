@@ -38,6 +38,41 @@
 - Jurisdiction warnings: Ontario OBC differs materially (egress, guards, ceilings);
   BCBC 2024 reserves the secondary-suite ceiling sentences
 
+## 2026-07-07 — Session 3 (Claude Code, T1–T7 full sprint, parallel agents)
+Executed the whole T1–T7 plan (docs/superpowers/plans/2026-07-07-t1-t7-execution.md)
+in one session, fanning out to 7 parallel research/build agents, merging + verifying
+each deliverable inline.
+- **T1 (ruleset):** 12 -> 38 rules, ALL verified verbatim against reference/nbc2020.txt.
+  Batches: stairs/handrails/guards/window-well (A), ceiling table + doors (B), smoke
+  alarms + 9.36 climate-zone envelope (C). Agent quotes spot-checked against the extract.
+- **Engine:** added fact-to-fact comparison (value_fact + offset) for tread depth vs run.
+  pytest suite (53 tests) caught a real dominance bug: a violation followed by a missing
+  fact in the same rule reported info_not_available, masking FAIL — fixed with explicit
+  status dominance.
+- **T2 (IFC):** fetch_models.sh (FZK-Haus etc.), extractor now does attribute->pset->Qto,
+  derives risers from Qto height/count, geometry bbox fallback for space height. Finding:
+  IfcStairFlight is rare in real exports (vendor psets / IfcStair only) — shapes Phase 2.
+- **T3 (PDF):** pdf_extractor.py drives claude CLI headless; every LLM fact capped at 0.89
+  (< 0.9 threshold) so all route to human review (EO1). Live run: all 5 drawing
+  annotations extracted, nothing invented, all capped.
+- **T4 (UI):** FastAPI backend (:3099) + Vite/React reviewer (:3029), both HTTPS. Live-
+  verified EO4 loop: uncertain handrail -> confirm -> PASS -> delete -> reverts, SHA moves
+  predictably. Ports registered in PORTS.md.
+- **T5 (export):** engine/export.py PDF + Excel, byte-deterministic; wired to /api/export
+  and run_check --export-pdf/--export-xlsx.
+- **T6:** docs/feasibility-evidence.md + docs/determinism_demo.sh (5 runs -> identical
+  SHA-256). The V1 verification story (3 encoding errors caught) is the headline evidence.
+- **T7:** docs/proposal-draft.md. RESEARCH RED FLAGS surfaced (business decisions, not
+  code): (1) the specific ISC challenge posting could not be found publicly — all EO1–EO7
+  wording is INTERPOLATED and must be verified against the real Challenge Notice; EO5
+  unknown. (2) Phase 2 normally requires a completed Phase 1; there is an "Entry at
+  Phase 2" pathway for TRL 5–9 solutions proven with outside funding (our evidence fits) —
+  but only if the specific Challenge Notice opens that option. (3) ISC needs a Canadian
+  for-profit incorporation (EcoWorks status pending). Phase 2 ceiling is ~$1M/2yr, so the
+  $475K/18mo plan fits comfortably.
+
 ## Next session
-- T2 (real IFC models) — extend extractor for geometry-derived facts
-- T1 (expand ruleset) — candidates already listed per-rule in verification_notes
+- VERIFY the real ISC challenge notice + EO wording before trusting the proposal EO table
+- Ontario OBC ruleset variant (differences already documented per-rule) for a local pilot
+- Partial-area/sloped-ceiling evaluation (needs area/topology facts)
+- Real-IFC hardening: vendor-pset mapping, i18n room-use classification
