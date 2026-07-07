@@ -23,7 +23,15 @@ import ifcopenshell.util.unit
 
 def _psets(entity) -> dict:
     try:
-        return el.get_psets(entity)
+        return el.get_psets(entity, psets_only=True)
+    except Exception:
+        return {}
+
+
+def _qtos(entity) -> dict:
+    """Quantity sets (e.g. Qto_StairFlightBaseQuantities) only."""
+    try:
+        return el.get_psets(entity, qtos_only=True)
     except Exception:
         return {}
 
@@ -43,6 +51,35 @@ def _mm(value, unit_scale: float):
     return round(value * unit_scale * 1000.0, 1)
 
 
+_GEOM_SETTINGS = None  # lazily created; stays None-able so geom failures skip silently
+
+
+def _bbox_z_extent_mm(entity):
+    """Bounding-box z-extent of an entity's geometry, in mm (world coords).
+
+    ifcopenshell.geom emits vertices in SI metres regardless of model units.
+    Returns None on ANY failure (geom unavailable, no representation, tess
+    error) — the caller must then leave the fact absent, never fabricate.
+    """
+    global _GEOM_SETTINGS
+    try:
+        import ifcopenshell.geom
+        if _GEOM_SETTINGS is None:
+            settings = ifcopenshell.geom.settings()
+            try:
+                settings.set("use-world-coords", True)  # ifcopenshell 0.8.x
+            except Exception:
+                settings.set(settings.USE_WORLD_COORDS, True)  # 0.7.x fallback
+            _GEOM_SETTINGS = settings
+        shape = ifcopenshell.geom.create_shape(_GEOM_SETTINGS, entity)
+        zs = shape.geometry.verts[2::3]
+        if not zs:
+            return None
+        return round((max(zs) - min(zs)) * 1000.0, 1)
+    except Exception:
+        return None
+
+
 def extract(ifc_path: str) -> dict:
     model = ifcopenshell.open(ifc_path)
     unit_scale = ifcopenshell.util.unit.calculate_unit_scale(model)  # -> metres
@@ -51,19 +88,36 @@ def extract(ifc_path: str) -> dict:
 
     for flight in model.by_type("IfcStairFlight"):
         psets = _psets(flight)
-        riser = flight.RiserHeight if hasattr(flight, "RiserHeight") else None
-        tread = flight.TreadLength if hasattr(flight, "TreadLength") else None
+        qtos = _qtos(flight)
+        # Preference order per value: direct attribute -> property set -> quantity set.
+        riser = getattr(flight, "RiserHeight", None)
+        tread = getattr(flight, "TreadLength", None)
+        n_risers = getattr(flight, "NumberOfRisers", None)
         riser = riser if riser is not None else _find_prop(psets, ["RiserHeight"])
         tread = tread if tread is not None else _find_prop(psets, ["TreadLength"])
+        n_risers = n_risers if n_risers is not None else _find_prop(psets, ["NumberOfRisers", "NumberOfRiser"])
+        riser = riser if riser is not None else _find_prop(qtos, ["RiserHeight"])
+        tread = tread if tread is not None else _find_prop(qtos, ["TreadLength"])
+        flight_height = _find_prop(qtos, ["Height"])  # Qto_StairFlightBaseQuantities
 
         attrs = {"service": "private"}  # v1 assumption for Part 9 dwellings; TODO: derive from occupancy
         src = f"{ifc_path}#{flight.GlobalId}"
         if riser is not None:
             attrs["riser_height_mm"] = {"value": _mm(riser, unit_scale), "confidence": 1.0, "source": src}
+        elif n_risers and flight_height is not None:
+            # Deterministic arithmetic on model-declared data — not a guess.
+            attrs["riser_height_mm"] = {
+                "value": round(_mm(flight_height, unit_scale) / int(n_risers), 1),
+                "confidence": 1.0,
+                "source": f"{src} (derived: Qto Height / NumberOfRisers)",
+            }
         if tread is not None:
             attrs["tread_run_mm"] = {"value": _mm(tread, unit_scale), "confidence": 1.0, "source": src}
+        if n_risers is not None:
+            attrs["number_of_risers"] = int(n_risers)
 
         width = _find_prop(psets, ["ClearWidth", "Width", "NominalWidth"])
+        width = width if width is not None else _find_prop(qtos, ["ClearWidth", "Width", "NominalWidth"])
         if width is not None:
             attrs["clear_width_mm"] = {"value": _mm(width, unit_scale), "confidence": 1.0, "source": src}
 
@@ -76,7 +130,10 @@ def extract(ifc_path: str) -> dict:
 
     for space in model.by_type("IfcSpace"):
         psets = _psets(space)
+        # Preference order: property set -> quantity set -> geometry (last resort).
         height = _find_prop(psets, ["Height", "CeilingHeight", "FinishCeilingHeight", "NetCeilingHeight"])
+        if height is None:
+            height = _find_prop(_qtos(space), ["Height", "NetCeilingHeight", "GrossCeilingHeight"])
         attrs = {}
         src = f"{ifc_path}#{space.GlobalId}"
         long_name = (getattr(space, "LongName", "") or "").lower()
@@ -87,6 +144,16 @@ def extract(ifc_path: str) -> dict:
                 break
         if height is not None:
             attrs["ceiling_height_mm"] = {"value": _mm(height, unit_scale), "confidence": 1.0, "source": src}
+        else:
+            # No declared height anywhere — fall back to tessellated geometry.
+            z_extent_mm = _bbox_z_extent_mm(space)
+            if z_extent_mm is not None:
+                attrs["ceiling_height_mm"] = {
+                    "value": z_extent_mm,
+                    "confidence": 1.0,
+                    "source": f"{src} (derived: geometry bbox z-extent (slab-to-slab, may exceed finished ceiling height))",
+                }
+            # else: fact stays absent -> engine reports INFO_NOT_AVAILABLE (never fabricate)
         entities.append({
             "entity_type": "room",
             "id": space.GlobalId,
