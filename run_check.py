@@ -4,6 +4,8 @@
 Usage:
   python3 run_check.py rules/nbc2020_part9_core.json samples/sample_dwelling_facts.json
   python3 run_check.py rules/nbc2020_part9_core.json --ifc path/to/model.ifc
+  python3 run_check.py rules/nbc2020_part9_core.json --pdf path/to/drawing.pdf
+Append --export-pdf and/or --export-xlsx to also write reports/last_report.{pdf,xlsx}.
 """
 
 import json
@@ -27,6 +29,9 @@ def main():
 
     if sys.argv[2] == "--ifc":
         from extractors.ifc_extractor import extract
+        facts = extract(sys.argv[3])
+    elif sys.argv[2] == "--pdf":
+        from extractors.pdf_extractor import extract
         facts = extract(sys.argv[3])
     else:
         with open(sys.argv[2]) as f:
@@ -58,6 +63,15 @@ def main():
     with open("reports/last_report.json", "w") as f:
         json.dump(report, f, indent=2)
     print("Full audit trail written to reports/last_report.json")
+
+    if "--export-pdf" in sys.argv:
+        from engine.export import to_pdf
+        to_pdf(report, "reports/last_report.pdf")
+        print("PDF report written to reports/last_report.pdf")
+    if "--export-xlsx" in sys.argv:
+        from engine.export import to_xlsx
+        to_xlsx(report, "reports/last_report.xlsx")
+        print("Excel report written to reports/last_report.xlsx")
 
 
 if __name__ == "__main__":
