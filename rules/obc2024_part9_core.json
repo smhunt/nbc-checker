@@ -1,0 +1,838 @@
+{
+  "ruleset_id": "obc2024-part9-core",
+  "code_edition": "OBC 2024 (O. Reg. 163/24)",
+  "schema_version": "0.2.0",
+  "description": "Ontario Building Code Part 9 rules. Ontario values differ from the NBC in several places (stair run minimum, ceiling height structure, egress window sill height). Targets the current 2024 OBC; note where the older 2012 OBC (O. Reg. 332/12, which applied to the sample permit) differed.",
+  "research_context": {
+    "jurisdiction": "Ontario",
+    "in_force_from": "2025-01-01",
+    "base_code": "The 2024 OBC (O. Reg. 163/24 as amended by O. Reg. 203/24) adopts the 2020 National Building Code as its base, modified by the Ontario Amendment Document (May 15, 2024). Per the official MMAH deck 'Introducing Key Changes to Part 9, Housing and Small Buildings' (Aug 2024): 'The changes are intended to reduce existing variation with the National Building Code (NBC), align with new provisions introduced through 2020 National Construction Codes, and address Ontario-Specific changes.' Consequence: where the Ontario Amendment Document is silent, the 2024 OBC value equals the NBC 2020 value. Ontario-specific variations that remain (exit-stair 920 mm guard, >10 m 1500 mm guard, egress-window max sill height and per-floor-level trigger) are encoded and flagged as DIFFERS.",
+    "key_edition_shift": "Several values that DIFFERED from the NBC under the 2012 OBC were HARMONIZED in 2024: (a) private stair minimum run rose 210 mm -> 255 mm (matches NBC); (b) ceiling-height Article 9.5.3.1 moved from the old Ontario 2300 mm / 75%-of-area structure to the NBC 2020 2100 mm area-based Table 9.5.3.1 structure (adding secondary-suite Sentences (2)/(3) at 1.95 m / 1.85 m verbatim from NBC). The sample permit PA-2026-0417 was designed under the 2012 OBC, so its ceiling heights should be read against 2300/75%, not the 2024 values below.",
+    "verification_limits": "e-Laws (ontario.ca/laws/regulation/r24163) is JavaScript-rendered and CanLII returned HTTP 403, so the 2024 Division-B technical tables could not be quoted verbatim from a primary source. Values were verified against: the official MMAH 2024 OBC Part 9 change deck; the City of Markham Building Standards 'Builder Tip No. 106 - Updated to 2024 OBC' (Jan 1 2025); renrail.com 2024 railing/guard pages; and buildingcode.online (a 2012/2017 OBC reproduction, used only where the value is unchanged into 2024). Rules whose 2024 value could NOT be confirmed against an authoritative 2024 source carry verified_against_code_text=false with the gap explained in notes."
+  },
+  "rules": [
+    {
+      "rule_id": "OBC-9.8.4.1-rise-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.1 and Table 9.8.4.1",
+      "title": "Stair riser height — private stairs",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "riser_height_mm",
+            "op": ">=",
+            "value": 125
+          },
+          {
+            "fact": "riser_height_mm",
+            "op": "<=",
+            "value": 200
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "The rise, which is measured as the vertical nosing-to-nosing distance, shall conform to Table 9.8.4.1. [Table 9.8.4.1., Private stairs: Max. Rise 200 mm, Min. Rise 125 mm]",
+        "sources": [
+          "City of Markham Building Standards, Builder Tip No. 106 'Dimensions For Runs And Rectangular Treads - Housing', Issue No. 106, January 1, 2025, Updated to 2024 OBC, https://www.markham.ca/sites/default/files/2024-12/Builder%20Tip%20No.%20106%20-%20Dimensions%20For%20Runs%20And%20Rectangular%20Treads%20-%20Housing.pdf (confirms Table 9.8.4.1 governs stair rise and run under the 2024 OBC)",
+          "buildingcode.online 9.8.4.1 (2012/2017 OBC reproduction): private rise 125-200 mm, https://www.buildingcode.online/1314.html",
+          "O. Reg. 163/24, https://www.ontario.ca/laws/regulation/r24163"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC private rise 125-200 mm vs NBC 2020 125-200 mm — SAME as NBC. Rise was never an Ontario variation from the NBC; the value is stable across the 2012 and 2024 OBC and equals the NBC 2020 base (Table 9.8.4.1 is inherited from the NBC base under the harmonized 2024 OBC). The specific rise columns were not re-quoted from a primary 2024 table (e-Laws is JS-rendered); confidence in 125-200 is nonetheless high given three-way NBC/2012-OBC/2024-OBC agreement."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-run-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(1) and Table 9.8.4.1",
+      "title": "Stair tread run — private stairs",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "tread_run_mm",
+            "op": ">=",
+            "value": 255
+          },
+          {
+            "fact": "tread_run_mm",
+            "op": "<=",
+            "value": 355
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "9.8.4.2.(1) The run for rectangular treads shall conform to Table 9.8.4.1. [Table 9.8.4.1., Private stairs: Max. Run 355 mm, Min. Run 255 mm] ... 'As of January 1, 2022, all permits issued for houses and individual dwelling units that include the construction of straight flights of stairs must conform to the dimensional requirements of Table 9.8.4.1. The minimum run dimension has been increased from 210 mm to 255 mm.'",
+        "sources": [
+          "City of Markham Building Standards, Builder Tip No. 106, Jan 1 2025, Updated to 2024 OBC (direct quote of the 210->255 mm change and Table 9.8.4.1 private run 255-355 mm), https://www.markham.ca/sites/default/files/2024-12/Builder%20Tip%20No.%20106%20-%20Dimensions%20For%20Runs%20And%20Rectangular%20Treads%20-%20Housing.pdf",
+          "O. Reg. 163/24, https://www.ontario.ca/laws/regulation/r24163"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC min run 255 mm vs NBC 2020 min run 255 mm — SAME as NBC in the 2024 edition. CRITICAL EDITION SHIFT: the OLDER 2012 OBC (O. Reg. 332/12) allowed a 210 mm minimum private run — that value DIFFERED from the NBC 255 mm and applied to the sample permit PA-2026-0417. Ontario harmonized to 255 mm effective Jan 1 2022, carried into the 2024 OBC. Depth vs run is a separate check (OBC-9.8.4.2-tread-depth). This is the single clearest example of Ontario abandoning a long-standing variation to match the NBC."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-tread-depth",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(2)",
+      "title": "Tread depth — rectangular treads (relative to run)",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {}
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "tread_depth_mm",
+            "op": ">=",
+            "value_fact": "tread_run_mm",
+            "offset": 0
+          },
+          {
+            "fact": "tread_depth_mm",
+            "op": "<=",
+            "value_fact": "tread_run_mm",
+            "offset": 25
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "9.8.4.2.(2) The depth of a rectangular tread shall be not less than its run and not more than its run plus 25 mm.",
+        "sources": [
+          "City of Markham Building Standards, Builder Tip No. 106, Jan 1 2025, Updated to 2024 OBC (quotes Sentence 9.8.4.2.(2) verbatim), https://www.markham.ca/sites/default/files/2024-12/Builder%20Tip%20No.%20106%20-%20Dimensions%20For%20Runs%20And%20Rectangular%20Treads%20-%20Housing.pdf"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC depth = run to run+25 mm vs NBC 2020 Sentence 9.8.4.2.(2) 'not less than its run and not more than its run plus 25 mm' — SAME as NBC (fact-to-fact comparison via value_fact + offset). NOTE the 2012 OBC instead published an absolute minimum tread depth of 235 mm in its Table 9.8.4.1; the 2024 OBC dropped that in favour of the NBC run-relative sentence, so do not check depth against 235 mm for a 2024 project."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.2.1-width-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.1.(4)",
+      "title": "Stair width — stairs within dwelling units",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 860
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": "At least one stair between each floor level within a dwelling unit, and exterior stairs serving a single dwelling unit except required exit stairs, shall have a width of not less than 860 mm. [NBC 2020 base text of Sentence 9.8.2.1.(4); 2024 OBC value not re-quoted from a primary Ontario source]",
+        "sources": [
+          "NBC 2020 Sentence 9.8.2.1.(4) (the 2024 OBC base code) — 860 mm",
+          "O. Reg. 163/24, https://www.ontario.ca/laws/regulation/r24163 (technical table not machine-readable via e-Laws)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "Encoded value 860 mm is the NBC 2020 base value and is NOT flagged as changed in the MMAH 2024 Part 9 change deck, so it is very likely SAME as NBC. verified_against_code_text=false because the 2024 OBC Sentence 9.8.2.1.(4) text/width figure was not obtained from an authoritative 2024 source (e-Laws JS-rendered; the change deck only lists deltas, not retained values). KNOWN OVER-STRICTNESS carried from the NBC set: the code requires only AT LEAST ONE stair between floor levels to meet 860 mm; this rule checks every private flight."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.2.2-headroom-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.2.(3)",
+      "title": "Headroom over stairs — stairs serving a single dwelling unit",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "headroom_mm",
+            "op": ">=",
+            "value": 1950
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "The clear height over stairs serving a single dwelling unit or a house with a secondary suite including their common spaces shall not be less than 1 950 mm. [Sentence 9.8.2.2.(3), NBC 2020 base retained by the 2024 OBC] ... MMAH 2024 change deck, 'Height Over Stairs (Article 9.8.2.2.)': 'Sentence (4) has been added that indicates the clear height over stairs that are located under beams and ducting in secondary suites shall not be less than 1.85 m.'",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9, Housing and Small Buildings', 2024 Edition of Ontario's Building Code (Aug 2024), slide 'Height Over Stairs (Article 9.8.2.2.)', https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Sentence 9.8.2.2.(3) — 1 950 mm (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC single-dwelling-unit headroom 1950 mm vs NBC 2020 1950 mm — SAME as NBC. The MMAH deck confirms Article 9.8.2.2 in the 2024 OBC follows the NBC 2020 structure (it only ADDS the secondary-suite Sentence (4) at 1.85 m under beams/ducts), so the 1950 mm single-dwelling value and the 2050 mm general value (Sentence (2), not encoded here) carry over from the NBC base unchanged."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.7.4-handrail-height",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.7.4.(2)",
+      "title": "Handrail height above stair nosing",
+      "applies_to": {
+        "entity_type": "handrail",
+        "where": {}
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "height_above_nosing_mm",
+            "op": ">=",
+            "value": 865
+          },
+          {
+            "fact": "height_above_nosing_mm",
+            "op": "<=",
+            "value": 1070
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Required handrails shall be 865 mm to 1 070 mm high [Sentence 9.8.7.4.(2)]. Ontario 2024/2025 handrail height for residential stairs and ramps: '865 mm – 1,070 mm (34 in – 42 in)'.",
+        "sources": [
+          "renrail.com, 'Railing Height Requirements in Ontario (2025)' (references the 2024 Ontario Building Code), https://renrail.com/railing-height-requirements-in-ontario/",
+          "NBC 2020 Sentence 9.8.7.4.(2) — 865-1070 mm (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC handrail height 865-1070 mm vs NBC 2020 865-1070 mm — SAME as NBC in the current edition. HISTORY: Ontario's earlier maximum was 965 mm; Ontario raised the maximum to 1070 mm (aligning with the NBC) in the 2012-OBC 2022 amendment cycle, and the 2024 OBC retains 1070 mm. Do not trust older secondary sources quoting 965 mm. Applies to REQUIRED handrails; supplementary handrails are exempt (needs an is_required fact to encode — v1 assumes every modeled handrail is required)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.7.1-handrail-required-interior",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentences 9.8.7.1.(1) and (3)(a)",
+      "title": "Handrail required — interior private stairs with more than 2 risers",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private",
+          "location": "interior",
+          "number_of_risers": {
+            "op": ">",
+            "value": 2
+          }
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_handrail",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": "Handrails shall be installed on stairs and ramps in accordance with Table 9.8.7.1. ... Handrails are not required for stairs and ramps serving a single dwelling unit, where a) interior stairs have not more than 2 risers [NBC 2020 base text of Sentences 9.8.7.1.(1) and (3)(a); 2024 OBC not re-quoted from a primary source]",
+        "sources": [
+          "NBC 2020 Sentences 9.8.7.1.(1) and (3)(a) (the 2024 OBC base)",
+          "O. Reg. 163/24, https://www.ontario.ca/laws/regulation/r24163 (table not machine-readable via e-Laws)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "Handrail-required thresholds (interior >2 risers, exterior >3 risers) are the NBC 2020 base values and are not flagged as changed in the MMAH 2024 change deck — likely SAME as NBC. verified_against_code_text=false because Article 9.8.7.1 and Table 9.8.7.1 were not obtained verbatim from an authoritative 2024 Ontario source. The >2-riser threshold is encoded as an applicability trigger (not an engine exception, which would grant a blanket PASS)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.3-guard-height-interior-unit",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.3.(2)",
+      "title": "Guard height — guards within dwelling units",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "interior_dwelling_unit"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 900
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Guards within dwelling units ... shall be not less than 900 mm high. [OBC 9.8.8.3(2)]",
+        "sources": [
+          "renrail.com, 'OBC 2024 Guard Height Requirements' (quotes OBC 9.8.8.3(2): 'Guards within dwelling units...shall be not less than 900 mm high'), https://renrail.com/obc-2024-guard-height-requirements/",
+          "buildingcode.online 9.8.8.3 (2012/2017 OBC reproduction) — dwelling-unit guards 900 mm, https://www.buildingcode.online/1339.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC interior in-dwelling-unit guard 900 mm vs NBC 2020 Sentence 9.8.8.3.(2) 900 mm — SAME as NBC. The 900 mm interior value applies regardless of fall height (contrast the exterior single-dwelling case, which is 900 only where the walking surface is <=1800 mm above finished ground)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.3-guard-height-ext-single-low",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.3.(3)",
+      "title": "Guard height — exterior guard serving one dwelling unit, walking surface not more than 1800 mm above finished ground",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "exterior_single_dwelling",
+          "fall_height_mm": {
+            "op": "<=",
+            "value": 1800
+          }
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 900
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Exterior guards serving not more than one dwelling unit ... shall be not less than 900 mm high where the walking surface served by the guard is not more than 1 800 mm above finished ground level. [OBC 9.8.8.3(3)]",
+        "sources": [
+          "renrail.com, 'OBC 2024 Guard Height Requirements' (quotes OBC 9.8.8.3(3)), https://renrail.com/obc-2024-guard-height-requirements/",
+          "buildingcode.online 9.8.8.3 (2012/2017 OBC reproduction), https://www.buildingcode.online/1339.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC exterior single-dwelling guard 900 mm (surface <=1800 mm above ground) vs NBC 2020 Sentence 9.8.8.3.(3) 900 mm — SAME as NBC. fall_height_mm here means the height of the walking surface above finished ground level. Above 1800 mm the default 1070 mm rule (OBC-9.8.8.3-guard-height-default) governs."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.3-guard-height-default",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.3.(1)",
+      "title": "Guard height — all other guards (default)",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "other"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 1070
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "All guards shall be not less than 1 070 mm high [OBC 9.8.8.3(1)].",
+        "sources": [
+          "renrail.com, 'OBC 2024 Guard Height Requirements' (quotes OBC 9.8.8.3(1): 'All guards shall be not less than 1,070 mm high'), https://renrail.com/obc-2024-guard-height-requirements/",
+          "buildingcode.online 9.8.8.3 (2012/2017 OBC reproduction), https://www.buildingcode.online/1339.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC default guard 1070 mm vs NBC 2020 Sentence 9.8.8.3.(1) 1070 mm — SAME as NBC. Ontario then ADDS sentences the NBC lacks: 920 mm at required exit stairs and 1500 mm for exterior stairs/landings more than 10 m above grade (see the two Ontario-specific guard rules below)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.3-guard-height-exit-stair",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.3 (Ontario-specific exit-stair sentence)",
+      "title": "Guard height — required exit stairs (Ontario-specific)",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "exit_stair"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 920
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "The height of guards ... shall be not less than 920 mm measured vertically to the top of the guard from a line drawn through the outside edges of the stair nosings and 1 070 mm around landings. [OBC exit-stair guard sentence]",
+        "sources": [
+          "buildingcode.online 9.8.8.3 Height of Guards (Ontario, quotes the 920 mm exit-stair / 1070 mm landing sentence), https://www.buildingcode.online/1339.html",
+          "Ontario.ca, 'Changes to 2012 Building Code — Stairs, guards and handrails', https://www.ontario.ca/document/changes-2012-building-code/stairs-guards-and-handrails"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 920 mm minimum guard height on required exit stairs (measured from a line through the nosings; 1070 mm around landings) — DIFFERS from NBC: the NBC has no separate 920 mm exit-stair guard sentence (it uses 1070 mm as the general value). This is a retained Ontario-specific provision. Encode requires a guard_context value 'exit_stair' the current extractors do not yet emit, so on the sample facts this rule simply does not fire (no sample guard carries that context)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.3-guard-height-high-above-grade",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.3.(3.1) (Ontario-specific)",
+      "title": "Guard height — exterior stairs and landings more than 10 m above grade (Ontario-specific)",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "guard_context": "exterior_high_above_grade",
+          "height_above_grade_mm": {
+            "op": ">",
+            "value": 10000
+          }
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 1500
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "The height of guards for exterior stairs and landings more than 10 m above adjacent ground level shall be not less than 1 500 mm measured vertically to the top of the guard from the surface of the landing or a line drawn through the outside edges of the stair nosings. [OBC 9.8.8.3(3.1)]",
+        "sources": [
+          "renrail.com, 'OBC 2024 Guard Height Requirements' (quotes OBC 9.8.8.3(3.1): exterior stairs/landings >10 m above grade -> not less than 1,500 mm), https://renrail.com/obc-2024-guard-height-requirements/",
+          "buildingcode.online 9.8.8.3 (Ontario), https://www.buildingcode.online/1339.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 1500 mm guard for exterior stairs/landings more than 10 m above adjacent ground — DIFFERS from NBC: the NBC caps at 1070 mm and has no >10 m escalation. Ontario-specific sentence 9.8.8.3(3.1). Requires facts (guard_context='exterior_high_above_grade' and height_above_grade_mm) the current extractors do not emit, so this rule does not fire on the sample facts."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.5-guard-openings",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.5.(1)",
+      "title": "Openings through guards — 100 mm sphere rule",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {}
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "max_opening_mm",
+            "op": "<",
+            "value": 100
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Openings through guards shall be of a size that prevents the passage of a spherical object having a diameter of 100 mm [Sentence 9.8.8.5.(1)]. MMAH 2024 deck 'Openings in Guards (Article 9.8.8.5.)': 'New Sentence (2) has been added to clarify that the triangular openings formed by the stair risers, stair treads and the bottom element of a required guard shall be of a size that prevents the passage of a 150 mm diameter sphere.'",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slides 'Openings in Guards (Article 9.8.8.5.)' and the accompanying 100 mm / 150 mm sphere diagram, https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Sentence 9.8.8.5.(1) — 100 mm sphere (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 100 mm sphere rule vs NBC 2020 100 mm sphere — SAME as NBC. Operator is '<' (an opening admitting a 100 mm sphere does not 'prevent passage', so max_opening_mm must be strictly less than 100). The MMAH deck confirms the 2024 OBC ADDED Sentence (2), a 150 mm sphere limit on the triangular opening formed by riser/tread/bottom guard element — that too matches the NBC 2020 provision (encoded separately as OBC-9.8.8.5-triangle-openings)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.8.5-triangle-openings",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.8.5.(2)",
+      "title": "Triangular openings at stair risers/treads/guard — 150 mm sphere rule",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {
+          "at_stair_flight": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "max_triangle_opening_mm",
+            "op": "<",
+            "value": 150
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "New Sentence (2) has been added to clarify that the triangular openings formed by the stair risers, stair treads and the bottom element of a required guard shall be of a size that prevents the passage of a 150 mm diameter sphere. This requirement does not apply to industrial occupancies.",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slide 'Openings in Guards (Article 9.8.8.5.)', https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Sentence 9.8.8.5.(2) — 150 mm sphere for stair-triangle openings (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 150 mm triangle sphere vs NBC 2020 Sentence 9.8.8.5.(2) 150 mm — SAME as NBC (Ontario adopted the NBC 2020 sentence in the 2024 edition). Requires new facts (at_stair_flight, max_triangle_opening_mm) the extractors do not yet emit, so this does not fire on the sample facts. Industrial-occupancy exclusion not encoded (out of dwelling scope)."
+      }
+    },
+    {
+      "rule_id": "OBC-9.8.4.9-open-risers",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.9 (new)",
+      "title": "Open risers prohibited except for stairs serving a single dwelling unit",
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "shared"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_open_risers",
+            "op": "==",
+            "value": false
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Sentence (1) of this new Article prohibits open stair risers in Part 9 buildings with a few exceptions. Sentence (2) permits open risers for the following: interior and exterior stairs that serve a single dwelling unit or a house with a secondary suite, fire escape stairs, stairs that are principally used for maintenance, stairs that serve service rooms, and stairs that serve industrial occupancies other than storage garages.",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slide 'Open Risers (Article 9.8.4.9.)', https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 9.8.4.9 open-riser prohibition — SAME as NBC (this is the NBC 2020 provision; the MMAH deck calls it a 'new Article' relative to the 2012 OBC and notes it is 'consistent with the 2012/2024 OBC Part 3 restrictions'). Encoded only for shared/exit/public stairs (service='shared'), because Sentence (2) exempts stairs serving a single dwelling unit — so private stairs are permitted open risers and are intentionally out of this rule's applicability. Requires a has_open_risers fact the extractors do not yet emit, so on the sample this yields info_not_available for the one shared stair."
+      }
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1",
+      "title": "Bedroom egress window — unobstructed open area and minimum dimension",
+      "applies_to": {
+        "entity_type": "window",
+        "where": {
+          "room_use": "bedroom",
+          "is_egress_window": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "unobstructed_open_area_m2",
+            "op": ">=",
+            "value": 0.35
+          },
+          {
+            "fact": "min_opening_dimension_mm",
+            "op": ">=",
+            "value": 380
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "OBC 9.9.10.1 is triggered per FLOOR LEVEL containing a bedroom, and is satisfied by at least one outside window OR an exterior door openable from the inside without the use of tools. A bedroom served by a conforming exterior door, or on a floor level where another bedroom window already provides the required egress, does not itself need a window. Not machine-encoded per-window (needs a floor-level topology fact); encoded here per-window as the conservative case.",
+          "fact": "has_exterior_door",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "unit_system": "mixed",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Every floor level containing a bedroom in a suite shall be provided with at least one outside window ... openable from the inside without the use of tools ... [providing] an individual, unobstructed open portion having a minimum area of 0.35 m2 with no dimension less than 380 mm ... and maintain the required opening ... without the need for additional support.",
+        "sources": [
+          "buildingcode.online 9.9.10.1 'Egress Windows or Doors for Bedrooms' (Ontario), https://www.buildingcode.online/1405.html",
+          "The Great Egress Co., 'Ontario Egress Requirements' (current OBC), https://www.thegreategressco.ca/pages/ontario-egress-requirements",
+          "O. Reg. 163/24, https://www.ontario.ca/laws/regulation/r24163"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 0.35 m2 / 380 mm minimum dimension vs NBC 2020 0.35 m2 / 380 mm — SAME as NBC on the size numbers. But the surrounding STRUCTURE DIFFERS from NBC: (1) OBC triggers PER FLOOR LEVEL containing a bedroom, whereas NBC triggers per bedroom; (2) OBC says 'without the use of tools', whereas NBC says 'without the use of keys, tools or special knowledge'; (3) OBC adds a maximum sill height (encoded separately as OBC-9.9.10.1-egress-window-sill) that the NBC lacks. Size values are longstanding Ontario provisions corroborated across current (2024/2026) Ontario sources."
+      }
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-sill",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (maximum sill height)",
+      "title": "Bedroom egress window — maximum sill height above floor (above-grade)",
+      "applies_to": {
+        "entity_type": "window",
+        "where": {
+          "room_use": "bedroom",
+          "is_egress_window": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "sill_height_above_floor_mm",
+            "op": "<=",
+            "value": 1000
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Except for basement areas, the window required in Sentence (1) shall have a maximum sill height of 1 000 mm above the floor.",
+        "sources": [
+          "buildingcode.online 9.9.10.1 'Egress Windows or Doors for Bedrooms' (Ontario) — 'maximum sill height of 1 000 mm above the floor', https://www.buildingcode.online/1405.html",
+          "Egress window guidance corroborating above-grade sill cap 1000 mm / basement 1500 mm (current OBC), https://www.thegreategressco.ca/pages/ontario-egress-requirements"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC maximum egress-window sill height 1000 mm above floor (above-grade bedrooms) — DIFFERS from NBC: the NBC 2020 sets NO maximum sill height (its Appendix note recommends <=1.5 m as advisory only). This is a genuine Ontario-specific safety requirement. Basement bedrooms use a 1500 mm cap instead (not encoded — needs a floor-level/is-basement fact). Requires a sill_height_above_floor_mm fact the current extractors do not emit, so on the sample this reports info_not_available for the egress windows — correctly routing an OBC-specific unmodelled fact to human review rather than guessing."
+      }
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-window-well-clearance",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (window well)",
+      "title": "Egress window well — clearance in front of window",
+      "applies_to": {
+        "entity_type": "window",
+        "where": {
+          "is_egress_window": true,
+          "opens_into_window_well": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "window_well_clearance_mm",
+            "op": ">=",
+            "value": 550
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": "Where the window required in Sentence (1) opens into a window well, a clearance of not less than 550 mm shall be provided in front of the window. [2012/2017 OBC reproduction; 2024 value not confirmed]",
+        "sources": [
+          "buildingcode.online 9.9.10.1 (2012/2017 OBC reproduction) — window well clearance 550 mm, https://www.buildingcode.online/1405.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC 2012/2017 window-well clearance 550 mm DIFFERS from NBC 2020's 760 mm. verified_against_code_text=false: the 550 mm value comes from a 2012/2017 OBC reproduction and I could NOT confirm whether the 2024 OBC retained 550 mm or harmonized to the NBC 760 mm (the egress-window article is a strong Ontario variation, but the 2024 verbatim text was not obtained). Treat 550 as a candidate lower bound pending a primary-source check of the 2024 Article 9.9.10.1; if the project must be conservative, check against 760 mm. On the sample, window-b2 (clearance 800 mm) passes either threshold."
+      }
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-habitable",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(1) and Table 9.5.3.1",
+      "title": "Ceiling height — habitable rooms (living, dining, kitchen, bedrooms)",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": [
+            "living_room",
+            "dining_room",
+            "kitchen",
+            "bedroom",
+            "master_bedroom"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area allowance (NBC 2020 Table 9.5.3.1 structure, inherited by the 2024 OBC): 2100 mm need only be provided over the lesser of the area of the space or a per-room-type area (living 10.0 m2, dining 5.2 m2, kitchen 3.2 m2, master bedroom 4.9 m2, other bedroom 3.5 m2), contiguous with the entry. Not machine-encoded — needs area facts. ceiling_height_mm is the height over the principal entry-contiguous area."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "In secondary suites the 1.95 m minimum of Sentence 9.5.3.1.(2) governs instead of Table 9.5.3.1 — checked by OBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": false,
+      "verification_notes": {
+        "quote": "The ceiling heights and clear heights in rooms or spaces in residential occupancies ... shall conform to Table 9.5.3.1. [2024 OBC inherits the NBC 2020 Table 9.5.3.1: habitable rooms 2.1 m over the lesser of the area of the space or the per-room-type area. The verbatim 2024 Ontario table rows were NOT obtained from a primary source.]",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slide 'Ceiling Heights of Rooms or Spaces (Article 9.5.3.1.)' — confirms 9.5.3.1 was amended to ADD the NBC-2020-style secondary-suite Sentences (2)/(3) at 1.95 m / 1.85 m, indicating the article now follows the NBC 2020 structure, https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Table 9.5.3.1 (the 2024 OBC base) — 2100 mm area-based",
+          "buildingcode.online 9.5.3.1 (2012/2017 OBC reproduction) — shows the SUPERSEDED Ontario 2300 mm / 75% structure, https://www.buildingcode.online/1267.html"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "CRITICAL JURISDICTION/EDITION DIFFERENCE. OBC 2024 habitable ceiling 2100 mm area-based vs NBC 2020 2100 mm area-based — SAME as NBC in the current edition. BUT the OLDER 2012 OBC (O. Reg. 332/12) used a DIFFERENT structure: 2300 mm over >=75% of the floor area (2100 mm minimum at any point) for living/dining/kitchen, and a 50%-at-2300 rule for bedrooms — which DIFFERED sharply from the NBC. The sample permit PA-2026-0417 was designed under the 2012 OBC and should be read against 2300/75%. verified_against_code_text=false: strong evidence (MMAH deck shows 9.5.3.1 restructured with the NBC-2020 secondary-suite sentences; overarching harmonization principle) points to 2100 area-based for 2024, but the verbatim 2024 Table 9.5.3.1 rows could not be pulled from a primary Ontario source (e-Laws JS-rendered, CanLII 403). Do not treat 2100 as confirmed until the 2024 table is checked."
+      }
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-secondary-suite",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(2)",
+      "title": "Ceiling height — rooms and spaces in secondary suites",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "in_secondary_suite": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 1950
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Sentence 9.5.3.1.(3) permits clear heights under beams and ducting in secondary suites down to 1.85 m; a localized 1850-1950 mm reading under a beam or duct is not a violation (not separately encoded; needs a clear_height_under_beams_mm fact)."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "This Article has been amended to include two new Sentences ... Sentence (2) has been added that indicates ceiling heights in secondary suites shall be not less than 1.95 m. Sentence (3) has been added that indicates clear heights under beams and ducting in secondary suites shall be not less than 1.85 m.",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slide 'Ceiling Heights of Rooms or Spaces (Article 9.5.3.1.)' (direct quote of the new Sentences (2)/(3)), https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Sentences 9.5.3.1.(2)/(3) — 1.95 m / 1.85 m (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC secondary-suite ceiling 1.95 m (1950 mm) vs NBC 2020 Sentence 9.5.3.1.(2) 1.95 m — SAME as NBC. This is one of the flagship 2024 harmonization additions: the MMAH deck quotes it verbatim, so it is directly verified. It REPLACES the Table 9.5.3.1 row values inside secondary suites (Sentence (1) opens 'Except as provided in Sentences (2) and (3)'), which is why OBC-9.5.3.1-ceiling-habitable carries a matching in_secondary_suite exception. Sample secondary-suite bedroom (1980 mm) passes."
+      }
+    },
+    {
+      "rule_id": "OBC-9.10.19.3-alarm-each-storey",
+      "provision": "OBC 2024 (O. Reg. 163/24) Clause 9.10.19.3.(1)(a)",
+      "title": "Smoke alarm on each storey of a dwelling unit, including basements",
+      "applies_to": {
+        "entity_type": "storey",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "Within dwelling units, sufficient smoke alarms shall be installed so that a) there is at least one smoke alarm installed on each storey, including basements [Clause 9.10.19.3.(1)(a), NBC 2020 base retained by the 2024 OBC].",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC, slide 'Interconnection of Smoke Alarms (Article 9.10.19.5.)' — confirms Subsection 9.10.19 in the 2024 OBC follows the NBC 2020 structure (adds Sentence 9.10.19.5.(2) permitting wireless interconnection in a house with a secondary suite), https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Clause 9.10.19.3.(1)(a) — smoke alarm on each storey (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC smoke alarm on each storey (including basements) vs NBC 2020 Clause 9.10.19.3.(1)(a) — SAME as NBC. The MMAH deck confirms Subsection 9.10.19 harmonized with the NBC 2020 in the 2024 OBC (the only highlighted change is permitting wireless interconnection for houses with a secondary suite). Sample basement storey lacks a smoke alarm -> FAIL, matching NBC behaviour."
+      }
+    },
+    {
+      "rule_id": "OBC-9.10.19.3-alarm-each-sleeping-room",
+      "provision": "OBC 2024 (O. Reg. 163/24) Subclause 9.10.19.3.(1)(b)(i)",
+      "title": "Smoke alarm in each sleeping room within a dwelling unit",
+      "applies_to": {
+        "entity_type": "sleeping_room",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "b) on any storey of a dwelling unit containing sleeping rooms, a smoke alarm is installed i) in each sleeping room [Subclause 9.10.19.3.(1)(b)(i), NBC 2020 base retained by the 2024 OBC].",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC (confirms 9.10.19 harmonized with the NBC 2020), https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Subclause 9.10.19.3.(1)(b)(i) — alarm in each sleeping room (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC smoke alarm IN each sleeping room vs NBC 2020 Subclause 9.10.19.3.(1)(b)(i) — SAME as NBC. Encoded as a per-room presence fact."
+      }
+    },
+    {
+      "rule_id": "OBC-9.10.19.3-alarm-outside-sleeping-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Subclause 9.10.19.3.(1)(b)(ii)",
+      "title": "Smoke alarm between sleeping rooms and the remainder of the storey",
+      "applies_to": {
+        "entity_type": "sleeping_area",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm_outside_sleeping_rooms",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "b) on any storey of a dwelling unit containing sleeping rooms, a smoke alarm is installed ... ii) in a location between the sleeping rooms and the remainder of the storey, and if the sleeping rooms are served by a hallway, the smoke alarm shall be located in the hallway [Subclause 9.10.19.3.(1)(b)(ii), NBC 2020 base retained by the 2024 OBC].",
+        "sources": [
+          "MMAH, 'Introducing Key Changes to Part 9', 2024 OBC (confirms 9.10.19 harmonized with the NBC 2020), https://www.codenews.ca/docs/Ontario/OBC2024/Slide%20Deck%202024%20OBC%20Div%20B%20Part%209%20Housing%20and%20Small%20Buildings.pdf",
+          "NBC 2020 Subclause 9.10.19.3.(1)(b)(ii) (the 2024 OBC base)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (OBC research agent; web research against 2024 OBC materials — not a code official)",
+        "notes": "OBC smoke alarm between the sleeping rooms and the remainder of the storey vs NBC 2020 Subclause 9.10.19.3.(1)(b)(ii) — SAME as NBC. The conditional 'if served by a hallway, locate in the hallway' constrains WHERE the alarm sits (needs hallway topology) and is not encoded; the fact is read as 'alarm present in the code-compliant location'."
+      }
+    }
+  ]
+}
