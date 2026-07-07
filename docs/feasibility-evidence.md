@@ -96,6 +96,16 @@ Testing the IFC extractor against real open house models (KIT FZK-Haus, building
 - **Partial-area and sloped-ceiling provisions** are acknowledged in rule notes but not yet machine-evaluated (they need area/topology facts).
 - **LLM extraction accuracy** is mitigated structurally, not by trust: every LLM fact is human-gated by the confidence cap.
 
+## 7a. Addendum — validated on a real Ontario permit (2026-07-07)
+
+After the initial build, the pipeline was tested on a **genuine Ontario building-permit drawing** (a change of use, fish market → dwelling). This drove three additions and produced a case study (`docs/casestudy-real-permit.md`):
+
+- **Ontario OBC 2024 ruleset** (`rules/obc2024_part9_core.json`, 23 rules) — the plan is Ontario, so the NBC ruleset was the wrong jurisdiction. The OBC variant documents every difference (Ontario-only 920 mm exit-stair and 1500 mm high guards; egress-window 1000 mm max sill; and the 2024 harmonization of stair run and ceiling heights to NBC values).
+- **Tiled high-DPI PDF extraction** — whole-sheet extraction got 3 facts from the dense 1/8" sheet; 3×3 tiling at 200 DPI got **17 facts (~6×)**, inventing nothing.
+- **Renovation scoping** — `scope: new_work_only` skips existing-to-remain elements.
+
+Outcome: every LLM-extracted value routed to human review; **no AI number produced a pass/fail** on real input (EO1 held). The extractor flagged a tread run of 254 mm, 1 mm under the OBC 255 mm minimum — the exact borderline a reviewer needs surfaced. Test suite grew to **65 tests**, all passing.
+
 ## 8. Reproduce this evidence
 
 ```bash

@@ -1,8 +1,18 @@
 import { useState } from 'react'
 
-export const APP_VERSION = '0.4.0'
+export const APP_VERSION = '0.5.0'
 
 export const CHANGELOG = [
+  {
+    version: '0.5.0',
+    date: '2026-07-07',
+    changes: [
+      'Ontario OBC 2024 ruleset variant — correct jurisdiction, documents every OBC-vs-NBC difference',
+      'High-DPI tiled PDF extraction — ~6× more facts from real permit sheets, confidence cap preserved',
+      'Renovation scoping (new-work-only) skips existing-to-remain elements',
+      'Case study: a real Ontario permit drawing run end to end',
+    ],
+  },
   {
     version: '0.4.0',
     date: '2026-07-07',
@@ -43,14 +53,19 @@ export const ROADMAP = [
     category: 'In Progress',
     icon: '🚧',
     items: [
-      'Report export (PDF / JSON) for permit submission packages',
-      'PDF drawing extractor (LLM-assisted, confidence-gated)',
+      'Verify Ontario OBC rules against machine-readable e-Laws text (4 still unverified)',
+      'Tag OBC rules with new-work-only scope for change-of-use projects',
     ],
   },
   {
     category: 'Planned',
     icon: '📋',
-    items: ['BCF export', 'Ontario OBC ruleset', 'municipal pilot'],
+    items: [
+      'BCF export',
+      'Partial-area / sloped-ceiling evaluation',
+      'Vendor-pset mapping + multilingual room-use for real IFC exports',
+      'Municipal pilot with real permit sets',
+    ],
   },
 ]
 

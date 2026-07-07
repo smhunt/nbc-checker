@@ -51,7 +51,8 @@ nbc-checker/
 ├── extractors/
 │   └── ifc_extractor.py      # IfcOpenShell fact extraction (confidence 1.0)
 ├── rules/
-│   └── nbc2020_part9_core.json  # machine-readable NBC rules + verification_notes
+│   ├── nbc2020_part9_core.json  # NBC 2020 rules (38, all verified) + verification_notes
+│   └── obc2024_part9_core.json  # Ontario OBC 2024 variant (23 rules; ON-vs-NBC noted)
 ├── samples/
 │   ├── sample_dwelling_facts.json
 │   ├── generate_sample_ifc.py

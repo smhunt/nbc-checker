@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0] - 2026-07-07
+### Added
+- Ontario OBC 2024 ruleset variant (`rules/obc2024_part9_core.json`, 23 rules) — correct jurisdiction for Ontario projects; documents every OBC-vs-NBC difference per rule
+- High-DPI tiled PDF extraction (`extract_tiled`) — ~6× more facts from real multi-view permit sheets, EO1 confidence cap preserved per tile
+- Renovation scoping: rules may declare `scope: new_work_only`; the engine skips existing-to-remain elements (`work_status: existing`)
+- Report now surfaces `jurisdiction` from the project
+- Case study on a real Ontario permit drawing (`docs/casestudy-real-permit.md`)
+### Fixed
+- PDF extractor grants the headless CLI read access (`--allowedTools Read`) so the `--pdf` path works on real uploads
+
 ## [0.4.0] - 2026-07-07
 ### Added
 - Human-review web UI (Vite + React + TS): results table, summary filter chips, detail drawer with NBC code quotes, override workflow

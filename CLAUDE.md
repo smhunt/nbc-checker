@@ -19,6 +19,12 @@ python3 run_check.py rules/nbc2020_part9_core.json samples/sample_dwelling_facts
 # Extract facts from an IFC model and check them
 python3 run_check.py rules/nbc2020_part9_core.json --ifc samples/smoke_test.ifc
 
+# Check an Ontario project against the OBC 2024 ruleset (correct jurisdiction for ON)
+python3 run_check.py rules/obc2024_part9_core.json samples/casestudy/ontario_permit_facts.json
+
+# Extract facts from a PDF drawing (LLM path; --export-pdf/--export-xlsx also available)
+python3 run_check.py rules/nbc2020_part9_core.json --pdf samples/A-201_stair_section.pdf
+
 # Regenerate the smoke-test IFC model
 python3 samples/generate_sample_ifc.py
 

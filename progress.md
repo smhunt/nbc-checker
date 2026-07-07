@@ -71,8 +71,29 @@ each deliverable inline.
   for-profit incorporation (EcoWorks status pending). Phase 2 ceiling is ~$1M/2yr, so the
   $475K/18mo plan fits comfortably.
 
+## 2026-07-07 — Session 4 (Claude Code, Phase 2: Ontario + real-plan hardening)
+Triggered by processing a REAL uploaded Ontario permit (change of use, fish market ->
+dwelling). The upload exposed three gaps, all now closed (parallel agents + inline):
+- **Ontario OBC 2024 ruleset** (rules/obc2024_part9_core.json, 23 rules, 19 verified):
+  right jurisdiction for ON projects; documents OBC-vs-NBC per rule. Key: Ontario-only
+  920 mm exit-stair + 1500 mm high guards, egress 1000 mm max sill, and 2024 harmonized
+  stair run (210->255) and ceilings (2300/75% -> 2100 area-based). 4 rules honestly
+  unverified (e-Laws/CanLII not machine-readable).
+- **Tiled high-DPI PDF extraction** (extract_tiled): 3x3 @ 200 DPI, per-tile 0.89 cap,
+  merge/dedupe highest-confidence. Real sheet: 3 facts -> 17 facts (~6x).
+- **Renovation scoping**: rule scope=new_work_only skips work_status=existing entities;
+  jurisdiction now surfaced in report. 65 tests total.
+- **Case study** (docs/casestudy-real-permit.md): real plan end-to-end vs OBC. Every LLM
+  value routed to human review (EO1 held on real input); flagged a 254 mm run, 1 mm under
+  the OBC 255 min. Original PDF + address/designer NOT committed (public repo privacy);
+  committed facts anonymized.
+- Bug fixed: pdf_extractor needed --allowedTools Read for the nested CLI to read uploads.
+- Docs: feasibility addendum, CHANGELOG 0.5.0, UI changelog 0.5.0, README.
+
 ## Next session
 - VERIFY the real ISC challenge notice + EO wording before trusting the proposal EO table
-- Ontario OBC ruleset variant (differences already documented per-rule) for a local pilot
+- Verify the 4 unverified OBC rules against machine-readable e-Laws (JS-rendered; needs
+  browser fetch or the OBC compendium PDF)
+- Tag OBC rules with new_work_only scope so change-of-use projects check only new work
 - Partial-area/sloped-ceiling evaluation (needs area/topology facts)
 - Real-IFC hardening: vendor-pset mapping, i18n room-use classification
