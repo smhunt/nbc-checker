@@ -277,23 +277,28 @@
     },
     {
       "rule_id": "NBC-9.5.3.1-ceiling-living",
-      "provision": "NBC 2020 Article 9.5.3.1",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
       "title": "Ceiling height — living and dining rooms",
       "applies_to": { "entity_type": "room", "where": { "room_use": ["living_room", "dining_room"] } },
       "requires": {
-        "all": [ { "fact": "ceiling_height_mm", "op": ">=", "value": 2300 } ]
+        "all": [ { "fact": "ceiling_height_mm", "op": ">=", "value": 2100 } ]
       },
       "exceptions": [
-        { "description": "Sloped-ceiling / partial-area provisions in 9.5.3 apply; v1 engine evaluates flat minimum only (verify full sentence structure)" }
+        { "description": "Partial-area allowance (Table 9.5.3.1 col. 3): 2100 mm need only be provided over the lesser of the area of the space or 10.0 m2 (living) / 5.2 m2 (dining), measured at floor level; that compliant area must be contiguous with the entry (Sentence (4)). Not machine-encoded — needs area facts. ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area." },
+        { "description": "Secondary suites: blanket relaxation to 1950 mm (Sentence (2)), 1850 mm under beams/ducting (Sentence (3)). Not encoded — needs in_secondary_suite fact and a separate rule (exceptions in this engine grant PASS, not an alternate threshold). NOTE: BCBC 2024 marks Sentences (2)/(3) 'Reserved'." }
       ],
       "unit_system": "mm",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Living room or space — 2.1 m over the lesser of the area of the space or 10.0 m2; Dining room or space — 2.1 m over the lesser of the area of the space or 5.2 m2] 4) Areas in rooms or spaces over which ceiling height and clear height are not less than the minimum specified in Table 9.5.3.1. or Sentence (2) or (3) shall be contiguous with the entry or entries to those rooms or spaces.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (Div B Vol 2 pp. 9-10/9-11; verbatim in reference/nbc2020.txt)",
+          "NBC 2015 1st/2nd printings, nrc-publications.canada.ca — 9.5.3.1 word-for-word identical (structure dates from 2015, not 2020)",
+          "BCBC 2024 official PDF, www2.gov.bc.ca — table identical, Sentences (2)/(3) Reserved"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "MAJOR CORRECTION during V1: original 2300 mm flat minimum was WRONG for NBC 2020 — no 2300 value exists anywhere in 9.5.3. That was the pre-2015 national structure (2.3 m over 75%), retained in Ontario's OBC, which is likely where the mis-remembered value came from. NBC 2015+ structure: 2100 mm over the lesser of the space area or a per-room-type area, contiguous with entry. Future rules from Table 9.5.3.1: kitchens 3.2 m2, master bedroom 4.9 m2, other bedrooms 3.5 m2, bath/laundry 2.2 m2, halls entire space, unfinished basements 2.0 m CLEAR height at beams/passage locations."
       }
     }
   ]

@@ -23,12 +23,12 @@ PDF drawings ─→ [T3: LLM extractor] (conf<1.0) ─────────�
 
 ## Tasks
 
-### V1 — Verify all rule values against NBC 2020 published text  ⚠️ BLOCKING
-Every rule currently has `verified_against_code_text: false`. Values were encoded from
-memory and MUST be checked against the free NRC PDF of NBC 2020 (Codes Canada). Flip the
-flag per rule only after verification. Pay attention to: 9.5.3 partial-area ceiling
-provisions, 9.9.10.1 exact exception wording, 9.8.2.1 width for stairs serving one
-dwelling vs shared.
+### V1 — Verify all rule values against NBC 2020 published text  ✅ DONE 2026-07-07
+All 12 rules verified against the official NRC PDF (kept in reference/, gitignored);
+evidence recorded per rule in verification_notes. All three flagged risks were real:
+ceiling height was wrong (2300 flat -> 2100 partial-area), guard heights re-encoded to
+the actual S1/S2/S3 structure, egress exception structure corrected. See progress.md
+Session 2 for the full list.
 
 ### T1 — Expand ruleset to 25–30 Part 9 rules
 Candidates: 9.8.4.4 (uniformity of risers/runs), 9.8.6 (landings), 9.8.7.1 (where
