@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
+import tempfile
 
 # EO1 invariant: no LLM-extracted fact may ever reach the engine's
 # CONFIDENCE_THRESHOLD (0.9 in engine/checker.py). Capping at 0.89 guarantees
@@ -95,15 +97,33 @@ def _normalize_attribute(value, default_source: str) -> dict:
     }
 
 
-def extract(pdf_path: str, runner=run_claude) -> dict:
-    """Extract annotated dimensions from a drawing PDF into a facts dict.
+def _locate_json_object(text: str) -> str:
+    """Return the JSON-object substring of a response.
 
-    Every returned fact carries confidence <= MAX_LLM_CONFIDENCE (EO1):
-    the engine will report `uncertain` for all of them, forcing human review.
+    A tile crop with few/no dimensions often gets a prose preamble ("the only
+    annotated fact is...") before the JSON object. We strip fences, then slice
+    from the first `{` to the last `}` so that leading/trailing prose doesn't
+    defeat `json.loads`. Pure prose with no braces is returned unchanged and
+    will (correctly) fail to parse.
     """
-    raw_text = runner(EXTRACTION_PROMPT, pdf_path)
+    stripped = _strip_fences(text)
+    start = stripped.find("{")
+    end = stripped.rfind("}")
+    if start != -1 and end > start:
+        return stripped[start : end + 1]
+    return stripped
+
+
+def _parse_entities(raw_text: str, default_source: str) -> list:
+    """Parse one LLM response into a list of normalized entity dicts.
+
+    Shared by the whole-sheet (`extract`) and tiled (`extract_tiled`) paths so
+    both apply identical fence-stripping, shape validation, and — critically —
+    the EO1 confidence cap (via `_normalize_attribute`) to every fact. Raises
+    ValueError on unparseable or wrong-shaped JSON.
+    """
     try:
-        payload = json.loads(_strip_fences(raw_text))
+        payload = json.loads(_locate_json_object(raw_text))
     except (json.JSONDecodeError, TypeError) as exc:
         raise ValueError(
             f"PDF extraction returned unparseable JSON: {exc}: {str(raw_text)[:300]}"
@@ -113,9 +133,6 @@ def extract(pdf_path: str, runner=run_claude) -> dict:
             "PDF extraction returned unparseable JSON: "
             f"expected object with 'entities' list, got: {str(payload)[:300]}"
         )
-
-    pdf_name = os.path.basename(pdf_path)
-    default_source = f"{pdf_name} (LLM extraction)"
 
     entities = []
     for i, ent in enumerate(payload["entities"]):
@@ -134,6 +151,18 @@ def extract(pdf_path: str, runner=run_claude) -> dict:
                 "attributes": attributes,
             }
         )
+    return entities
+
+
+def extract(pdf_path: str, runner=run_claude) -> dict:
+    """Extract annotated dimensions from a drawing PDF into a facts dict.
+
+    Every returned fact carries confidence <= MAX_LLM_CONFIDENCE (EO1):
+    the engine will report `uncertain` for all of them, forcing human review.
+    """
+    pdf_name = os.path.basename(pdf_path)
+    raw_text = runner(EXTRACTION_PROMPT, pdf_path)
+    entities = _parse_entities(raw_text, f"{pdf_name} (LLM extraction)")
 
     return {
         "project": {
@@ -144,10 +173,252 @@ def extract(pdf_path: str, runner=run_claude) -> dict:
     }
 
 
+# --------------------------------------------------------------------------
+# High-DPI tiled extraction
+#
+# A whole 1/8"-scale multi-view sheet is too low-resolution for the model to
+# read the small dimension annotations. We render the page at ~200 DPI, split
+# it into an overlapping NxM grid of crops, run the SAME extraction prompt on
+# each crop, and merge the results. The EO1 confidence cap is applied per tile
+# (via `_parse_entities`), so no tiling path can ever emit a fact at >= 0.9.
+# --------------------------------------------------------------------------
+
+TILE_OVERLAP = 0.12  # 12% overlap so annotations on a tile seam aren't cut
+
+
+def run_claude_image(prompt: str, image_path: str) -> str:
+    """Run the `claude` CLI headless against a PNG tile; return assistant text.
+
+    Mirrors `run_claude` but points the nested CLI at an image crop. The
+    `--allowedTools Read` grant is required — without it the headless instance
+    is denied file access and returns prose instead of JSON.
+    """
+    abs_path = os.path.abspath(image_path)
+    full_prompt = f"{prompt}\n\nThe image to read is at: {abs_path}"
+    proc = subprocess.run(
+        ["claude", "-p", full_prompt, "--allowedTools", "Read", "--output-format", "json"],
+        capture_output=True,
+        text=True,
+        timeout=CLI_TIMEOUT_S,
+    )
+    if proc.returncode != 0:
+        stderr_excerpt = (proc.stderr or "").strip()[:500]
+        raise RuntimeError(
+            f"claude CLI exited with code {proc.returncode}: {stderr_excerpt}"
+        )
+    envelope = json.loads(proc.stdout)
+    return envelope["result"]
+
+
+def choose_grid(page_width_pt: float, page_height_pt: float) -> tuple:
+    """Pick a tile grid from page size. Large sheets (multi-view plans) get a
+    denser 3x3 grid; small detail sheets stay at 2x2."""
+    long_edge = max(page_width_pt, page_height_pt)
+    # 792 pt = 11 in (Letter long edge). Anything meaningfully larger than a
+    # tabloid sheet is a big multi-view plan and benefits from more tiles.
+    return (3, 3) if long_edge > 1224 else (2, 2)
+
+
+def render_page_to_tiles(
+    pdf_path: str,
+    grid: tuple = (2, 2),
+    dpi: int = 200,
+    out_dir: str | None = None,
+    page_index: int = 0,
+    overlap: float = TILE_OVERLAP,
+) -> list:
+    """Render one PDF page at `dpi` and slice it into an overlapping grid of
+    PNG tiles. Returns a list of tile descriptors:
+    `{"path", "label", "row", "col"}` (rows/cols are 1-based).
+
+    Requires PyMuPDF (`import fitz`). Each tile is rendered directly from a clip
+    rectangle so it keeps full `dpi` resolution rather than being downscaled.
+    """
+    import fitz  # PyMuPDF; imported lazily so unit tests need not render.
+
+    cols, rows = grid
+    if out_dir is None:
+        base_tmp = os.path.join(os.getcwd(), "tmp")
+        parent = base_tmp if os.path.isdir(base_tmp) else None
+        out_dir = tempfile.mkdtemp(prefix="nbc_tiles_", dir=parent)
+    os.makedirs(out_dir, exist_ok=True)
+
+    stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    zoom = dpi / 72.0
+    mat = fitz.Matrix(zoom, zoom)
+
+    doc = fitz.open(pdf_path)
+    try:
+        page = doc[page_index]
+        pw, ph = page.rect.width, page.rect.height
+        tile_w, tile_h = pw / cols, ph / rows
+        ox, oy = tile_w * overlap, tile_h * overlap
+
+        tiles = []
+        for r in range(rows):
+            for c in range(cols):
+                x0 = max(0.0, c * tile_w - ox)
+                y0 = max(0.0, r * tile_h - oy)
+                x1 = min(pw, (c + 1) * tile_w + ox)
+                y1 = min(ph, (r + 1) * tile_h + oy)
+                clip = fitz.Rect(x0, y0, x1, y1)
+                pix = page.get_pixmap(matrix=mat, clip=clip)
+                label = f"r{r + 1}c{c + 1}"
+                path = os.path.join(out_dir, f"{stem}_{label}.png")
+                pix.save(path)
+                tiles.append({"path": path, "label": label, "row": r + 1, "col": c + 1})
+    finally:
+        doc.close()
+    return tiles
+
+
+def _tile_prompt(pdf_name: str, tile: dict) -> str:
+    """The whole-sheet extraction prompt, plus which crop the model is seeing."""
+    return (
+        f"{EXTRACTION_PROMPT}\n\n"
+        f"This is region row {tile['row']} col {tile['col']} (tile {tile['label']}) "
+        f"of sheet {pdf_name}. Extract ONLY dimensions visible in THIS crop; "
+        f"ignore anything cut off at the edges of the image."
+    )
+
+
+_WS_RE = re.compile(r"\s+")
+
+
+def _entity_key(entity: dict) -> tuple:
+    """Dedupe key: (entity_type, normalized name-or-id). Case/space-insensitive
+    so 'Main Stair' and 'main  stair' collapse to one entity across tiles."""
+    etype = str(entity.get("entity_type", "unknown")).strip().lower()
+    label = str(entity.get("name") or entity.get("id") or "").strip().lower()
+    label = _WS_RE.sub(" ", label)
+    return (etype, label)
+
+
+def merge_tile_facts(tile_facts: list) -> dict:
+    """Merge per-tile facts dicts into one deduped `{"entities": [...]}`.
+
+    Pure function (no rendering / no CLI) so the merge/dedupe policy is unit
+    testable on its own. Policy:
+      - dedupe entities by (entity_type, normalized name/id);
+      - union attributes across every tile that saw the entity;
+      - when the same fact appears in multiple tiles, keep the HIGHEST-
+        confidence instance (whole {value,confidence,source} triple);
+      - assign stable, deterministic ids in first-seen order.
+
+    Input elements are facts dicts with an "entities" list whose attributes are
+    already normalized+capped (produced by `_parse_entities`). This function
+    never raises confidence, so any cap applied upstream is preserved.
+    """
+    merged: dict = {}
+    order: list = []
+    for tf in tile_facts:
+        for ent in (tf or {}).get("entities", []):
+            key = _entity_key(ent)
+            if key not in merged:
+                merged[key] = {
+                    "entity_type": str(ent.get("entity_type", "unknown")),
+                    "name": ent.get("name"),
+                    "id": ent.get("id"),
+                    "attributes": {},
+                }
+                order.append(key)
+            attrs = merged[key]["attributes"]
+            for fact, value in (ent.get("attributes") or {}).items():
+                if not isinstance(value, dict):
+                    continue
+                incoming = value.get("confidence", 0.0) or 0.0
+                current = attrs.get(fact)
+                if current is None or incoming > (current.get("confidence", 0.0) or 0.0):
+                    attrs[fact] = value
+
+    entities = []
+    for i, key in enumerate(order):
+        e = merged[key]
+        # Assign fresh, deterministic ids in first-seen order. Tile-provided ids
+        # can collide or differ for the same entity across crops, so we don't
+        # trust them for identity — the (type, name) key already deduped.
+        entities.append(
+            {
+                "entity_type": e["entity_type"],
+                "id": f"pdf-entity-{i + 1}",
+                "name": str(e["name"] or f"PDF entity {i + 1}"),
+                "attributes": e["attributes"],
+            }
+        )
+    return {"entities": entities}
+
+
+def extract_tiled(
+    pdf_path: str,
+    runner=run_claude_image,
+    grid: tuple = (2, 2),
+    dpi: int = 200,
+    tiles: list | None = None,
+    out_dir: str | None = None,
+    page_index: int = 0,
+) -> dict:
+    """Tiled extraction: render+slice a page, extract each tile, merge results.
+
+    `tiles` may be supplied directly (list of `{"path","label","row","col"}`)
+    to bypass rendering — used by unit tests so no PDF/PyMuPDF is needed there.
+    Every fact is capped at MAX_LLM_CONFIDENCE per tile (EO1) before merging,
+    and each fact's source records which tile it came from.
+    """
+    pdf_name = os.path.basename(pdf_path)
+    if tiles is None:
+        tiles = render_page_to_tiles(
+            pdf_path, grid=grid, dpi=dpi, out_dir=out_dir, page_index=page_index
+        )
+
+    tile_facts = []
+    skipped = []
+    for tile in tiles:
+        tile_source = f"{pdf_name} tile {tile['label']} (LLM extraction)"
+        raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
+        try:
+            entities = _parse_entities(raw_text, tile_source)
+        except ValueError:
+            # Tiles are independent: a crop the model answers in pure prose
+            # (e.g. "no dimensions in this region") must not sink the other
+            # tiles. Record it and move on.
+            skipped.append(tile["label"])
+            continue
+        # Stamp tile provenance onto every fact so the winning instance after
+        # the merge always says which crop it was read from.
+        for ent in entities:
+            for attr in ent["attributes"].values():
+                attr["source"] = tile_source
+        tile_facts.append({"tile": tile["label"], "entities": entities})
+
+    merged = merge_tile_facts(tile_facts)
+    return {
+        "project": {
+            "name": f"{pdf_name} (tiled drawing extraction)",
+            "sources": [pdf_path],
+            "tiles": [t["label"] for t in tiles],
+            "tiles_unparsed": skipped,
+        },
+        "entities": merged["entities"],
+    }
+
+
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) != 2:
-        print("usage: python3 extractors/pdf_extractor.py <drawing.pdf>", file=sys.stderr)
+    args = sys.argv[1:]
+    if not args:
+        print(
+            "usage: python3 extractors/pdf_extractor.py [--tiled [CxR]] <drawing.pdf>",
+            file=sys.stderr,
+        )
         sys.exit(2)
-    print(json.dumps(extract(sys.argv[1]), indent=2))
+    if args[0] == "--tiled":
+        grid = (2, 2)
+        rest = args[1:]
+        if rest and "x" in rest[0]:
+            c, r = rest[0].lower().split("x")
+            grid = (int(c), int(r))
+            rest = rest[1:]
+        print(json.dumps(extract_tiled(rest[0], grid=grid), indent=2))
+    else:
+        print(json.dumps(extract(args[0]), indent=2))
