@@ -44,7 +44,10 @@ def run_claude(prompt: str, pdf_path: str) -> str:
     abs_path = os.path.abspath(pdf_path)
     full_prompt = f"{prompt}\n\nThe drawing file to read is at: {abs_path}"
     proc = subprocess.run(
-        ["claude", "-p", full_prompt, "--output-format", "json"],
+        # --allowedTools "Read" grants the headless instance read-only access so
+        # it can open the drawing; without it the nested CLI is denied file access
+        # and returns prose instead of JSON.
+        ["claude", "-p", full_prompt, "--allowedTools", "Read", "--output-format", "json"],
         capture_output=True,
         text=True,
         timeout=CLI_TIMEOUT_S,
