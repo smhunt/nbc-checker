@@ -41,6 +41,14 @@ OPS = {
     "!=": lambda a, b: a != b,
 }
 
+# Status dominance within a single check: a violation must never be masked by
+# a missing or low-confidence fact in another requirement of the same rule.
+_SEVERITY = {"pass": 0, "uncertain": 1, "info_not_available": 2, "fail": 3}
+
+
+def _worse(a: "Status", b: "Status") -> "Status":
+    return a if _SEVERITY[a.value] >= _SEVERITY[b.value] else b
+
 
 @dataclass
 class FactLookup:
@@ -165,12 +173,11 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
                 "present": fl.present,
             })
             if not fl.present:
-                status = Status.INFO_NOT_AVAILABLE
+                status = _worse(status, Status.INFO_NOT_AVAILABLE)
                 detail_parts.append(f"'{req['fact']}' not found in extracted model")
                 continue
             if fl.confidence is not None and fl.confidence < CONFIDENCE_THRESHOLD:
-                if status == Status.PASS:
-                    status = Status.UNCERTAIN
+                status = _worse(status, Status.UNCERTAIN)
                 detail_parts.append(
                     f"'{req['fact']}'={fl.value} extracted at confidence "
                     f"{fl.confidence:.2f} < {CONFIDENCE_THRESHOLD} — requires human review"
@@ -182,7 +189,7 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
                 f"{'OK' if ok else 'VIOLATION'}"
             )
             if not ok:
-                status = Status.FAIL  # FAIL dominates all other statuses
+                status = _worse(status, Status.FAIL)  # FAIL dominates all other statuses
                 detail_parts.append(
                     f"VIOLATION: {req['fact']}={fl.value}, "
                     f"required {req['op']} {req['value']} per {rule['provision']}"
