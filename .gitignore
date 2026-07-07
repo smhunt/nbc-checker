@@ -3,3 +3,4 @@ __pycache__/
 reports/
 .claude/settings.local.json
 .DS_Store
+reference/

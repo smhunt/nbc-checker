@@ -173,7 +173,7 @@
     },
     {
       "rule_id": "NBC-9.9.10.1-egress-window-area",
-      "provision": "NBC 2020 Sentence 9.9.10.1.(1)",
+      "provision": "NBC 2020 Sentences 9.9.10.1.(1)-(2)",
       "title": "Bedroom egress window — unobstructed open area",
       "applies_to": { "entity_type": "window", "where": { "room_use": "bedroom", "is_egress_window": true } },
       "requires": {
@@ -183,16 +183,21 @@
         ]
       },
       "exceptions": [
-        { "description": "Not required where the bedroom has a door leading directly to the exterior, or where sprinklered (verify exact NBC 2020 wording)", "fact": "has_exterior_door", "op": "==", "value": true }
+        { "description": "Sentence (1) opening qualifier: 'Except where the suite is sprinklered' — the only true exception in the article", "fact": "suite_sprinklered", "op": "==", "value": true },
+        { "description": "Sentence (1) alternative (not a formal exception): the requirement is for 'at least one outside window OR exterior door openable from the inside without the use of keys, tools or special knowledge' — a bedroom with a conforming exterior door needs no egress window", "fact": "has_exterior_door", "op": "==", "value": true }
       ],
       "unit_system": "mixed",
-      "verified_against_code_text": false,
+      "verified_against_code_text": true,
       "verification_notes": {
-        "quote": null,
-        "sources": [],
-        "verified_date": null,
-        "reviewer": null,
-        "notes": "Values encoded from memory; awaiting verification against published NBC 2020 text (task V1)."
+        "quote": "1) Except where the suite is sprinklered, each bedroom or combination bedroom shall have at least one outside window or exterior door openable from the inside without the use of keys, tools or special knowledge and without the removal of sashes or hardware. 2) The window referred to in Sentence (1) shall a) provide an unobstructed opening of not less than 0.35 m2 in area with no dimension less than 380 mm, and b) maintain the required opening during an emergency without the need for additional support.",
+        "sources": [
+          "NRC Publications Archive, National Building Code of Canada 2020, https://nrc-publications.canada.ca/eng/view/object/?id=515340b5-f4e0-4798-be69-692e4ec423e8 (Division B, Vol 2; verbatim text confirmed in local extract reference/nbc2020.txt)",
+          "Alberta STANDATA 23-BCV-001 (NBC(AE) 2023) — Sentence (1) verbatim match",
+          "BCBC 2018 Div B 9.9, free.bcpublications.ca — word-for-word identical (values unchanged NBC 2015 -> 2020)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
+        "notes": "0.35 m2 / 380 mm CONFIRMED, but they live in Sentence (2), not (1) — provision cite corrected. Exception structure corrected: sprinklered-suite qualifier is the only true exception; exterior door is an in-sentence alternative. Sentence (2)(b) 'without additional support' justifies not deriving open area from overall dims (operation type matters). NBC sets NO maximum sill height (appendix note recommends <=1.5 m, advisory only). Window wells need 760 mm clearance (Sentence (3)) — candidate future rule. WARNING: Ontario OBC differs materially (per-floor-level requirement, 1000 mm max sill height, 'without tools' only)."
       }
     },
     {
