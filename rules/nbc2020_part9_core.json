@@ -8,11 +8,24 @@
       "rule_id": "NBC-9.8.4.1-rise-private",
       "provision": "NBC 2020 Sentence 9.8.4.1.(1) and Table 9.8.4.1.",
       "title": "Stair riser height — private stairs",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
       "requires": {
         "all": [
-          { "fact": "riser_height_mm", "op": ">=", "value": 125 },
-          { "fact": "riser_height_mm", "op": "<=", "value": 200 }
+          {
+            "fact": "riser_height_mm",
+            "op": ">=",
+            "value": 125
+          },
+          {
+            "fact": "riser_height_mm",
+            "op": "<=",
+            "value": 200
+          }
         ]
       },
       "exceptions": [],
@@ -33,11 +46,24 @@
       "rule_id": "NBC-9.8.4.2-run-private",
       "provision": "NBC 2020 Sentence 9.8.4.2.(1) and Table 9.8.4.2.",
       "title": "Stair tread run — private stairs",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
       "requires": {
         "all": [
-          { "fact": "tread_run_mm", "op": ">=", "value": 255 },
-          { "fact": "tread_run_mm", "op": "<=", "value": 355 }
+          {
+            "fact": "tread_run_mm",
+            "op": ">=",
+            "value": 255
+          },
+          {
+            "fact": "tread_run_mm",
+            "op": "<=",
+            "value": 355
+          }
         ]
       },
       "exceptions": [],
@@ -58,9 +84,20 @@
       "rule_id": "NBC-9.8.2.1-width-private",
       "provision": "NBC 2020 Sentence 9.8.2.1.(4)",
       "title": "Stair width — stairs within dwelling units",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
       "requires": {
-        "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 860 } ]
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 860
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -80,9 +117,20 @@
       "rule_id": "NBC-9.8.2.2-headroom-private",
       "provision": "NBC 2020 Sentence 9.8.2.2.(3)",
       "title": "Headroom over stairs — private stairs",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "private"
+        }
+      },
       "requires": {
-        "all": [ { "fact": "headroom_mm", "op": ">=", "value": 1950 } ]
+        "all": [
+          {
+            "fact": "headroom_mm",
+            "op": ">=",
+            "value": 1950
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -102,11 +150,22 @@
       "rule_id": "NBC-9.8.7.4-handrail-height",
       "provision": "NBC 2020 Sentence 9.8.7.4.(2)",
       "title": "Handrail height above stair nosing",
-      "applies_to": { "entity_type": "handrail", "where": {} },
+      "applies_to": {
+        "entity_type": "handrail",
+        "where": {}
+      },
       "requires": {
         "all": [
-          { "fact": "height_above_nosing_mm", "op": ">=", "value": 865 },
-          { "fact": "height_above_nosing_mm", "op": "<=", "value": 1070 }
+          {
+            "fact": "height_above_nosing_mm",
+            "op": ">=",
+            "value": 865
+          },
+          {
+            "fact": "height_above_nosing_mm",
+            "op": "<=",
+            "value": 1070
+          }
         ]
       },
       "exceptions": [],
@@ -129,10 +188,18 @@
       "title": "Guard height — guards within dwelling units",
       "applies_to": {
         "entity_type": "guard",
-        "where": { "guard_context": "interior_dwelling_unit" }
+        "where": {
+          "guard_context": "interior_dwelling_unit"
+        }
       },
       "requires": {
-        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 900 } ]
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 900
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -155,11 +222,20 @@
         "entity_type": "guard",
         "where": {
           "guard_context": "exterior_single_dwelling",
-          "fall_height_mm": { "op": "<=", "value": 1800 }
+          "fall_height_mm": {
+            "op": "<=",
+            "value": 1800
+          }
         }
       },
       "requires": {
-        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 900 } ]
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 900
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -182,11 +258,20 @@
         "entity_type": "guard",
         "where": {
           "guard_context": "exterior_single_dwelling",
-          "fall_height_mm": { "op": ">", "value": 1800 }
+          "fall_height_mm": {
+            "op": ">",
+            "value": 1800
+          }
         }
       },
       "requires": {
-        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ]
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 1070
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -207,10 +292,18 @@
       "title": "Guard height — all other guards (common areas, guards serving more than one dwelling unit)",
       "applies_to": {
         "entity_type": "guard",
-        "where": { "guard_context": "other" }
+        "where": {
+          "guard_context": "other"
+        }
       },
       "requires": {
-        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ]
+        "all": [
+          {
+            "fact": "guard_height_mm",
+            "op": ">=",
+            "value": 1070
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -229,9 +322,18 @@
       "rule_id": "NBC-9.8.8.5-guard-openings",
       "provision": "NBC 2020 Sentence 9.8.8.5.(1)",
       "title": "Openings through guards — sphere rule",
-      "applies_to": { "entity_type": "guard", "where": {} },
+      "applies_to": {
+        "entity_type": "guard",
+        "where": {}
+      },
       "requires": {
-        "all": [ { "fact": "max_opening_mm", "op": "<", "value": 100 } ]
+        "all": [
+          {
+            "fact": "max_opening_mm",
+            "op": "<",
+            "value": 100
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -250,16 +352,40 @@
       "rule_id": "NBC-9.9.10.1-egress-window-area",
       "provision": "NBC 2020 Sentences 9.9.10.1.(1)-(2)",
       "title": "Bedroom egress window — unobstructed open area",
-      "applies_to": { "entity_type": "window", "where": { "room_use": "bedroom", "is_egress_window": true } },
+      "applies_to": {
+        "entity_type": "window",
+        "where": {
+          "room_use": "bedroom",
+          "is_egress_window": true
+        }
+      },
       "requires": {
         "all": [
-          { "fact": "unobstructed_open_area_m2", "op": ">=", "value": 0.35 },
-          { "fact": "min_opening_dimension_mm", "op": ">=", "value": 380 }
+          {
+            "fact": "unobstructed_open_area_m2",
+            "op": ">=",
+            "value": 0.35
+          },
+          {
+            "fact": "min_opening_dimension_mm",
+            "op": ">=",
+            "value": 380
+          }
         ]
       },
       "exceptions": [
-        { "description": "Sentence (1) opening qualifier: 'Except where the suite is sprinklered' — the only true exception in the article", "fact": "suite_sprinklered", "op": "==", "value": true },
-        { "description": "Sentence (1) alternative (not a formal exception): the requirement is for 'at least one outside window OR exterior door openable from the inside without the use of keys, tools or special knowledge' — a bedroom with a conforming exterior door needs no egress window", "fact": "has_exterior_door", "op": "==", "value": true }
+        {
+          "description": "Sentence (1) opening qualifier: 'Except where the suite is sprinklered' — the only true exception in the article",
+          "fact": "suite_sprinklered",
+          "op": "==",
+          "value": true
+        },
+        {
+          "description": "Sentence (1) alternative (not a formal exception): the requirement is for 'at least one outside window OR exterior door openable from the inside without the use of keys, tools or special knowledge' — a bedroom with a conforming exterior door needs no egress window",
+          "fact": "has_exterior_door",
+          "op": "==",
+          "value": true
+        }
       ],
       "unit_system": "mixed",
       "verified_against_code_text": true,
@@ -279,11 +405,24 @@
       "rule_id": "NBC-9.8.4.2-tread-depth",
       "provision": "NBC 2020 Sentence 9.8.4.2.(2)",
       "title": "Tread depth — rectangular treads (relative to run)",
-      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {}
+      },
       "requires": {
         "all": [
-          { "fact": "tread_depth_mm", "op": ">=", "value_fact": "tread_run_mm", "offset": 0 },
-          { "fact": "tread_depth_mm", "op": "<=", "value_fact": "tread_run_mm", "offset": 25 }
+          {
+            "fact": "tread_depth_mm",
+            "op": ">=",
+            "value_fact": "tread_run_mm",
+            "offset": 0
+          },
+          {
+            "fact": "tread_depth_mm",
+            "op": "<=",
+            "value_fact": "tread_run_mm",
+            "offset": 25
+          }
         ]
       },
       "exceptions": [],
@@ -303,9 +442,20 @@
       "rule_id": "NBC-9.8.2.1-width-shared",
       "provision": "NBC 2020 Sentence 9.8.2.1.(1)",
       "title": "Stair width — required exit and public stairs, residential",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "shared" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "shared"
+        }
+      },
       "requires": {
-        "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 900 } ]
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 900
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -324,9 +474,20 @@
       "rule_id": "NBC-9.8.2.2-headroom-shared",
       "provision": "NBC 2020 Sentence 9.8.2.2.(2)",
       "title": "Headroom over stairs — stairs not serving a single dwelling unit",
-      "applies_to": { "entity_type": "stair_flight", "where": { "service": "shared" } },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {
+          "service": "shared"
+        }
+      },
       "requires": {
-        "all": [ { "fact": "headroom_mm", "op": ">=", "value": 2050 } ]
+        "all": [
+          {
+            "fact": "headroom_mm",
+            "op": ">=",
+            "value": 2050
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -345,15 +506,28 @@
       "rule_id": "NBC-9.8.4.4-riser-uniformity",
       "provision": "NBC 2020 Sentence 9.8.4.4.(1)",
       "title": "Uniformity of riser heights within a flight",
-      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {}
+      },
       "requires": {
         "all": [
-          { "fact": "riser_adjacent_diff_mm", "op": "<=", "value": 5 },
-          { "fact": "riser_range_mm", "op": "<=", "value": 10 }
+          {
+            "fact": "riser_adjacent_diff_mm",
+            "op": "<=",
+            "value": 5
+          },
+          {
+            "fact": "riser_range_mm",
+            "op": "<=",
+            "value": 10
+          }
         ]
       },
       "exceptions": [
-        { "description": "Sentence (2): except for required exit stairs, where the top or bottom riser adjoins a sloping finished walking surface (garage floor, driveway, sidewalk), riser height across the stair may vary by not more than 1 in 12 — not encoded (needs slope facts)." }
+        {
+          "description": "Sentence (2): except for required exit stairs, where the top or bottom riser adjoins a sloping finished walking surface (garage floor, driveway, sidewalk), riser height across the stair may vary by not more than 1 in 12 — not encoded (needs slope facts)."
+        }
       ],
       "unit_system": "mm",
       "verified_against_code_text": true,
@@ -371,11 +545,22 @@
       "rule_id": "NBC-9.8.4.4-run-uniformity",
       "provision": "NBC 2020 Sentence 9.8.4.4.(3)",
       "title": "Uniformity of runs within a flight (rectangular treads)",
-      "applies_to": { "entity_type": "stair_flight", "where": {} },
+      "applies_to": {
+        "entity_type": "stair_flight",
+        "where": {}
+      },
       "requires": {
         "all": [
-          { "fact": "run_adjacent_diff_mm", "op": "<=", "value": 5 },
-          { "fact": "run_range_mm", "op": "<=", "value": 10 }
+          {
+            "fact": "run_adjacent_diff_mm",
+            "op": "<=",
+            "value": 5
+          },
+          {
+            "fact": "run_range_mm",
+            "op": "<=",
+            "value": 10
+          }
         ]
       },
       "exceptions": [],
@@ -397,12 +582,24 @@
       "title": "Landing dimensions — straight landings on private stairs",
       "applies_to": {
         "entity_type": "landing",
-        "where": { "turn": "straight_or_less_than_90", "serves_service": "private" }
+        "where": {
+          "turn": "straight_or_less_than_90",
+          "serves_service": "private"
+        }
       },
       "requires": {
         "all": [
-          { "fact": "landing_width_mm", "op": ">=", "value_fact": "stair_width_mm", "offset": 0 },
-          { "fact": "landing_length_mm", "op": ">=", "value": 860 }
+          {
+            "fact": "landing_width_mm",
+            "op": ">=",
+            "value_fact": "stair_width_mm",
+            "offset": 0
+          },
+          {
+            "fact": "landing_length_mm",
+            "op": ">=",
+            "value": 860
+          }
         ]
       },
       "exceptions": [],
@@ -427,11 +624,20 @@
         "where": {
           "service": "private",
           "location": "interior",
-          "number_of_risers": { "op": ">", "value": 2 }
+          "number_of_risers": {
+            "op": ">",
+            "value": 2
+          }
         }
       },
       "requires": {
-        "all": [ { "fact": "has_handrail", "op": "==", "value": true } ]
+        "all": [
+          {
+            "fact": "has_handrail",
+            "op": "==",
+            "value": true
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "boolean",
@@ -455,11 +661,20 @@
         "where": {
           "service": "private",
           "location": "exterior",
-          "number_of_risers": { "op": ">", "value": 3 }
+          "number_of_risers": {
+            "op": ">",
+            "value": 3
+          }
         }
       },
       "requires": {
-        "all": [ { "fact": "has_handrail", "op": "==", "value": true } ]
+        "all": [
+          {
+            "fact": "has_handrail",
+            "op": "==",
+            "value": true
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "boolean",
@@ -478,12 +693,23 @@
       "rule_id": "NBC-9.8.7.5-handrail-clearance",
       "provision": "NBC 2020 Sentence 9.8.7.5.(1)",
       "title": "Clearance between handrail and surface behind it",
-      "applies_to": { "entity_type": "handrail", "where": {} },
+      "applies_to": {
+        "entity_type": "handrail",
+        "where": {}
+      },
       "requires": {
-        "all": [ { "fact": "clearance_behind_mm", "op": ">=", "value": 50 } ]
+        "all": [
+          {
+            "fact": "clearance_behind_mm",
+            "op": ">=",
+            "value": 50
+          }
+        ]
       },
       "exceptions": [
-        { "description": "Clause (b): where the surface behind is rough or abrasive, the required clearance is 60 mm — encode via surface_rough fact in a future revision; checking 50 mm only is lenient for rough surfaces." }
+        {
+          "description": "Clause (b): where the surface behind is rough or abrasive, the required clearance is 60 mm — encode via surface_rough fact in a future revision; checking 50 mm only is lenient for rough surfaces."
+        }
       ],
       "unit_system": "mm",
       "verified_against_code_text": true,
@@ -503,10 +729,19 @@
       "title": "Egress window well — clearance in front of window",
       "applies_to": {
         "entity_type": "window",
-        "where": { "is_egress_window": true, "opens_into_window_well": true }
+        "where": {
+          "is_egress_window": true,
+          "opens_into_window_well": true
+        }
       },
       "requires": {
-        "all": [ { "fact": "window_well_clearance_mm", "op": ">=", "value": 760 } ]
+        "all": [
+          {
+            "fact": "window_well_clearance_mm",
+            "op": ">=",
+            "value": 760
+          }
+        ]
       },
       "exceptions": [],
       "unit_system": "mm",
@@ -526,13 +761,31 @@
       "rule_id": "NBC-9.5.3.1-ceiling-living",
       "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
       "title": "Ceiling height — living and dining rooms",
-      "applies_to": { "entity_type": "room", "where": { "room_use": ["living_room", "dining_room"] } },
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": [
+            "living_room",
+            "dining_room"
+          ]
+        }
+      },
       "requires": {
-        "all": [ { "fact": "ceiling_height_mm", "op": ">=", "value": 2100 } ]
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
       },
       "exceptions": [
-        { "description": "Partial-area allowance (Table 9.5.3.1 col. 3): 2100 mm need only be provided over the lesser of the area of the space or 10.0 m2 (living) / 5.2 m2 (dining), measured at floor level; that compliant area must be contiguous with the entry (Sentence (4)). Not machine-encoded — needs area facts. ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area." },
-        { "description": "Secondary suites: blanket relaxation to 1950 mm (Sentence (2)), 1850 mm under beams/ducting (Sentence (3)). Not encoded — needs in_secondary_suite fact and a separate rule (exceptions in this engine grant PASS, not an alternate threshold). NOTE: BCBC 2024 marks Sentences (2)/(3) 'Reserved'." }
+        {
+          "description": "Partial-area allowance (Table 9.5.3.1 col. 3): 2100 mm need only be provided over the lesser of the area of the space or 10.0 m2 (living) / 5.2 m2 (dining), measured at floor level; that compliant area must be contiguous with the entry (Sentence (4)). Not machine-encoded — needs area facts. ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area."
+        },
+        {
+          "description": "Secondary suites: blanket relaxation to 1950 mm (Sentence (2)), 1850 mm under beams/ducting (Sentence (3)). Not encoded — needs in_secondary_suite fact and a separate rule (exceptions in this engine grant PASS, not an alternate threshold). NOTE: BCBC 2024 marks Sentences (2)/(3) 'Reserved'."
+        }
       ],
       "unit_system": "mm",
       "verified_against_code_text": true,
@@ -546,6 +799,662 @@
         "verified_date": "2026-07-07",
         "reviewer": "Claude (research agent + direct check of official NRC PDF text)",
         "notes": "MAJOR CORRECTION during V1: original 2300 mm flat minimum was WRONG for NBC 2020 — no 2300 value exists anywhere in 9.5.3. That was the pre-2015 national structure (2.3 m over 75%), retained in Ontario's OBC, which is likely where the mis-remembered value came from. NBC 2015+ structure: 2100 mm over the lesser of the space area or a per-room-type area, contiguous with entry. Future rules from Table 9.5.3.1: kitchens 3.2 m2, master bedroom 4.9 m2, other bedrooms 3.5 m2, bath/laundry 2.2 m2, halls entire space, unfinished basements 2.0 m CLEAR height at beams/passage locations."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-kitchen",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Ceiling height — kitchen or kitchen space",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": "kitchen"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area allowance (Table 9.5.3.1., col. 3): the 2.1 m minimum ceiling height need only be provided over the lesser of the area of the space or 3.2 m2, measured at floor level (Note (1)), and that area must be contiguous with the entry or entries to the space (Sentence 9.5.3.1.(4)). ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area, not the absolute minimum anywhere in the room."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites the 1.95 m minimum of Sentence (2) governs instead of Table 9.5.3.1. — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Kitchen or kitchen space — Minimum Ceiling Height 2.1 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Lesser of area of the space or 3.2 m2] 4) Areas in rooms or spaces over which ceiling height and clear height are not less than the minimum specified in Table 9.5.3.1. or Sentence (2) or (3) shall be contiguous with the entry or entries to those rooms or spaces.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.1 m = 2100 mm read directly from Table 9.5.3.1 kitchen row (reference/nbc2020.txt lines 48378-48379 for Sentence (1), 48396 for the kitchen row, 48383-48385 for Sentence (4), 48410 for Note (1)). Partial-area allowance and contiguity not machine-checked (needs area geometry); encoded as informational exception."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-bedroom-master",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Ceiling height — master bedroom or bedroom space",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": "master_bedroom"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area allowance (Table 9.5.3.1., col. 3): the 2.1 m minimum ceiling height need only be provided over the lesser of the area of the space or 4.9 m2, measured at floor level (Note (1)), and that area must be contiguous with the entry or entries to the space (Sentence 9.5.3.1.(4)). ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area, not the absolute minimum anywhere in the room."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites the 1.95 m minimum of Sentence (2) governs instead of Table 9.5.3.1. — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Master bedroom or bedroom space — Minimum Ceiling Height 2.1 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Lesser of area of the space or 4.9 m2]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.1 m = 2100 mm read from Table 9.5.3.1 'Master bedroom or bedroom space' row (reference/nbc2020.txt line 48397; Sentence (1) at 48378-48379). Partial area for this row is 4.9 m2, larger than the 3.5 m2 for other bedrooms."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-bedroom-other",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Ceiling height — other bedroom or sleeping space",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": "bedroom"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area allowance (Table 9.5.3.1., col. 3): the 2.1 m minimum ceiling height need only be provided over the lesser of the area of the space or 3.5 m2, measured at floor level (Note (1)), and that area must be contiguous with the entry or entries to the space (Sentence 9.5.3.1.(4)). ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area, not the absolute minimum anywhere in the room."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites the 1.95 m minimum of Sentence (2) governs instead of Table 9.5.3.1. — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Other bedroom or sleeping space — Minimum Ceiling Height 2.1 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Lesser of area of the space or 3.5 m2]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.1 m = 2100 mm read from Table 9.5.3.1 'Other bedroom or sleeping space' row (reference/nbc2020.txt line 48398). room_use 'bedroom' maps to this row; 'master_bedroom' is a separate rule with a 4.9 m2 partial area."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-bath",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Ceiling height — bathroom, water-closet room or laundry area above grade",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": [
+            "bathroom",
+            "water_closet",
+            "laundry_above_grade"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area allowance (Table 9.5.3.1., col. 3): the 2.1 m minimum ceiling height need only be provided over the lesser of the area of the space or 2.2 m2, measured at floor level (Note (1)), and that area must be contiguous with the entry or entries to the space (Sentence 9.5.3.1.(4)). ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area, not the absolute minimum anywhere in the room."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites the 1.95 m minimum of Sentence (2) governs instead of Table 9.5.3.1. — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Bathroom, water-closet room or laundry area above grade — Minimum Ceiling Height 2.1 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Lesser of area of the space or 2.2 m2]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.1 m = 2100 mm read from Table 9.5.3.1 'Bathroom, water-closet room or laundry area above grade' row (reference/nbc2020.txt lines 48403-48404). NOTE the row is scoped to laundry areas ABOVE GRADE — laundry areas in an unfinished basement fall under the unfinished-basement row (2.0 m clear) instead, hence room_use value 'laundry_above_grade'."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-hall",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Ceiling height — passage, hall or main entrance vestibule",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": [
+            "hall",
+            "passage",
+            "vestibule"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 2100
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "NO partial-area allowance for this row: Table 9.5.3.1., col. 3 specifies 'Area of the space' — the 2.1 m minimum ceiling height must be provided over the WHOLE area of the passage, hall or main entrance vestibule (measured at floor level, Note (1)), contiguous with the entry or entries per Sentence 9.5.3.1.(4). ceiling_height_mm is defined as the height over the principal entry-contiguous area; for this room type that is the entire space, so any localized lower ceiling is a violation."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites the 1.95 m minimum of Sentence (2) governs instead of Table 9.5.3.1. — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Passage, hall or main entrance vestibule — Minimum Ceiling Height 2.1 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Area of the space]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.1 m = 2100 mm read from Table 9.5.3.1 'Passage, hall or main entrance vestibule' row (reference/nbc2020.txt line 48405). Unlike all other 2.1 m rows, col. 3 reads 'Area of the space' — the minimum applies to the whole space, no lesser-of-X-m2 carve-out."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-basement-clear",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(1) and Table 9.5.3.1.",
+      "title": "Clear height — unfinished basement including laundry area therein",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "room_use": "unfinished_basement"
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "clear_height_mm",
+            "op": ">=",
+            "value": 2000
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Location scope (Table 9.5.3.1., col. 3): the 2.0 m minimum is a CLEAR height (not ceiling height) and need only be provided 'under beams and in any location that would normally be used for passage' — not over the whole basement floor area. clear_height_mm is therefore defined as the minimum clear height under beams and in normal passage locations, contiguous with the entry per Sentence 9.5.3.1.(4); low headroom in dead corners not normally used for passage is not a violation."
+        },
+        {
+          "fact": "in_secondary_suite",
+          "op": "==",
+          "value": true,
+          "description": "Sentence 9.5.3.1.(1) applies 'Except as provided in Sentences (2) and (3)': in secondary suites Sentences (2) (1.95 m ceilings) and (3) (1.85 m clear under beams and ducting) govern instead — checked by NBC-9.5.3.1-ceiling-secondary-suite."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and (3), the ceiling heights and clear heights in rooms or spaces in residential occupancies shall conform to Table 9.5.3.1. [Table 9.5.3.1.: Unfinished basement including laundry area therein — Minimum Clear Height 2.0 m; Minimum Area Over Which Minimum Ceiling Height Shall Be Provided: Clear height under beams and in any location that would normally be used for passage]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "2.0 m = 2000 mm read from Table 9.5.3.1 unfinished-basement row (reference/nbc2020.txt lines 48399-48402; the row wraps across four lines in the extract, with the '2.0' value on line 48400). This row's value sits in the CLEAR height column, not the ceiling height column, so the rule checks fact clear_height_mm rather than ceiling_height_mm."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-secondary-suite",
+      "provision": "NBC 2020 Sentence 9.5.3.1.(2)",
+      "title": "Ceiling height — rooms and spaces in secondary suites",
+      "applies_to": {
+        "entity_type": "room",
+        "where": {
+          "in_secondary_suite": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "ceiling_height_mm",
+            "op": ">=",
+            "value": 1950
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Partial-area/contiguity condition (Sentence 9.5.3.1.(4)): areas over which the 1.95 m minimum is met must be contiguous with the entry or entries to the room or space (Table 9.5.3.1. has no per-row area column for Sentence (2); Sentence (4) explicitly extends the contiguity requirement to 'the minimum specified in ... Sentence (2) or (3)'). ceiling_height_mm is therefore defined as the height over the principal entry-contiguous area. Additionally, Sentence 9.5.3.1.(3) permits clear heights under beams and ducting in secondary suites down to 1.85 m — a localized 1 850-1 950 mm reading under a beam or duct is not a violation (not separately encoded; needs a clear_height_under_beams_mm fact)."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Ceiling heights in secondary suites shall be not less than 1.95 m. 3) Clear heights under beams and ducting in secondary suites shall be not less than 1.85 m.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "1.95 m converted to 1950 mm; read from Sentence 9.5.3.1.(2) (reference/nbc2020.txt line 48380; Sentence (3) 1.85 m at lines 48381-48382). Sentence (2) is a blanket per-suite minimum that REPLACES the Table 9.5.3.1 row values inside secondary suites ('Except as provided in Sentences (2) and (3)' in Sentence (1)); the table-row rules in this batch carry a matching in_secondary_suite exception. PROVINCIAL VARIATION: BCBC 2024 reserves this sentence (Sentence 9.5.3.1.(2) is not adopted in BC) — this claim is from the task brief, not verified against reference/nbc2020.txt (which is the national code); flag for jurisdiction-aware rule selection."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.5.1-door-entrance",
+      "provision": "NBC 2020 Sentence 9.5.5.1.(1) and Table 9.5.5.1.",
+      "title": "Doorway opening size — entrance to dwelling unit (required entrance) and equivalents",
+      "applies_to": {
+        "entity_type": "door",
+        "where": {
+          "door_location": [
+            "dwelling_entrance",
+            "vestibule",
+            "entrance_hall",
+            "stairs_to_finished_floor",
+            "passage_to_basement",
+            "utility_room"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 810
+          },
+          {
+            "fact": "height_mm",
+            "op": ">=",
+            "value": 1980
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Sentence 9.5.5.1.(1) excepts Sentence (2) and Articles 9.5.5.3., 9.9.6.2. and 9.9.6.3. (egress/exit doorway articles); Sentence (2) permits doors not less than 1 890 mm high within secondary suites where the ceiling height complies with Sentence 9.5.3.1.(2). Not encoded as fact-based exceptions."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2) and Articles 9.5.5.3., 9.9.6.2. and 9.9.6.3., doorway openings within dwelling units and within houses with a secondary suite including their common spaces shall be designed to accommodate at least the door sizes given in Table 9.5.5.1. for swing-type and folding doors. [Table 9.5.5.1.: At Entrance to: Dwelling unit or house with a secondary suite including common spaces (required entrance) / Vestibule or entrance hall / Stairs to a floor level that contains a finished space / All doors in at least one line of passage from the exterior to the basement / Utility rooms — Minimum Width 810 mm, Minimum Height 1 980 mm]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "810 mm / 1 980 mm read from the first Table 9.5.5.1 row group (reference/nbc2020.txt lines 48449-48455; Sentence (1) at 48437-48440). SIMPLIFICATION: the code requires the doorway OPENING to be designed to accommodate a DOOR of at least this size — it is a door-leaf size, not a clear-opening (open-swing) width. This rule compares the modeled door facts clear_width_mm/height_mm directly; if the extractor reports true clear opening (leaf minus stops/swing projection) this check is slightly conservative. 'Basement doors' row scope: the 810 mm requirement applies to all doors in AT LEAST ONE line of passage from exterior to basement, an at-least-one quantifier this per-door rule over-enforces (same known over-strictness pattern as NBC-9.8.2.1-width-private)."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.5.1-door-habitable",
+      "provision": "NBC 2020 Sentence 9.5.5.1.(1) and Table 9.5.5.1.",
+      "title": "Doorway opening size — doors to rooms not specifically mentioned (incl. habitable rooms) and exterior balconies",
+      "applies_to": {
+        "entity_type": "door",
+        "where": {
+          "door_location": [
+            "habitable_room",
+            "exterior_balcony"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 760
+          },
+          {
+            "fact": "height_mm",
+            "op": ">=",
+            "value": 1980
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Table row 'Rooms located off hallways that are permitted to be 710 mm wide' needs only 610 mm width — if the door serves a room off a code-permitted 710 mm hallway (Sentence 9.5.4.1.(1) conditions), classify door_location accordingly rather than as habitable_room. Sentence 9.5.5.1.(2) permits doors not less than 1 890 mm high within secondary suites where the ceiling height complies with Sentence 9.5.3.1.(2). Egress doorways are governed separately by 9.9.6.2./9.9.6.3."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2) and Articles 9.5.5.3., 9.9.6.2. and 9.9.6.3., doorway openings within dwelling units and within houses with a secondary suite including their common spaces shall be designed to accommodate at least the door sizes given in Table 9.5.5.1. for swing-type and folding doors. [Table 9.5.5.1.: At Entrance to: Rooms not mentioned above, exterior balconies — Minimum Width 760 mm, Minimum Height 1 980 mm]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "760 mm / 1 980 mm read from the 'Rooms not mentioned above, exterior balconies' row (reference/nbc2020.txt line 48459). SURPRISE: Table 9.5.5.1 has no explicit 'bedroom'/'habitable room' row — interior doors to habitable rooms fall under this catch-all row at 760 mm. SIMPLIFICATION: table values are door-leaf sizes the opening must accommodate, not measured clear opening; see NBC-9.5.5.1-door-entrance notes. Walk-in closet row (610 mm, line 48456) and rooms-off-710mm-hallway row (610 mm, line 48458) are not drafted in this batch; classify such doors with distinct door_location values before adding rules for them."
+      }
+    },
+    {
+      "rule_id": "NBC-9.5.5.1-door-bathroom",
+      "provision": "NBC 2020 Sentence 9.5.5.1.(1) and Table 9.5.5.1.",
+      "title": "Doorway opening size — bathroom, water-closet room or shower room",
+      "applies_to": {
+        "entity_type": "door",
+        "where": {
+          "door_location": [
+            "bathroom",
+            "water_closet_room",
+            "shower_room"
+          ]
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "clear_width_mm",
+            "op": ">=",
+            "value": 610
+          },
+          {
+            "fact": "height_mm",
+            "op": ">=",
+            "value": 1980
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Table Note (1) points to Article 9.5.5.3.: where a hallway not less than 860 mm wide serves one or more rooms containing a bathtub, shower or water closet, at least one doorway in that hallway must instead accommodate a door not less than 760 mm wide providing access to at least one of each fixture type (Sentences 9.5.5.3.(1)-(2)). That at-least-one hallway-level requirement is not machine-checkable per door and is not encoded. Sentence 9.5.5.1.(2) permits doors not less than 1 890 mm high within secondary suites where the ceiling height complies with Sentence 9.5.3.1.(2)."
+        }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2) and Articles 9.5.5.3., 9.9.6.2. and 9.9.6.3., doorway openings within dwelling units and within houses with a secondary suite including their common spaces shall be designed to accommodate at least the door sizes given in Table 9.5.5.1. for swing-type and folding doors. [Table 9.5.5.1.: At Entrance to: Bathroom, water-closet room, shower room (1) — Minimum Width 610 mm, Minimum Height 1 980 mm. Notes to Table 9.5.5.1.: (1) See Article 9.5.5.3.]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF, https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf (verbatim in reference/nbc2020.txt)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch B)",
+        "notes": "610 mm / 1 980 mm read from the bathroom row (reference/nbc2020.txt line 48457; Note (1) at 48461-48462; Article 9.5.5.3 full text at 48469-48476). SIMPLIFICATION: door-leaf size vs clear opening as noted on the other door rules. 9.5.5.3's 760 mm at-least-one-doorway upgrade for fixture access from an 860 mm hallway is described in the exception but not fact-encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-9.10.19.3-alarm-each-storey",
+      "provision": "NBC 2020 Clause 9.10.19.3.(1)(a)",
+      "title": "Smoke alarm on each storey of a dwelling unit, including basements",
+      "applies_to": {
+        "entity_type": "storey",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Article 9.10.19.8: smoke detectors forming part of a residential fire warning system conforming to CAN/ULC-S540 are permitted in lieu of all smoke alarms required by Articles 9.10.19.1. and 9.10.19.3. (subject to sounding, power and silencing conditions). Not machine-encoded - needs a has_residential_fire_warning_system fact."
+        }
+      ],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Within dwelling units, sufficient smoke alarms shall be installed so that a) there is at least one smoke alarm installed on each storey, including basements",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 52610-52612 (Div B Vol 2, Article 9.10.19.3. Location of Smoke Alarms, p. 9-79)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "Sentence 9.10.19.3.(2) requires installation in conformance with CAN/ULC-S553; Sentence (3) requires alarms on or near the ceiling - neither encoded (installation quality, not presence). Power source (9.10.19.4.(1)): permanent connection to an electrical circuit, no disconnect switch between overcurrent device and alarm, plus battery backup good for >= 7 days normal condition followed by 4 minutes of alarm; battery-only permitted where the building has no electrical power (Sentence (2)). Interconnection (9.10.19.5.(1)): where more than one smoke alarm is required in a dwelling unit, activation of any one must sound all alarms in the unit; houses with a secondary suite need wireless or hard-wired interconnection across the whole house (Sentence (2)). Power and interconnection recorded here for completeness, not encoded. Alarms must conform to CAN/ULC-S531 (9.10.19.1.(1))."
+      }
+    },
+    {
+      "rule_id": "NBC-9.10.19.3-alarm-each-sleeping-room",
+      "provision": "NBC 2020 Subclause 9.10.19.3.(1)(b)(i)",
+      "title": "Smoke alarm in each sleeping room within a dwelling unit",
+      "applies_to": {
+        "entity_type": "sleeping_room",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Article 9.10.19.8: residential fire warning system (CAN/ULC-S540) permitted in lieu of required smoke alarms. Not machine-encoded."
+        }
+      ],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "b) on any storey of a dwelling unit containing sleeping rooms, a smoke alarm is installed i) in each sleeping room",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 52614-52618 (Div B Vol 2, Article 9.10.19.3., p. 9-79)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "NBC 2020 unambiguously requires an alarm IN each sleeping room (not merely near it) - encoded as a per-room presence fact. The extract contains a parallel Part 3 provision (3.2.4.21, lines 13176-13184) with the same in-each-sleeping-room wording, confirming consistency. Sleeping rooms NOT within a dwelling unit are covered separately by Clause 9.10.19.1.(1)(b) (alarm required in 'each sleeping room not within a dwelling unit') - a separate rule without the in_dwelling_unit condition would be needed for that case; not drafted here because batch C samples only model dwelling units."
+      }
+    },
+    {
+      "rule_id": "NBC-9.10.19.3-alarm-outside-sleeping-area",
+      "provision": "NBC 2020 Subclause 9.10.19.3.(1)(b)(ii)",
+      "title": "Smoke alarm between sleeping rooms and the remainder of the storey",
+      "applies_to": {
+        "entity_type": "sleeping_area",
+        "where": {
+          "in_dwelling_unit": true
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "has_smoke_alarm_outside_sleeping_rooms",
+            "op": "==",
+            "value": true
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Article 9.10.19.8: residential fire warning system (CAN/ULC-S540) permitted in lieu of required smoke alarms. Not machine-encoded."
+        }
+      ],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "b) on any storey of a dwelling unit containing sleeping rooms, a smoke alarm is installed ... ii) in a location between the sleeping rooms and the remainder of the storey, and if the sleeping rooms are served by a hallway, the smoke alarm shall be located in the hallway.",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 52614-52621 (Div B Vol 2, Article 9.10.19.3., p. 9-79)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "Entity 'sleeping_area' = the group of sleeping rooms on one storey of a dwelling unit. Encoded as presence of an alarm between the sleeping rooms and the remainder of the storey. The conditional locational refinement ('if the sleeping rooms are served by a hallway, the smoke alarm shall be located in the hallway') is NOT encoded - it constrains WHERE the alarm sits, which needs a hallway-topology fact the extractors do not produce; fact definition for has_smoke_alarm_outside_sleeping_rooms should be read as 'alarm present in the code-compliant location (hallway if one serves the sleeping rooms)'. Note: NBC 2020 expresses this positionally ('between ... and the remainder of the storey'), NOT as a maximum travel distance - no 5 m style distance figure exists in this article."
+      }
+    },
+    {
+      "rule_id": "NBC-9.36.2.6-wall-rsi-zone5-noHRV",
+      "provision": "NBC 2020 Sentence 9.36.2.6.(1) and Table 9.36.2.6.-A",
+      "title": "Above-ground wall effective thermal resistance - climate zone 5, no HRV",
+      "applies_to": {
+        "entity_type": "wall_assembly",
+        "where": {
+          "climate_zone": "5",
+          "has_hrv": false
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "effective_rsi",
+            "op": ">=",
+            "value": 3.08
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Sentence 9.36.2.6.(1) opens 'Except as provided in Sentences (2) and 9.36.2.8.(3) and Articles 9.36.2.5. and 9.36.2.11.' - trade-off/performance paths (9.36.2.11) and above-ground portions of foundation walls (9.36.2.8.(3)) are not machine-encoded."
+        }
+      ],
+      "unit_system": "rsi",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and 9.36.2.8.(3) and Articles 9.36.2.5. and 9.36.2.11., the effective thermal resistance of above-ground opaque building assemblies or portions thereof shall be not less than that shown for the applicable heating-degree day category in a) Table 9.36.2.6.-A, where the ventilation system does not include heat-recovery equipment [Table 9.36.2.6.-A row 'Walls (2)': Zone 4 2.78, Zone 5 3.08, Zone 6 3.08, Zone 7A 3.08, Zone 7B 3.85, Zone 8 3.85 - Minimum Effective Thermal Resistance (RSI), (m2*K)/W]",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 62426-62436 (Sentence 9.36.2.6.(1)) and 62443-62456 (Table 9.36.2.6.-A, Walls row at line 62453; Div B Vol 2 p. 9-240)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "Units are RSI (m2*K)/W - effective (whole-assembly) thermal resistance, not nominal insulation R. Zone 5 = 3000 to 3999 Celsius heating degree-days (table header; zone/HDD mapping per Article 1.1.3.1.). WITH-HRV value for zone 5 walls (Table 9.36.2.6.-B, line 62471) is 2.97 - recorded here, encoded only via has_hrv=false in where. Sentence (2): rim joists must meet the same wall values. Sentence (4): wall values also apply to skylight shafts (except tubular daylighting devices). Table footnote (2) points to 9.36.2.8.(3) for above-ground portions of foundation walls."
+      }
+    },
+    {
+      "rule_id": "NBC-9.36.2.6-wall-rsi-zone6-noHRV",
+      "provision": "NBC 2020 Sentence 9.36.2.6.(1) and Table 9.36.2.6.-A",
+      "title": "Above-ground wall effective thermal resistance - climate zone 6, no HRV",
+      "applies_to": {
+        "entity_type": "wall_assembly",
+        "where": {
+          "climate_zone": "6",
+          "has_hrv": false
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "effective_rsi",
+            "op": ">=",
+            "value": 3.08
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Sentence 9.36.2.6.(1) opens 'Except as provided in Sentences (2) and 9.36.2.8.(3) and Articles 9.36.2.5. and 9.36.2.11.' - trade-off/performance paths (9.36.2.11) and above-ground portions of foundation walls (9.36.2.8.(3)) are not machine-encoded."
+        }
+      ],
+      "unit_system": "rsi",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and 9.36.2.8.(3) and Articles 9.36.2.5. and 9.36.2.11., the effective thermal resistance of above-ground opaque building assemblies or portions thereof shall be not less than that shown for the applicable heating-degree day category in a) Table 9.36.2.6.-A, where the ventilation system does not include heat-recovery equipment [Table 9.36.2.6.-A row 'Walls (2)': Zone 6 (4000 to 4999 degree-days) 3.08 - Minimum Effective Thermal Resistance (RSI), (m2*K)/W]",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 62426-62436 (Sentence 9.36.2.6.(1)) and 62443-62456 (Table 9.36.2.6.-A, Walls row at line 62453; Div B Vol 2 p. 9-240)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "Zone 6 without-HRV wall minimum is 3.08 RSI - identical to zone 5 (the without-HRV wall value is 3.08 across zones 5, 6 and 7A; it steps to 3.85 only at 7B/8). WITH-HRV value for zone 6 walls (Table 9.36.2.6.-B, line 62471) is 2.97. Zone 6 = 4000 to 4999 Celsius heating degree-days."
+      }
+    },
+    {
+      "rule_id": "NBC-9.36.2.6-ceiling-attic-rsi-zone5-noHRV",
+      "provision": "NBC 2020 Sentence 9.36.2.6.(1) and Table 9.36.2.6.-A",
+      "title": "Ceiling below attic effective thermal resistance - climate zone 5, no HRV",
+      "applies_to": {
+        "entity_type": "ceiling_assembly",
+        "where": {
+          "ceiling_type": "below_attic",
+          "climate_zone": "5",
+          "has_hrv": false
+        }
+      },
+      "requires": {
+        "all": [
+          {
+            "fact": "effective_rsi",
+            "op": ">=",
+            "value": 8.67
+          }
+        ]
+      },
+      "exceptions": [
+        {
+          "description": "Sentence 9.36.2.6.(3): a reduction is permitted at the eaves for a length no greater than 1200 mm, only to the extent imposed by roof slope and minimum venting clearance, provided nominal insulation directly above the exterior wall is not less than 3.52 (m2*K)/W. Not machine-encoded - needs eave-geometry facts."
+        },
+        {
+          "description": "Sentence 9.36.2.6.(1) general exceptions: Sentences (2), 9.36.2.8.(3), Articles 9.36.2.5. and 9.36.2.11. (trade-off/performance paths). Not machine-encoded."
+        }
+      ],
+      "unit_system": "rsi",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentences (2) and 9.36.2.8.(3) and Articles 9.36.2.5. and 9.36.2.11., the effective thermal resistance of above-ground opaque building assemblies or portions thereof shall be not less than that shown for the applicable heating-degree day category in a) Table 9.36.2.6.-A, where the ventilation system does not include heat-recovery equipment [Table 9.36.2.6.-A row 'Ceilings below attics': Zone 4 6.91, Zone 5 8.67, Zone 6 8.67, Zone 7A 10.43, Zone 7B 10.43, Zone 8 10.43]",
+        "sources": [
+          "NBC 2020 official text extract, reference/nbc2020.txt lines 62426-62436 (Sentence 9.36.2.6.(1)) and 62443-62456 (Table 9.36.2.6.-A, Ceilings below attics row at line 62451; Div B Vol 2 p. 9-240)"
+        ],
+        "verified_date": "2026-07-07",
+        "reviewer": "Claude (draft agent, batch C)",
+        "notes": "Applies only to ceilings below attics (where ceiling_type = below_attic); cathedral ceilings and flat roofs have their own row (4.67 in zone 5) and would need a separate rule. WITH-HRV value for zone 5 ceilings below attics (Table 9.36.2.6.-B, line 62469) is 6.91."
       }
     }
   ]

@@ -2,7 +2,10 @@
   "project": {
     "name": "Sample 2-Storey Dwelling — Permit Application PA-2026-0417",
     "municipality": "Middlesex Centre, ON",
-    "sources": ["model.ifc (BIM)", "A-201 Stair Sections.pdf (drawing extraction)"]
+    "sources": [
+      "model.ifc (BIM)",
+      "A-201 Stair Sections.pdf (drawing extraction)"
+    ]
   },
   "entities": [
     {
@@ -11,18 +14,58 @@
       "name": "Main stair, ground to second floor",
       "attributes": {
         "service": "private",
-        "riser_height_mm": { "value": 190, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr" },
-        "tread_run_mm": { "value": 255, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs" },
-        "tread_depth_mm": { "value": 265, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKv" },
-        "clear_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt" },
-        "headroom_mm": { "value": 2050, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKu" },
-        "riser_adjacent_diff_mm": { "value": 3, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)" },
-        "riser_range_mm": { "value": 7, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)" },
-        "run_adjacent_diff_mm": { "value": 2, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)" },
-        "run_range_mm": { "value": 4, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)" },
+        "riser_height_mm": {
+          "value": 190,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr"
+        },
+        "tread_run_mm": {
+          "value": 255,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs"
+        },
+        "tread_depth_mm": {
+          "value": 265,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKv"
+        },
+        "clear_width_mm": {
+          "value": 910,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt"
+        },
+        "headroom_mm": {
+          "value": 2050,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKu"
+        },
+        "riser_adjacent_diff_mm": {
+          "value": 3,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)"
+        },
+        "riser_range_mm": {
+          "value": 7,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr (per-step aggregate)"
+        },
+        "run_adjacent_diff_mm": {
+          "value": 2,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)"
+        },
+        "run_range_mm": {
+          "value": 4,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs (per-step aggregate)"
+        },
         "location": "interior",
         "number_of_risers": 14,
-        "has_handrail": { "value": true, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKw" }
+        "has_handrail": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKw"
+        }
       }
     },
     {
@@ -31,8 +74,16 @@
       "name": "Common entrance stair (shared)",
       "attributes": {
         "service": "shared",
-        "clear_width_mm": { "value": 920, "confidence": 1.0, "source": "model.ifc#9V9My$a1e4gm5UVl30MSRy" },
-        "headroom_mm": { "value": 2010, "confidence": 1.0, "source": "model.ifc#9V9My$a1e4gm5UVl30MSRz" }
+        "clear_width_mm": {
+          "value": 920,
+          "confidence": 1.0,
+          "source": "model.ifc#9V9My$a1e4gm5UVl30MSRy"
+        },
+        "headroom_mm": {
+          "value": 2010,
+          "confidence": 1.0,
+          "source": "model.ifc#9V9My$a1e4gm5UVl30MSRz"
+        }
       }
     },
     {
@@ -42,9 +93,21 @@
       "attributes": {
         "turn": "straight_or_less_than_90",
         "serves_service": "private",
-        "stair_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt" },
-        "landing_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTSz" },
-        "landing_length_mm": { "value": 900, "confidence": 1.0, "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTS0" }
+        "stair_width_mm": {
+          "value": 910,
+          "confidence": 1.0,
+          "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt"
+        },
+        "landing_width_mm": {
+          "value": 910,
+          "confidence": 1.0,
+          "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTSz"
+        },
+        "landing_length_mm": {
+          "value": 900,
+          "confidence": 1.0,
+          "source": "model.ifc#0W0Nz$b2f5hn6VWm41NTS0"
+        }
       }
     },
     {
@@ -53,9 +116,21 @@
       "name": "Basement stair",
       "attributes": {
         "service": "private",
-        "riser_height_mm": { "value": 210, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLs" },
-        "tread_run_mm": { "value": 240, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLt" },
-        "clear_width_mm": { "value": 860, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLu" },
+        "riser_height_mm": {
+          "value": 210,
+          "confidence": 1.0,
+          "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLs"
+        },
+        "tread_run_mm": {
+          "value": 240,
+          "confidence": 1.0,
+          "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLt"
+        },
+        "clear_width_mm": {
+          "value": 860,
+          "confidence": 1.0,
+          "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLu"
+        },
         "location": "interior",
         "number_of_risers": 13
       }
@@ -65,8 +140,16 @@
       "id": "handrail-01",
       "name": "Main stair handrail",
       "attributes": {
-        "height_above_nosing_mm": { "value": 920, "confidence": 0.82, "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)" },
-        "clearance_behind_mm": { "value": 40, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMw" }
+        "height_above_nosing_mm": {
+          "value": 920,
+          "confidence": 0.82,
+          "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)"
+        },
+        "clearance_behind_mm": {
+          "value": 40,
+          "confidence": 1.0,
+          "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMw"
+        }
       }
     },
     {
@@ -75,9 +158,21 @@
       "name": "Second floor landing guard",
       "attributes": {
         "guard_context": "interior_dwelling_unit",
-        "fall_height_mm": { "value": 2750, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMt" },
-        "guard_height_mm": { "value": 1070, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMu" },
-        "max_opening_mm": { "value": 95, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMv" }
+        "fall_height_mm": {
+          "value": 2750,
+          "confidence": 1.0,
+          "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMt"
+        },
+        "guard_height_mm": {
+          "value": 1070,
+          "confidence": 1.0,
+          "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMu"
+        },
+        "max_opening_mm": {
+          "value": 95,
+          "confidence": 1.0,
+          "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMv"
+        }
       }
     },
     {
@@ -86,8 +181,16 @@
       "name": "Rear deck guard",
       "attributes": {
         "guard_context": "exterior_single_dwelling",
-        "fall_height_mm": { "value": 1500, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONu" },
-        "guard_height_mm": { "value": 880, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONv" }
+        "fall_height_mm": {
+          "value": 1500,
+          "confidence": 1.0,
+          "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONu"
+        },
+        "guard_height_mm": {
+          "value": 880,
+          "confidence": 1.0,
+          "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONv"
+        }
       }
     },
     {
@@ -98,9 +201,21 @@
         "room_use": "bedroom",
         "is_egress_window": true,
         "opens_into_window_well": true,
-        "window_well_clearance_mm": { "value": 800, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOx" },
-        "unobstructed_open_area_m2": { "value": 0.38, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOv" },
-        "min_opening_dimension_mm": { "value": 500, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOw" }
+        "window_well_clearance_mm": {
+          "value": 800,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOx"
+        },
+        "unobstructed_open_area_m2": {
+          "value": 0.38,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOv"
+        },
+        "min_opening_dimension_mm": {
+          "value": 500,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOw"
+        }
       }
     },
     {
@@ -110,8 +225,16 @@
       "attributes": {
         "room_use": "bedroom",
         "is_egress_window": true,
-        "unobstructed_open_area_m2": { "value": 0.31, "confidence": 1.0, "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPw" },
-        "min_opening_dimension_mm": { "value": 380, "confidence": 1.0, "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPx" }
+        "unobstructed_open_area_m2": {
+          "value": 0.31,
+          "confidence": 1.0,
+          "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPw"
+        },
+        "min_opening_dimension_mm": {
+          "value": 380,
+          "confidence": 1.0,
+          "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPx"
+        }
       }
     },
     {
@@ -120,7 +243,11 @@
       "name": "Living room",
       "attributes": {
         "room_use": "living_room",
-        "ceiling_height_mm": { "value": 2440, "confidence": 1.0, "source": "model.ifc#8U8Lx$z0d3fl4TUk29LRQx" }
+        "ceiling_height_mm": {
+          "value": 2440,
+          "confidence": 1.0,
+          "source": "model.ifc#8U8Lx$z0d3fl4TUk29LRQx"
+        }
       }
     },
     {
@@ -129,6 +256,252 @@
       "name": "Dining room",
       "attributes": {
         "room_use": "dining_room"
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-kitchen-01",
+      "name": "Kitchen, ground floor",
+      "attributes": {
+        "room_use": "kitchen",
+        "ceiling_height_mm": {
+          "value": 2200,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOa"
+        }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-master-01",
+      "name": "Master bedroom, second floor",
+      "attributes": {
+        "room_use": "master_bedroom",
+        "ceiling_height_mm": {
+          "value": 2050,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOb"
+        }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-basement-01",
+      "name": "Unfinished basement incl. laundry area",
+      "attributes": {
+        "room_use": "unfinished_basement",
+        "clear_height_mm": {
+          "value": 1900,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOc"
+        }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-suite-bed-01",
+      "name": "Secondary suite bedroom",
+      "attributes": {
+        "room_use": "bedroom",
+        "in_secondary_suite": true,
+        "ceiling_height_mm": {
+          "value": 1980,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOd"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "door-entrance-01",
+      "name": "Front entrance door",
+      "attributes": {
+        "door_location": "dwelling_entrance",
+        "clear_width_mm": {
+          "value": 815,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOe"
+        },
+        "height_mm": {
+          "value": 1980,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOe"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "door-bed2-01",
+      "name": "Bedroom 2 door",
+      "attributes": {
+        "door_location": "habitable_room",
+        "clear_width_mm": {
+          "value": 710,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOf"
+        },
+        "height_mm": {
+          "value": 2030,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOf"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "door-bath-01",
+      "name": "Main bathroom door",
+      "attributes": {
+        "door_location": "bathroom",
+        "clear_width_mm": {
+          "value": 610,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOg"
+        },
+        "height_mm": {
+          "value": 1980,
+          "confidence": 1.0,
+          "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOg"
+        }
+      }
+    },
+    {
+      "entity_type": "storey",
+      "id": "storey-01",
+      "name": "First Storey",
+      "attributes": {
+        "in_dwelling_unit": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0001"
+        },
+        "has_smoke_alarm": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0001"
+        }
+      }
+    },
+    {
+      "entity_type": "storey",
+      "id": "storey-B1",
+      "name": "Basement",
+      "attributes": {
+        "in_dwelling_unit": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0002"
+        },
+        "has_smoke_alarm": {
+          "value": false,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0002"
+        }
+      }
+    },
+    {
+      "entity_type": "sleeping_room",
+      "id": "bedroom-01",
+      "name": "Primary Bedroom",
+      "attributes": {
+        "in_dwelling_unit": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0003"
+        },
+        "has_smoke_alarm": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0003"
+        }
+      }
+    },
+    {
+      "entity_type": "sleeping_area",
+      "id": "sleeping-area-2F",
+      "name": "Second Storey Sleeping Area",
+      "attributes": {
+        "in_dwelling_unit": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0004"
+        },
+        "has_smoke_alarm_outside_sleeping_rooms": {
+          "value": true,
+          "confidence": 1.0,
+          "source": "model.ifc#3xK9dQvR15FxWqBatchC0004"
+        }
+      }
+    },
+    {
+      "entity_type": "wall_assembly",
+      "id": "wall-type-W1-z5",
+      "name": "Exterior Wall Type W1 (Zone 5)",
+      "attributes": {
+        "climate_zone": {
+          "value": "5",
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "has_hrv": {
+          "value": false,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "effective_rsi": {
+          "value": 2.78,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        }
+      }
+    },
+    {
+      "entity_type": "wall_assembly",
+      "id": "wall-type-W2-z6",
+      "name": "Exterior Wall Type W2 (Zone 6)",
+      "attributes": {
+        "climate_zone": {
+          "value": "6",
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "has_hrv": {
+          "value": false,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "effective_rsi": {
+          "value": 3.35,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        }
+      }
+    },
+    {
+      "entity_type": "ceiling_assembly",
+      "id": "ceiling-type-C1-z5",
+      "name": "Ceiling Below Attic Type C1 (Zone 5)",
+      "attributes": {
+        "ceiling_type": {
+          "value": "below_attic",
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "climate_zone": {
+          "value": "5",
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "has_hrv": {
+          "value": false,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        },
+        "effective_rsi": {
+          "value": 9.12,
+          "confidence": 1.0,
+          "source": "drawings A-000 (spec table)"
+        }
       }
     }
   ]
