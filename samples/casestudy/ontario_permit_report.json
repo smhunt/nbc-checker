@@ -1,0 +1,386 @@
+{
+  "ruleset_id": "obc2024-part9-core",
+  "code_edition": "OBC 2024 (O. Reg. 163/24)",
+  "jurisdiction": "Ontario",
+  "project": {
+    "name": "Anonymized Ontario permit \u2014 change of use (fish market -> dwelling)",
+    "jurisdiction": "Ontario",
+    "sources": [
+      "permit drawing sheet A1 (3x3 tiled LLM extraction) \u2014 original not committed (privacy)"
+    ],
+    "_note": "Facts extracted by the LLM PDF path at <=0.89 confidence (EO1); every value routes to human review before it can produce a pass/fail."
+  },
+  "summary": {
+    "pass": 0,
+    "fail": 0,
+    "info_not_available": 28,
+    "uncertain": 2
+  },
+  "results": [
+    {
+      "rule_id": "OBC-9.8.4.1-rise-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.1 and Table 9.8.4.1",
+      "title": "Stair riser height \u2014 private stairs",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.1-rise-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.1 and Table 9.8.4.1",
+      "title": "Stair riser height \u2014 private stairs",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-run-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(1) and Table 9.8.4.1",
+      "title": "Stair tread run \u2014 private stairs",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-run-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(1) and Table 9.8.4.1",
+      "title": "Stair tread run \u2014 private stairs",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-tread-depth",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(2)",
+      "title": "Tread depth \u2014 rectangular treads (relative to run)",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "'tread_depth_mm' not found in extracted model; 'tread_depth_mm' not found in extracted model",
+      "facts_used": [
+        {
+          "fact": "tread_depth_mm",
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "present": false
+        },
+        {
+          "fact": "tread_depth_mm",
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "present": false
+        }
+      ],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.2-tread-depth",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.4.2.(2)",
+      "title": "Tread depth \u2014 rectangular treads (relative to run)",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "'tread_depth_mm' not found in extracted model; 'tread_depth_mm' not found in extracted model",
+      "facts_used": [
+        {
+          "fact": "tread_depth_mm",
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "present": false
+        },
+        {
+          "fact": "tread_depth_mm",
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "present": false
+        }
+      ],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.2.1-width-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.1.(4)",
+      "title": "Stair width \u2014 stairs within dwelling units",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.2.1-width-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.1.(4)",
+      "title": "Stair width \u2014 stairs within dwelling units",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.2.2-headroom-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.2.(3)",
+      "title": "Headroom over stairs \u2014 stairs serving a single dwelling unit",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.2.2-headroom-private",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.8.2.2.(3)",
+      "title": "Headroom over stairs \u2014 stairs serving a single dwelling unit",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.7.1-handrail-required-interior",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentences 9.8.7.1.(1) and (3)(a)",
+      "title": "Handrail required \u2014 interior private stairs with more than 2 risers",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private', 'location': 'interior', 'number_of_risers': {'op': '>', 'value': 2}}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.7.1-handrail-required-interior",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentences 9.8.7.1.(1) and (3)(a)",
+      "title": "Handrail required \u2014 interior private stairs with more than 2 risers",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'private', 'location': 'interior', 'number_of_risers': {'op': '>', 'value': 2}}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.9-open-risers",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.9 (new)",
+      "title": "Open risers prohibited except for stairs serving a single dwelling unit",
+      "entity_id": "pdf-entity-1",
+      "entity_name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'shared'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.8.4.9-open-risers",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.8.4.9 (new)",
+      "title": "Open risers prohibited except for stairs serving a single dwelling unit",
+      "entity_id": "pdf-entity-3",
+      "entity_name": "Stair (upper-left construction note)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'service': 'shared'}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1",
+      "title": "Bedroom egress window \u2014 unobstructed open area and minimum dimension",
+      "entity_id": "pdf-entity-6",
+      "entity_name": "Window at 2x10 header opening",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1",
+      "title": "Bedroom egress window \u2014 unobstructed open area and minimum dimension",
+      "entity_id": "pdf-entity-9",
+      "entity_name": "Bedroom window (left)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1",
+      "title": "Bedroom egress window \u2014 unobstructed open area and minimum dimension",
+      "entity_id": "pdf-entity-10",
+      "entity_name": "Bedroom window (middle)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-area",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1",
+      "title": "Bedroom egress window \u2014 unobstructed open area and minimum dimension",
+      "entity_id": "pdf-entity-11",
+      "entity_name": "Living area window (right)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-sill",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (maximum sill height)",
+      "title": "Bedroom egress window \u2014 maximum sill height above floor (above-grade)",
+      "entity_id": "pdf-entity-6",
+      "entity_name": "Window at 2x10 header opening",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-sill",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (maximum sill height)",
+      "title": "Bedroom egress window \u2014 maximum sill height above floor (above-grade)",
+      "entity_id": "pdf-entity-9",
+      "entity_name": "Bedroom window (left)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-sill",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (maximum sill height)",
+      "title": "Bedroom egress window \u2014 maximum sill height above floor (above-grade)",
+      "entity_id": "pdf-entity-10",
+      "entity_name": "Bedroom window (middle)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-egress-window-sill",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (maximum sill height)",
+      "title": "Bedroom egress window \u2014 maximum sill height above floor (above-grade)",
+      "entity_id": "pdf-entity-11",
+      "entity_name": "Living area window (right)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'room_use': 'bedroom', 'is_egress_window': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-window-well-clearance",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (window well)",
+      "title": "Egress window well \u2014 clearance in front of window",
+      "entity_id": "pdf-entity-6",
+      "entity_name": "Window at 2x10 header opening",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'is_egress_window': True, 'opens_into_window_well': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-window-well-clearance",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (window well)",
+      "title": "Egress window well \u2014 clearance in front of window",
+      "entity_id": "pdf-entity-9",
+      "entity_name": "Bedroom window (left)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'is_egress_window': True, 'opens_into_window_well': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-window-well-clearance",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (window well)",
+      "title": "Egress window well \u2014 clearance in front of window",
+      "entity_id": "pdf-entity-10",
+      "entity_name": "Bedroom window (middle)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'is_egress_window': True, 'opens_into_window_well': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.9.10.1-window-well-clearance",
+      "provision": "OBC 2024 (O. Reg. 163/24) Article 9.9.10.1 (window well)",
+      "title": "Egress window well \u2014 clearance in front of window",
+      "entity_id": "pdf-entity-11",
+      "entity_name": "Living area window (right)",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'is_egress_window': True, 'opens_into_window_well': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-habitable",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(1) and Table 9.5.3.1",
+      "title": "Ceiling height \u2014 habitable rooms (living, dining, kitchen, bedrooms)",
+      "entity_id": "pdf-entity-7",
+      "entity_name": "KITCHEN",
+      "status": "uncertain",
+      "detail": "Applicability could not be determined (uncertain) for conditions {'room_use': ['living_room', 'dining_room', 'kitchen', 'bedroom', 'master_bedroom']}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-habitable",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(1) and Table 9.5.3.1",
+      "title": "Ceiling height \u2014 habitable rooms (living, dining, kitchen, bedrooms)",
+      "entity_id": "pdf-entity-8",
+      "entity_name": "LIVING AREA",
+      "status": "uncertain",
+      "detail": "Applicability could not be determined (uncertain) for conditions {'room_use': ['living_room', 'dining_room', 'kitchen', 'bedroom', 'master_bedroom']}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-secondary-suite",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(2)",
+      "title": "Ceiling height \u2014 rooms and spaces in secondary suites",
+      "entity_id": "pdf-entity-7",
+      "entity_name": "KITCHEN",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'in_secondary_suite': True}",
+      "facts_used": [],
+      "comparisons": []
+    },
+    {
+      "rule_id": "OBC-9.5.3.1-ceiling-secondary-suite",
+      "provision": "OBC 2024 (O. Reg. 163/24) Sentence 9.5.3.1.(2)",
+      "title": "Ceiling height \u2014 rooms and spaces in secondary suites",
+      "entity_id": "pdf-entity-8",
+      "entity_name": "LIVING AREA",
+      "status": "info_not_available",
+      "detail": "Applicability could not be determined (info_not_available) for conditions {'in_secondary_suite': True}",
+      "facts_used": [],
+      "comparisons": []
+    }
+  ],
+  "engine": {
+    "deterministic": true,
+    "confidence_threshold": 0.9,
+    "note": "Results are a pure function of ruleset + facts. No generative model participates in pass/fail judgment."
+  }
+}

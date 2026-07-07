@@ -1,0 +1,174 @@
+{
+  "project": {
+    "name": "Anonymized Ontario permit \u2014 change of use (fish market -> dwelling)",
+    "jurisdiction": "Ontario",
+    "sources": [
+      "permit drawing sheet A1 (3x3 tiled LLM extraction) \u2014 original not committed (privacy)"
+    ],
+    "_note": "Facts extracted by the LLM PDF path at <=0.89 confidence (EO1); every value routes to human review before it can produce a pass/fail."
+  },
+  "entities": [
+    {
+      "entity_type": "stair_flight",
+      "id": "pdf-entity-1",
+      "name": "NEW STAIRS AND LANDING (to OBC 2012 9.8)",
+      "attributes": {
+        "riser_height_mm": {
+          "value": 200.0,
+          "confidence": 0.89,
+          "source": "permit_sheet_A1.pdf tile r1c1 (LLM extraction)"
+        },
+        "tread_run_mm": {
+          "value": 254.0,
+          "confidence": 0.85,
+          "source": "permit_sheet_A1.pdf tile r1c1 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "pdf-entity-2",
+      "name": "DOOR TO ACCESS UPSTAIRS UNIT (NM.SIZE 34X80)",
+      "attributes": {
+        "height_mm": {
+          "value": 2032.0,
+          "confidence": 0.75,
+          "source": "permit_sheet_A1.pdf tile r1c1 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "stair_flight",
+      "id": "pdf-entity-3",
+      "name": "Stair (upper-left construction note)",
+      "attributes": {
+        "riser_height_mm": {
+          "value": 200,
+          "confidence": 0.7,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        },
+        "tread_run_mm": {
+          "value": 254,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "pdf-entity-4",
+      "name": "Door to upstairs unit",
+      "attributes": {
+        "height_mm": {
+          "value": 2032,
+          "confidence": 0.45,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "door",
+      "id": "pdf-entity-5",
+      "name": "Door (stair area)",
+      "attributes": {
+        "height_mm": {
+          "value": 2032,
+          "confidence": 0.35,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "pdf-entity-6",
+      "name": "Window at 2x10 header opening",
+      "attributes": {
+        "overall_width_mm": {
+          "value": 686,
+          "confidence": 0.35,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        },
+        "overall_height_mm": {
+          "value": 1067,
+          "confidence": 0.35,
+          "source": "permit_sheet_A1.pdf tile r1c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "pdf-entity-7",
+      "name": "KITCHEN",
+      "attributes": {
+        "room_use": {
+          "value": "kitchen",
+          "confidence": 0.89,
+          "source": "permit_sheet_A1.pdf tile r1c3 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "pdf-entity-8",
+      "name": "LIVING AREA",
+      "attributes": {
+        "room_use": {
+          "value": "living",
+          "confidence": 0.89,
+          "source": "permit_sheet_A1.pdf tile r1c3 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "pdf-entity-9",
+      "name": "Bedroom window (left)",
+      "attributes": {
+        "overall_width_mm": {
+          "value": 1981.2,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        },
+        "overall_height_mm": {
+          "value": 1066.8,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "pdf-entity-10",
+      "name": "Bedroom window (middle)",
+      "attributes": {
+        "overall_width_mm": {
+          "value": 1981.2,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        },
+        "overall_height_mm": {
+          "value": 1066.8,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "pdf-entity-11",
+      "name": "Living area window (right)",
+      "attributes": {
+        "overall_width_mm": {
+          "value": 1981.2,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        },
+        "overall_height_mm": {
+          "value": 1066.8,
+          "confidence": 0.5,
+          "source": "permit_sheet_A1.pdf tile r2c2 (LLM extraction)"
+        }
+      }
+    }
+  ]
+}

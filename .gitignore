@@ -6,3 +6,5 @@ reports/
 reference/
 samples/external/
 tmp/
+samples/casestudy/*.pdf
+samples/casestudy/*.xlsx
