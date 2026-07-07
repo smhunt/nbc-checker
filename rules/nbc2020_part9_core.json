@@ -1,0 +1,150 @@
+{
+  "ruleset_id": "nbc2020-part9-core",
+  "code_edition": "NBC 2020",
+  "schema_version": "0.1.0",
+  "description": "Core prescriptive Part 9 rules for Housing and Small Buildings. RASE-inspired: Applicability, Requirement, Exception fields. All numeric values MUST be verified against the published NBC 2020 text before any demonstration (see prompt_plan.md task V1).",
+  "rules": [
+    {
+      "rule_id": "NBC-9.8.4.1-rise-private",
+      "provision": "NBC 2020 Sentence 9.8.4.1.(1)",
+      "title": "Stair riser height — private stairs",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "requires": {
+        "all": [
+          { "fact": "riser_height_mm", "op": ">=", "value": 125 },
+          { "fact": "riser_height_mm", "op": "<=", "value": 200 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.4.2-run-private",
+      "provision": "NBC 2020 Sentence 9.8.4.2.(1)",
+      "title": "Stair tread run — private stairs",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "requires": {
+        "all": [
+          { "fact": "tread_run_mm", "op": ">=", "value": 255 },
+          { "fact": "tread_run_mm", "op": "<=", "value": 355 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.2.1-width-private",
+      "provision": "NBC 2020 Article 9.8.2.1",
+      "title": "Stair width — stairs within dwelling units",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "requires": {
+        "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 860 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.2.2-headroom-private",
+      "provision": "NBC 2020 Article 9.8.2.2",
+      "title": "Headroom over stairs — private stairs",
+      "applies_to": { "entity_type": "stair_flight", "where": { "service": "private" } },
+      "requires": {
+        "all": [ { "fact": "headroom_mm", "op": ">=", "value": 1950 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.7.4-handrail-height",
+      "provision": "NBC 2020 Article 9.8.7.4",
+      "title": "Handrail height above stair nosing",
+      "applies_to": { "entity_type": "handrail", "where": {} },
+      "requires": {
+        "all": [
+          { "fact": "height_above_nosing_mm", "op": ">=", "value": 865 },
+          { "fact": "height_above_nosing_mm", "op": "<=", "value": 1070 }
+        ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.8.3-guard-height-low",
+      "provision": "NBC 2020 Article 9.8.8.3",
+      "title": "Guard height — walking surface not more than 1800 mm above adjacent level",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": { "fall_height_mm": { "op": "<=", "value": 1800 } }
+      },
+      "requires": {
+        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 900 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.8.3-guard-height-high",
+      "provision": "NBC 2020 Article 9.8.8.3",
+      "title": "Guard height — walking surface more than 1800 mm above adjacent level",
+      "applies_to": {
+        "entity_type": "guard",
+        "where": { "fall_height_mm": { "op": ">", "value": 1800 } }
+      },
+      "requires": {
+        "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.8.8.5-guard-openings",
+      "provision": "NBC 2020 Article 9.8.8.5",
+      "title": "Openings through guards — sphere rule",
+      "applies_to": { "entity_type": "guard", "where": {} },
+      "requires": {
+        "all": [ { "fact": "max_opening_mm", "op": "<=", "value": 100 } ]
+      },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.9.10.1-egress-window-area",
+      "provision": "NBC 2020 Sentence 9.9.10.1.(1)",
+      "title": "Bedroom egress window — unobstructed open area",
+      "applies_to": { "entity_type": "window", "where": { "room_use": "bedroom", "is_egress_window": true } },
+      "requires": {
+        "all": [
+          { "fact": "unobstructed_open_area_m2", "op": ">=", "value": 0.35 },
+          { "fact": "min_opening_dimension_mm", "op": ">=", "value": 380 }
+        ]
+      },
+      "exceptions": [
+        { "description": "Not required where the bedroom has a door leading directly to the exterior, or where sprinklered (verify exact NBC 2020 wording)", "fact": "has_exterior_door", "op": "==", "value": true }
+      ],
+      "unit_system": "mixed",
+      "verified_against_code_text": false
+    },
+    {
+      "rule_id": "NBC-9.5.3.1-ceiling-living",
+      "provision": "NBC 2020 Article 9.5.3.1",
+      "title": "Ceiling height — living and dining rooms",
+      "applies_to": { "entity_type": "room", "where": { "room_use": ["living_room", "dining_room"] } },
+      "requires": {
+        "all": [ { "fact": "ceiling_height_mm", "op": ">=", "value": 2300 } ]
+      },
+      "exceptions": [
+        { "description": "Sloped-ceiling / partial-area provisions in 9.5.3 apply; v1 engine evaluates flat minimum only (verify full sentence structure)" }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": false
+    }
+  ]
+}

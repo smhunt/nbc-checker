@@ -1,0 +1,98 @@
+{
+  "project": {
+    "name": "Sample 2-Storey Dwelling — Permit Application PA-2026-0417",
+    "municipality": "Middlesex Centre, ON",
+    "sources": ["model.ifc (BIM)", "A-201 Stair Sections.pdf (drawing extraction)"]
+  },
+  "entities": [
+    {
+      "entity_type": "stair_flight",
+      "id": "stair-01",
+      "name": "Main stair, ground to second floor",
+      "attributes": {
+        "service": "private",
+        "riser_height_mm": { "value": 190, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKr" },
+        "tread_run_mm": { "value": 255, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKs" },
+        "clear_width_mm": { "value": 910, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKt" },
+        "headroom_mm": { "value": 2050, "confidence": 1.0, "source": "model.ifc#2O2Fr$t4X7Zf8NOew3FLKu" }
+      }
+    },
+    {
+      "entity_type": "stair_flight",
+      "id": "stair-02",
+      "name": "Basement stair",
+      "attributes": {
+        "service": "private",
+        "riser_height_mm": { "value": 210, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLs" },
+        "tread_run_mm": { "value": 240, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLt" },
+        "clear_width_mm": { "value": 860, "confidence": 1.0, "source": "model.ifc#3P3Gs$u5Y8ag9OPfx4GMLu" }
+      }
+    },
+    {
+      "entity_type": "handrail",
+      "id": "handrail-01",
+      "name": "Main stair handrail",
+      "attributes": {
+        "height_above_nosing_mm": { "value": 920, "confidence": 0.82, "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)" }
+      }
+    },
+    {
+      "entity_type": "guard",
+      "id": "guard-01",
+      "name": "Second floor landing guard",
+      "attributes": {
+        "fall_height_mm": { "value": 2750, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMt" },
+        "guard_height_mm": { "value": 1070, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMu" },
+        "max_opening_mm": { "value": 95, "confidence": 1.0, "source": "model.ifc#4Q4Ht$v6Z9bh0PQgy5HNMv" }
+      }
+    },
+    {
+      "entity_type": "guard",
+      "id": "guard-02",
+      "name": "Rear deck guard",
+      "attributes": {
+        "fall_height_mm": { "value": 1500, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONu" },
+        "guard_height_mm": { "value": 880, "confidence": 1.0, "source": "model.ifc#5R5Iu$w7a0ci1QRhz6IONv" }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "window-b2-01",
+      "name": "Bedroom 2 window W-204",
+      "attributes": {
+        "room_use": "bedroom",
+        "is_egress_window": true,
+        "unobstructed_open_area_m2": { "value": 0.38, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOv" },
+        "min_opening_dimension_mm": { "value": 500, "confidence": 1.0, "source": "model.ifc#6S6Jv$x8b1dj2RSi07JPOw" }
+      }
+    },
+    {
+      "entity_type": "window",
+      "id": "window-b3-01",
+      "name": "Bedroom 3 window W-305",
+      "attributes": {
+        "room_use": "bedroom",
+        "is_egress_window": true,
+        "unobstructed_open_area_m2": { "value": 0.31, "confidence": 1.0, "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPw" },
+        "min_opening_dimension_mm": { "value": 380, "confidence": 1.0, "source": "model.ifc#7T7Kw$y9c2ek3STj18KQPx" }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-living",
+      "name": "Living room",
+      "attributes": {
+        "room_use": "living_room",
+        "ceiling_height_mm": { "value": 2440, "confidence": 1.0, "source": "model.ifc#8U8Lx$z0d3fl4TUk29LRQx" }
+      }
+    },
+    {
+      "entity_type": "room",
+      "id": "room-dining",
+      "name": "Dining room",
+      "attributes": {
+        "room_use": "dining_room"
+      }
+    }
+  ]
+}
