@@ -178,3 +178,91 @@ def test_export_xlsx(client):
     r = client.get("/api/export/xlsx")
     assert r.status_code == 200
     assert r.content[:2] == b"PK"  # xlsx is a zip
+
+
+# --- Upload / job flow (extraction stubbed so no CLI is called) ---
+
+def _fake_facts():
+    return {
+        "project": {"name": "uploaded.pdf", "jurisdiction": "Ontario"},
+        "entities": [{
+            "entity_type": "stair_flight", "id": "s1", "name": "Stair",
+            "attributes": {
+                "service": "private",
+                "riser_height_mm": {"value": 210, "confidence": 0.8, "source": "pdf tile r1c1"},
+            },
+        }],
+    }
+
+
+@pytest.fixture
+def upload_client(client, monkeypatch):
+    # Run the background "thread" synchronously and stub the extractor.
+    import extractors.pdf_extractor as pe
+    import server.app as appmod
+    monkeypatch.setattr(pe, "extract", lambda p: _fake_facts())
+    monkeypatch.setattr(pe, "extract_tiled", lambda p, **k: _fake_facts())
+
+    class _SyncThread:
+        def __init__(self, target, args=(), daemon=None):
+            self._t, self._a = target, args
+        def start(self):
+            self._t(*self._a)
+
+    monkeypatch.setattr(appmod.threading, "Thread", _SyncThread)
+    return client
+
+
+def _upload(c):
+    return c.post(
+        "/api/upload",
+        files={"file": ("plan.pdf", b"%PDF-1.4 fake", "application/pdf")},
+        data={"ruleset": "obc", "mode": "whole"},
+    )
+
+
+def test_upload_rejects_non_pdf(upload_client):
+    r = upload_client.post(
+        "/api/upload",
+        files={"file": ("plan.txt", b"hi", "text/plain")},
+        data={"ruleset": "nbc", "mode": "whole"},
+    )
+    assert r.status_code == 400
+
+
+def test_upload_bad_ruleset(upload_client):
+    r = upload_client.post(
+        "/api/upload",
+        files={"file": ("p.pdf", b"%PDF", "application/pdf")},
+        data={"ruleset": "zzz", "mode": "whole"},
+    )
+    assert r.status_code == 400
+
+
+def test_upload_then_job_report(upload_client):
+    up = _upload(upload_client)
+    assert up.status_code == 200
+    job_id = up.json()["job_id"]
+
+    job = upload_client.get(f"/api/jobs/{job_id}").json()
+    assert job["status"] == "done"
+    assert job["report"]["code_edition"].startswith("OBC")
+    # LLM fact at 0.8 confidence -> the rise check must be uncertain, never fail.
+    rise = [r for r in job["report"]["results"] if r["rule_id"].endswith("rise-private")]
+    assert rise and all(r["status"] == "uncertain" for r in rise)
+
+
+def test_job_override_flips_and_exports(upload_client):
+    job_id = _upload(upload_client).json()["job_id"]
+    # Confirm the 210 mm riser as reviewed -> now a confident value -> FAIL (>200).
+    body = {"entity_id": "s1", "fact": "riser_height_mm", "value": 210, "note": "confirmed"}
+    after = upload_client.post(f"/api/jobs/{job_id}/override", json=body).json()
+    rise = [r for r in after["report"]["results"] if r["rule_id"].endswith("rise-private")]
+    assert rise and any(r["status"] == "fail" for r in rise)
+
+    pdf = upload_client.get(f"/api/jobs/{job_id}/export/pdf")
+    assert pdf.status_code == 200 and pdf.content[:4] == b"%PDF"
+
+
+def test_job_not_found(upload_client):
+    assert upload_client.get("/api/jobs/deadbeef").status_code == 404

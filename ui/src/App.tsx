@@ -1,22 +1,53 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { CheckResult, CheckStatus, State } from './api'
-import { deleteOverride, getState, postOverride } from './api'
+import type { CheckResult, CheckStatus, Job, State } from './api'
+import {
+  deleteJobOverride,
+  deleteOverride,
+  getState,
+  postJobOverride,
+  postOverride,
+} from './api'
 import { ChangelogModal, APP_VERSION } from './components/ChangelogModal'
 import { DetailDrawer } from './components/DetailDrawer'
 import { ResultsTable, resultKey } from './components/ResultsTable'
 import { SummaryBar } from './components/SummaryBar'
+import { UploadPanel } from './components/UploadPanel'
 
 export default function App() {
   const [state, setState] = useState<State | null>(null)
+  const [jobId, setJobId] = useState<string | null>(null)
+  const [source, setSource] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Set<CheckStatus>>(new Set())
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [showAbout, setShowAbout] = useState(false)
 
-  useEffect(() => {
+  const loadSample = useCallback(() => {
     getState()
-      .then(setState)
+      .then((s) => {
+        setState(s)
+        setJobId(null)
+        setSource(null)
+        setSelectedKey(null)
+      })
       .catch((e: Error) => setError(e.message))
+  }, [])
+
+  useEffect(loadSample, [loadSample])
+
+  const showJob = useCallback((job: Job) => {
+    if (!job.report) return
+    setState({
+      report: job.report,
+      facts: job.facts!,
+      overrides: job.overrides ?? {},
+      rules: job.rules ?? {},
+      report_sha256: job.report_sha256 ?? '',
+    })
+    setJobId(job.job_id)
+    setSource(`${job.filename} · ${job.ruleset_key.toUpperCase()} · ${job.mode}`)
+    setSelectedKey(null)
+    setError(null)
   }, [])
 
   const toggleFilter = useCallback((status: CheckStatus) => {
@@ -40,23 +71,31 @@ export default function App() {
   const handleOverride = useCallback(
     async (entityId: string, fact: string, value: string, note: string) => {
       try {
-        setState(await postOverride({ entity_id: entityId, fact, value, note }))
+        const body = { entity_id: entityId, fact, value, note }
+        setState(jobId ? await postJobOverride(jobId, body) as State : await postOverride(body))
         setError(null)
       } catch (e) {
         setError((e as Error).message)
       }
     },
-    [],
+    [jobId],
   )
 
-  const handleDeleteOverride = useCallback(async (entityId: string, fact: string) => {
-    try {
-      setState(await deleteOverride(entityId, fact))
-      setError(null)
-    } catch (e) {
-      setError((e as Error).message)
-    }
-  }, [])
+  const handleDeleteOverride = useCallback(
+    async (entityId: string, fact: string) => {
+      try {
+        setState(
+          jobId
+            ? (await deleteJobOverride(jobId, entityId, fact)) as State
+            : await deleteOverride(entityId, fact),
+        )
+        setError(null)
+      } catch (e) {
+        setError((e as Error).message)
+      }
+    },
+    [jobId],
+  )
 
   if (error && !state) {
     return <div className="error-banner">Failed to load review state: {error}</div>
@@ -73,6 +112,11 @@ export default function App() {
         <h1>{report.project.name ?? 'Untitled project'}</h1>
         <span className="meta mono">{report.ruleset_id}</span>
         <span className="meta">{report.code_edition}</span>
+        {source && (
+          <button className="source-pill" onClick={loadSample} title="Back to the sample project">
+            ← {source}
+          </button>
+        )}
         <span
           className="determinism-badge"
           title="identical inputs → identical report"
@@ -81,6 +125,8 @@ export default function App() {
           {state.report_sha256.slice(0, 12)}
         </span>
       </header>
+
+      <UploadPanel onResult={showJob} />
 
       <SummaryBar summary={report.summary} activeFilters={filters} onToggle={toggleFilter} />
 

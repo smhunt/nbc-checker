@@ -112,3 +112,48 @@ export function deleteOverride(entityId: string, fact: string): Promise<State> {
     { method: 'DELETE' },
   )
 }
+
+// --- Upload your own PDF plan ---
+
+export type JobStatus = 'extracting' | 'checking' | 'done' | 'error'
+
+export interface Job extends Partial<State> {
+  job_id: string
+  filename: string
+  ruleset_key: string
+  mode: string
+  status: JobStatus
+  message: string
+  error: string | null
+}
+
+export async function uploadPlan(
+  file: File,
+  ruleset: 'nbc' | 'obc',
+  mode: 'whole' | 'tiled',
+): Promise<Job> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('ruleset', ruleset)
+  form.append('mode', mode)
+  return request<Job>('/api/upload', { method: 'POST', body: form })
+}
+
+export function getJob(jobId: string): Promise<Job> {
+  return request<Job>(`/api/jobs/${encodeURIComponent(jobId)}`)
+}
+
+export function postJobOverride(jobId: string, body: OverrideBody): Promise<Job> {
+  return request<Job>(`/api/jobs/${encodeURIComponent(jobId)}/override`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+export function deleteJobOverride(jobId: string, entityId: string, fact: string): Promise<Job> {
+  return request<Job>(
+    `/api/jobs/${encodeURIComponent(jobId)}/override/${encodeURIComponent(entityId)}/${encodeURIComponent(fact)}`,
+    { method: 'DELETE' },
+  )
+}

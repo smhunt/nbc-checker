@@ -22,7 +22,10 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+import hashlib as _hashlib
+import threading
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -32,7 +35,14 @@ sys.path.insert(0, str(ROOT))
 
 from engine.checker import run_ruleset  # noqa: E402
 from engine.export import to_pdf, to_xlsx  # noqa: E402
+from server.jobs import STORE  # noqa: E402
 from server.overrides import apply_overrides, load_overrides, save_overrides  # noqa: E402
+
+# Rulesets the user can check an uploaded plan against.
+RULESETS = {
+    "nbc": ROOT / "rules" / "nbc2020_part9_core.json",
+    "obc": ROOT / "rules" / "obc2024_part9_core.json",
+}
 
 app = FastAPI(title="NBC Checker Review API")
 
@@ -172,6 +182,149 @@ def export(fmt: str):
         to_pdf(report, str(path))
         return FileResponse(path, media_type="application/pdf", filename="nbc_report.pdf")
     path = out_dir / "nbc_report.xlsx"
+    to_xlsx(report, str(path))
+    return FileResponse(
+        path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="nbc_report.xlsx",
+    )
+
+
+# --- Upload your own PDF plan ---------------------------------------------
+
+def _rules_meta(ruleset: dict) -> dict:
+    return {
+        rule["rule_id"]: {
+            "provision": rule.get("provision"),
+            "title": rule.get("title"),
+            "verification_notes": rule.get("verification_notes"),
+        }
+        for rule in ruleset.get("rules", [])
+    }
+
+
+def _job_state(job) -> dict:
+    """Build the same state shape as /api/state for a completed upload job."""
+    ruleset = _load_json(str(RULESETS[job.ruleset_key]))
+    effective_facts = apply_overrides(job.facts, job.overrides)
+    report = run_ruleset(ruleset, effective_facts)
+    sha = _hashlib.sha256(json.dumps(report, sort_keys=True).encode("utf-8")).hexdigest()
+    return {
+        "report": report,
+        "facts": effective_facts,
+        "overrides": job.overrides,
+        "rules": _rules_meta(ruleset),
+        "report_sha256": sha,
+    }
+
+
+def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
+    """Background worker: extract facts from the PDF, then mark the job done."""
+    try:
+        from extractors.pdf_extractor import extract, extract_tiled
+
+        STORE.update(job_id, status="extracting",
+                     message="Reading the drawing… tiled mode can take a few minutes."
+                     if mode == "tiled" else "Reading the drawing…")
+        if mode == "tiled":
+            facts = extract_tiled(pdf_path, grid=(3, 3))
+        else:
+            facts = extract(pdf_path)
+        n = len(facts.get("entities", []))
+        STORE.update(job_id, facts=facts, status="done",
+                     message=f"Extracted {n} element(s). All LLM-read values route to human review.")
+    except Exception as exc:  # extraction is best-effort; surface the failure
+        STORE.update(job_id, status="error", error=f"{type(exc).__name__}: {exc}")
+
+
+@app.post("/api/upload")
+async def upload(
+    file: UploadFile = File(...),
+    ruleset: str = Form("nbc"),
+    mode: str = Form("whole"),
+):
+    """Accept a PDF plan, kick off background extraction, return a job id.
+
+    ruleset: 'nbc' (NBC 2020) or 'obc' (Ontario OBC 2024).
+    mode:    'whole' (fast, one pass) or 'tiled' (slower, ~6x more facts).
+    """
+    if ruleset not in RULESETS:
+        raise HTTPException(status_code=400, detail=f"unknown ruleset '{ruleset}' (use nbc or obc)")
+    if mode not in ("whole", "tiled"):
+        raise HTTPException(status_code=400, detail=f"unknown mode '{mode}' (use whole or tiled)")
+    fname = file.filename or "upload.pdf"
+    if not fname.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="only PDF files are accepted")
+
+    up_dir = ROOT / "reports" / "uploads"
+    up_dir.mkdir(parents=True, exist_ok=True)
+    job = STORE.create(filename=fname, ruleset_key=ruleset, mode=mode)
+    dest = up_dir / f"{job.id}.pdf"
+    dest.write_bytes(await file.read())
+
+    threading.Thread(target=_run_extraction, args=(job.id, str(dest), mode), daemon=True).start()
+    return job.public()
+
+
+@app.get("/api/jobs/{job_id}")
+def get_job(job_id: str) -> dict:
+    job = STORE.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    out = job.public()
+    if job.status == "done" and job.facts is not None:
+        out.update(_job_state(job))
+    return out
+
+
+@app.post("/api/jobs/{job_id}/override")
+def job_override(job_id: str, body: OverrideRequest) -> dict:
+    job = STORE.get(job_id)
+    if job is None or job.facts is None:
+        raise HTTPException(status_code=404, detail="job not found or not ready")
+    note = body.note.strip() or "confirmed by reviewer"
+    today = datetime.date.today().isoformat()
+    job.overrides.setdefault(body.entity_id, {})[body.fact] = {
+        "value": _coerce_value(body.value),
+        "confidence": 1.0,
+        "source": f"human review: {note} ({today})",
+    }
+    out = job.public()
+    out.update(_job_state(job))
+    return out
+
+
+@app.delete("/api/jobs/{job_id}/override/{entity_id}/{fact}")
+def job_delete_override(job_id: str, entity_id: str, fact: str) -> dict:
+    job = STORE.get(job_id)
+    if job is None or job.facts is None:
+        raise HTTPException(status_code=404, detail="job not found or not ready")
+    if entity_id not in job.overrides or fact not in job.overrides[entity_id]:
+        raise HTTPException(status_code=404, detail="override not found")
+    del job.overrides[entity_id][fact]
+    if not job.overrides[entity_id]:
+        del job.overrides[entity_id]
+    out = job.public()
+    out.update(_job_state(job))
+    return out
+
+
+@app.get("/api/jobs/{job_id}/export/{fmt}")
+def job_export(job_id: str, fmt: str):
+    job = STORE.get(job_id)
+    if job is None or job.facts is None:
+        raise HTTPException(status_code=404, detail="job not found or not ready")
+    fmt = fmt.lower()
+    if fmt not in ("pdf", "xlsx"):
+        raise HTTPException(status_code=404, detail=f"unknown export format '{fmt}'")
+    report = _job_state(job)["report"]
+    out_dir = ROOT / "reports"
+    out_dir.mkdir(exist_ok=True)
+    if fmt == "pdf":
+        path = out_dir / f"upload_{job.id}.pdf"
+        to_pdf(report, str(path))
+        return FileResponse(path, media_type="application/pdf", filename="nbc_report.pdf")
+    path = out_dir / f"upload_{job.id}.xlsx"
     to_xlsx(report, str(path))
     return FileResponse(
         path,

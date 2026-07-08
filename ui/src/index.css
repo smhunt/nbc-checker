@@ -103,6 +103,49 @@ input {
   margin-right: 5px;
 }
 
+.source-pill {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  background: var(--panel, var(--bg));
+  cursor: pointer;
+}
+.source-pill:hover { border-color: var(--status-uncertain); }
+
+/* ---------- upload panel ---------- */
+
+.upload-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.upload-panel select {
+  font: inherit;
+  padding: 3px 6px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.upload-panel button {
+  font: inherit;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--status-pass);
+  color: #fff;
+  cursor: pointer;
+}
+.upload-panel button:disabled { opacity: 0.55; cursor: default; }
+.upload-msg { color: var(--text-dim); }
+.upload-err { color: var(--status-fail); }
+
 /* ---------- summary bar ---------- */
 
 .summary-bar {

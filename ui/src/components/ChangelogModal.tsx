@@ -1,8 +1,16 @@
 import { useState } from 'react'
 
-export const APP_VERSION = '0.5.0'
+export const APP_VERSION = '0.6.0'
 
 export const CHANGELOG = [
+  {
+    version: '0.6.0',
+    date: '2026-07-07',
+    changes: [
+      'Upload your own PDF plan — pick the code (NBC / Ontario OBC) and extraction mode, see the report in-browser',
+      'Uploaded plans support the same confirm/correct human-review loop and PDF/Excel export',
+    ],
+  },
   {
     version: '0.5.0',
     date: '2026-07-07',

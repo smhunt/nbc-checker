@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0] - 2026-07-07
+### Added
+- **Upload your own PDF plan in the review UI** — pick a file, choose the code (NBC 2020 or Ontario OBC 2024) and extraction mode (Fast one-pass / Thorough tiled), and see the compliance report in the browser
+- Backend upload pipeline: `POST /api/upload` runs extraction on a background thread; `GET /api/jobs/{id}` polls for the report; per-job override + PDF/Excel export endpoints
+- Uploaded results support the same confirm/correct human-review loop and deterministic re-run as the sample project
+
 ## [0.5.0] - 2026-07-07
 ### Added
 - Ontario OBC 2024 ruleset variant (`rules/obc2024_part9_core.json`, 23 rules) — correct jurisdiction for Ontario projects; documents every OBC-vs-NBC difference per rule
