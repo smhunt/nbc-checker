@@ -21,13 +21,11 @@ export default defineConfig({
     host: true,
     https,
     proxy: {
-      // Backend runs HTTPS (self-signed dev cert) so :3099 is also directly
-      // reachable per the dev.ecoworks.ca convention; secure:false lets the
-      // proxy trust that cert.
+      // Backend runs plain HTTP behind Traefik (TLS terminated at
+      // https://nbc.dev.ecoworks.ca). The dev proxy targets it directly.
       '/api': {
-        target: 'https://localhost:3099',
+        target: 'http://localhost:3099',
         changeOrigin: true,
-        secure: false,
       },
     },
   },

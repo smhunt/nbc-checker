@@ -48,7 +48,11 @@ app = FastAPI(title="NBC Checker Review API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://dev.ecoworks.ca:3029", "https://localhost:3029"],
+    allow_origins=[
+        "https://dev.ecoworks.ca:3029",   # Vite dev server
+        "https://localhost:3029",
+        "https://nbc.dev.ecoworks.ca",    # Traefik production route
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -331,6 +335,16 @@ def job_export(job_id: str, fmt: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename="nbc_report.xlsx",
     )
+
+
+# Serve the production UI build from the same origin (no CORS, no dev server).
+# Mounted last so all /api routes above take precedence. In development the
+# Vite dev server on :3029 proxies /api here instead.
+_UI_DIST = ROOT / "ui" / "dist"
+if _UI_DIST.exists():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=str(_UI_DIST), html=True), name="ui")
 
 
 if __name__ == "__main__":
