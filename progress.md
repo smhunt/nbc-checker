@@ -90,8 +90,18 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
 - Bug fixed: pdf_extractor needed --allowedTools Read for the nested CLI to read uploads.
 - Docs: feasibility addendum, CHANGELOG 0.5.0, UI changelog 0.5.0, README.
 
+## 2026-07-07 — Session 4b (official Challenge Notice reconciliation)
+- User supplied the official posting URL (challenge OPENED today, closes Aug 4 14:00 ET).
+- Direct Phase 2 entry confirmed (TRL 5-9, no Phase 1 prerequisite) — red flag resolved.
+  Max $500K/18mo/~2 grants; our $475K/18mo plan fits.
+- Proposal rewritten against the 10 OFFICIAL EOs + 4 Additional Outcomes. EO6's four
+  categories (Pass/Fail/Info Not Available/Uncertain) match our engine verbatim.
+- Honest gaps became Phase A/C commitments: Part 3 (EO2), French CNB + Quebec CC (EO10),
+  Canadian data residency (EO8), BCF export (EO9), NRC digitalized-code format (EO5).
+- Evaluation notes: inclusivity is 20/130 pts — needs a substantive plan; question window
+  closes ~Jul 25 (consider requesting NRC sample code data via EO5).
+
 ## Next session
-- VERIFY the real ISC challenge notice + EO wording before trusting the proposal EO table
 - Verify the 4 unverified OBC rules against machine-readable e-Laws (JS-rendered; needs
   browser fetch or the OBC compendium PDF)
 - Tag OBC rules with new_work_only scope so change-of-use projects check only new work

@@ -2,20 +2,23 @@
 
 | | |
 |---|---|
-| **Challenge** | Deterministic AI-Assisted Compliance Checking of Building Permit Applications *(working title — official ISC challenge posting could not be located publicly as of 2026-07-07; confirm exact challenge name, challenge number, and Essential Outcomes wording against the official Challenge Notice before submission)* |
-| **Program** | Innovative Solutions Canada — Challenge Stream, **Phase 2 (Prototype Development)** |
-| **Sponsoring department** | National Research Council Canada (Construction Research Centre) — *assumed, VERIFY* |
+| **Challenge** | **Deterministic artificial intelligence-assisted compliance checking for building permit applications** (official title) |
+| **Challenge ID** | e97db6c2-b413-415c-a8f9-63e6a0283748 |
+| **Posting** | https://ised-isde.canada.ca/site/innovative-solutions-canada/en/deterministic-artificial-intelligence-assisted-compliance-checking-building-permit-applications |
+| **Program** | Innovative Solutions Canada — Challenge Stream, **Phase 2 (Prototype Development), direct entry** |
+| **Sponsoring department** | National Research Council Canada (NRC) |
 | **Proponent** | EcoWorks (contact: sean@ecoworks.ca) |
-| **Date** | 2026-07-07 |
-| **Status** | **DRAFT** — all bracketed items and "VERIFY" flags must be resolved before the 2026-08-04 2:00 pm ET close |
-| **Requested funding** | $475,000 CAD over 18 months (within the ISC Phase 2 ceiling of up to $1M / 2 years) |
+| **Date** | 2026-07-07 (challenge opened this day) |
+| **Deadline** | **August 4, 2026, 14:00 Eastern** (questions close 10 calendar days before) |
+| **Status** | DRAFT — remaining VERIFY flags are business items (§9), not challenge-text items |
+| **Requested funding** | $475,000 CAD over 18 months (Notice maximum: $500,000 / up to 18 months; ~2 grants anticipated) |
 | **Prototype repository** | https://github.com/smhunt/nbc-checker |
 
-> **Program-structure notes (verified against official ISC pages, 2026-07-07):**
-> - ISC Challenge Stream Phase 2 provides "up to two years and up to $1 million" for prototype development (ISC program eligibility page, ised-isde.canada.ca).
-> - **Phase 2 entry normally requires successful completion of Phase 1.** EcoWorks does not hold a Phase 1 award. The ISC Grant Instructions (Call 004) define an **"Entry at Phase 2"** pathway: *"The Entry at Phase 2 option is for innovators who have already proven the feasibility of their solution using sources of funding outside of the ISC program and whose technology is now between TRL 5 to 9."* This proposal is written for that pathway. **CRITICAL: confirm the specific Challenge Notice is open for Entry at Phase 2 — if it is not, this proposal cannot proceed without a Phase 1 award.**
-> - Small-business eligibility (verified): for-profit; incorporated in Canada; 499 or fewer FTEs; R&D activities in Canada; ≥50% of annual wages/salaries/fees paid to Canada-based employees and contractors; ≥50% of FTEs with Canada as ordinary place of work; ≥50% of senior executives resident in Canada. **EcoWorks must confirm it satisfies each criterion at time of submission (incorporation status — business decision pending).**
-> - Evaluation (per ISC Grant Instructions, Call 004): mandatory criteria include Scope (solution must "clearly demonstrate how the solution meets all of the Essential Outcomes"), Proof of Feasibility and Current TRL, Innovation, and Advance on State of the Art; Additional Outcomes are point-rated (0–10 points); minimum passing score 65 of 130 points.
+> **Program-structure notes (verified against the official Challenge Notice, 2026-07-07):**
+> - **This challenge accepts proposals at Phase 2 only — direct entry, no Phase 1 prerequisite.** Required Technology Readiness Level: **5–9 inclusive**, with proof of feasibility. Our prototype and feasibility evidence (docs/feasibility-evidence.md) target exactly this gate. *(The earlier draft's "Entry at Phase 2" eligibility risk is resolved.)*
+> - Funding: maximum **$500,000 CAD per grant**, duration **up to 18 months**, estimated **2 grants**.
+> - Small-business eligibility (per Notice): for-profit; incorporated in Canada; ≤499 FTEs; R&D in Canada; ≥50% of annual wages to Canada-based employees/contractors; ≥50% of FTEs primarily working in Canada; ≥50% of senior executives resident in Canada. **EcoWorks must confirm each criterion at submission (incorporation status — business decision pending).**
+> - Evaluation: Part 1 mandatory pass/fail — Phase 2 Scope (**all Essential Outcomes must be addressed**), Proof of Feasibility & TRL 5–9 with evidence, Innovation, Advance on State of the Art (0–20 pts). Part 2 point-rated, minimum 65/130: Additional Outcomes (0–10), S&T risks (0–10), project risks (0–10), project plan (0–20), implementation team (0–20), **inclusivity (0–20)**, financial controls (0–10), commercialization strategy (0–10).
 
 ---
 
@@ -46,19 +49,29 @@ PDF drawings ──→ LLM vision extractor (confidence capped ≤ 0.89) ─┘ 
 
 ## 3. Essential Outcomes mapping
 
-**IMPORTANT CAVEAT:** the official Challenge Notice (with the authoritative Essential Outcomes text) could not be located on public ISC/NRC pages as of 2026-07-07. The "outcome" wording below is **per EcoWorks' interpretation of the challenge as recorded in project planning notes — every row must be VERIFIED against the official posting.** EO5's subject matter is not recorded in our notes at all.
+The ten Essential Outcomes below are **quoted from the official Challenge Notice** (accessed 2026-07-07). All "prototype evidence today" claims are true of the repository at https://github.com/smhunt/nbc-checker as of 2026-07-07.
 
-All "prototype evidence today" claims below are true of the repository at https://github.com/smhunt/nbc-checker as of 2026-07-07 (some components in working tree pending commit).
-
-| EO | Outcome (per interpretation — **VERIFY**) | Prototype evidence today | Phase 2 plan to full delivery |
+| EO | Official outcome (abridged quote) | Prototype evidence today | Phase 2 plan to full delivery |
 |----|----|----|----|
-| **EO1** | No generative model participates in pass/fail judgment; all compliance determinations are deterministic and reproducible | `engine/checker.py` is a pure function of (ruleset, facts) — no model call anywhere in the judgment path. The LLM extraction path (`extractors/pdf_extractor.py`) hard-caps every fact at `MAX_LLM_CONFIDENCE = 0.89`, below the engine's 0.9 trust threshold, so LLM facts can only ever yield `uncertain` (human review), never pass/fail. Determinism demonstrated: 3 consecutive runs → identical SHA-256 report hash. 53-test pytest suite enforces the invariants (incl. FAIL-dominance and confidence gating). | Formalize the invariant as a documented architectural contract with CI-enforced tests; third-party security/design review; determinism verification made a first-class report feature (hash embedded in every export — already prototyped). |
-| **EO2** | Extraction of building characteristics from BIM/IFC models | `extractors/ifc_extractor.py` (IfcOpenShell): IfcStairFlight, IfcSpace, IfcWindow via attributes, property sets, Qto_ quantity sets, and geometry fallback (bounding-box z-extent for space heights); all lengths normalized to mm; deterministic facts at confidence 1.0 with per-fact provenance (`model.ifc#<GlobalId>`). 8 extractor tests. | Extend entity coverage (doors, railings/guards, walls, envelope assemblies), geometry-derived facts (riser from flight geometry), validation against real permit-quality IFC from pilot municipalities; IDS/bSDD alignment (ACCORD). |
-| **EO3** | Extraction of building characteristics from 2D drawings (PDF) | `extractors/pdf_extractor.py`: LLM vision reads *only explicitly annotated dimensions* from drawing sheets into the same facts schema; per-fact confidence and source ("sheet + region"); confidence capped at 0.89; prompt forbids inference ("NEVER infer a value that is not printed on the drawing"). Sample drawing (`samples/A-201_stair_section.pdf`) and 9 tests. Sample facts include a real low-confidence PDF fact (0.82) that the engine routes to human review. | Harden across real drawing sets from pilot municipalities: multi-sheet packages, schedules, title-block metadata; measure extraction precision/recall against reviewer ground truth; calibrate confidence scoring empirically. |
-| **EO4** | Human-in-the-loop review of uncertain/missing information | FastAPI review service (`server/app.py`) + React review UI (`ui/`): results table filterable by status, click-through to facts and provision text; reviewer confirms/corrects `uncertain` facts or supplies `info_not_available` values; overrides are persisted separately with provenance (`"human review: <note> (<date>)"`) and **never mutate the original extracted facts**; engine re-runs deterministically and the report hash proves it. 13 server tests. | Reviewer workflow features (assignment, sign-off, batch review), role-based access, override history views, pilot-driven UX iteration with practicing plans examiners. |
-| **EO5** | *(subject matter not recorded in project notes — obtain from official posting)* | Candidate evidence if EO5 concerns traceability/citation: every check result records the NBC provision cited, all facts used with value/confidence/source, and every comparison performed; every rule embeds the verbatim NBC 2020 sentence it encodes plus source/date/reviewer in `verification_notes`. | **VERIFY official text, then map.** |
-| **EO6** | Export of compliance reports (PDF/Excel or similar) | `engine/export.py`: PDF (reportlab) and XLSX (openpyxl) exporters, pure functions of the report — deterministic output (timestamps pinned) with the report SHA-256 embedded so a reviewer can verify the document matches the evaluation; per-check provision citation and fact provenance included. 4 export tests. | Municipal formatting requirements from pilots; BCF export for model-based issue round-tripping; e-permitting portal integration formats. |
-| **EO7** | Open API for integration with municipal e-permitting systems | FastAPI service already exposes the pipeline over HTTP (report retrieval, fact override endpoints, export) — the seed of the open API. | Publish a versioned, documented OpenAPI specification; authentication/tenancy; integration adapters piloted against at least one municipal e-permitting workflow; reference client. |
+| **EO1** | "Process 2D drawing files (PDF and/or CAD) and BIM/IFC models … along with additional structured or unstructured data included in a typical Canadian building permit application submission" | Both ingestion paths working: IFC/BIM (`extractors/ifc_extractor.py`, IfcOpenShell — attributes → psets → Qto → geometry fallback) and PDF drawings (`extractors/pdf_extractor.py` — high-DPI tiled LLM vision; validated on a **real Ontario permit sheet**, 17 facts from one dense A1 sheet). Both emit one typed facts schema with per-fact provenance. | CAD (DWG/DXF) ingestion; structured permit-form data (application metadata, schedules); multi-sheet package handling from pilot corpora. |
+| **EO2** | "Check code compliance across a range of building typologies as defined in **Part 3 and Part 9** of the NBC" | Part 9 housing: 38 verified NBC 2020 rules + 23-rule Ontario OBC 2024 variant, all provision-cited. The rule schema (applicability conditions per entity type) is typology-generic by construction. | **Gap acknowledged — Part 3 is not yet covered.** Phase A adds Part 3 rule categories (occupancy classification, fire separations, exits/travel distance, barrier-free 3.8) with the same verification discipline; typology coverage matrix as a tracked deliverable. |
+| **EO3** | "Include a deterministic component(s) that utilizes machine-readable construction codes, machine-executable compliance rules and/or an ontology of construction codes, for consistency, accuracy and repeatability" | The core of the prototype: pure-function rule engine over machine-readable, provision-cited rules; **repeatability demonstrated** — 5 consecutive runs → identical SHA-256 report hash; every rule carries the verbatim code sentence it encodes (`verification_notes`), giving a chain of custody from published text to verdict. 65-test suite enforces the invariants. | Scale the ruleset with the authoring toolchain (schema validation, evidence linter); align the rule model with an ontology/digitalized-code format per EO5. |
+| **EO4** | "Involve human-in-the-loop workflows, and provide traceability and auditability of AI-generated compliance checks with reference to applicable code provisions" | Review UI + FastAPI service: reviewer confirms/corrects `uncertain`/missing facts; overrides persist separately with provenance and never mutate extracted facts; deterministic re-run with hash proof. Every check cites its provision and lists every fact used (value/confidence/source document). Validated on the real permit: every LLM-extracted value routed to review; zero AI-decided verdicts. | Reviewer workflow (assignment, sign-off, batch), role-based access, full audit-log export. |
+| **EO5** | "Be compatible with one or more digitalized code formats (sample data can be optionally provided by NRC for the project)" | Rules are already a documented machine-readable JSON format (RASE-inspired: applicability/requirements/exceptions) with schema versioning — a working digitalized-code format. | **Request NRC sample data on award**; build a bidirectional mapping between our schema and the NRC/AHJ digitalized-code format; ACCORD/IDS alignment study (also Additional Outcome 1/4). |
+| **EO6** | "Generate itemized compliance verification results with at least four categories: Meets (Pass); Does not Meet (Fail); Information Not Available…; Uncertain…" | **Exact match, by design:** the engine's four statuses are precisely `pass` / `fail` / `info_not_available` / `uncertain`, itemized per check with full audit trail. The Notice's parenthetical definitions (missing info in drawing/permit data or ruleset; uncertain) match our semantics (absent facts; sub-threshold confidence or undeterminable applicability). | Category semantics documentation for building officials; per-category workflow guidance in UI. |
+| **EO7** | "Include an intuitive user interface (UI) for AEC practitioners or building officials, and/or include open Application Programming Interface(s) (APIs)" | **Both delivered:** React reviewer UI (status-filterable results, provision text with verbatim code quote, override forms, determinism badge) and a FastAPI HTTP API (`/api/state`, `/api/override`, `/api/export/{fmt}`). | OpenAPI spec publication, authentication/tenancy, UX iteration with practicing plans examiners in pilots. |
+| **EO8** | "Support Canadian data residency, such as a cloud-based solution in a data centre located in Canada" | Architecture is residency-friendly today: fully self-hostable (pure Python + static UI), runs on-premises with no foreign data egress; the only external call is LLM extraction, which is swappable. | Production deployment on Canadian-region cloud (e.g. AWS/Azure/GCP Canadian regions or OVH Canada) including Canadian-hosted or on-prem model inference for extraction; residency statement in security review. |
+| **EO9** | "Export compliance verification results in multiple formats (e.g. PDF, Excel, BIM Collaboration Format)" | PDF and Excel exporters delivered (`engine/export.py`), byte-deterministic with embedded report hash, provision citation and fact provenance per check. | **BCF export** (issues anchored to IFC GlobalIds — our facts already carry them as provenance), promoted from stretch goal to committed Phase C deliverable. |
+| **EO10** | "Support compliance verification against both French and English building codes, such as the French version of the National Building Code or the Quebec Construction Code" | Architecture-ready: rulesets are data, not code — the engine is language-agnostic, jurisdiction is a first-class report field, and the Ontario OBC variant already proves the multi-code pattern (23 rules, per-rule difference notes). | **Gap acknowledged — no French ruleset yet.** Phase A adds a French NBC 2020 ruleset (CNB 2020 — the official French edition, same provision numbering, so `verification_notes` quotes swap to French text) and scopes a Quebec Construction Code (Chapter I) variant with a Québec code consultant. Bilingual UI strings. |
+
+### 3a. Additional Outcomes mapping (point-rated, 0–10)
+
+| AO | Official outcome (abridged) | Position |
+|----|----|----|
+| **AO1** | Compatibility with buildingSMART/ISO standards: ISO 19650, ISO 16739/IFC, BCF, IDS, openBIM | IFC (ISO 16739) ingestion working today via IfcOpenShell with GlobalId-level provenance. Phase A ACCORD/IDS alignment study; Phase C BCF export (EO9). ISO 19650 information-management alignment documented for pilots. |
+| **AO2** | ≥90% verification accuracy on simple digitalized rules, ≥80% on complex rules | Phase B pilot measures accuracy against reviewer ground truth on real permit sets — the design gives this a strong starting position: *deterministic* rules cannot vary run-to-run, so accuracy failures reduce to extraction quality and rule-encoding fidelity, both of which our confidence gate and verification evidence trail are built to expose. Targets adopted as Phase B exit criteria. |
+| **AO3** | Version tracking of drawings/models/data incl. identity, trust, digital seals/signatures | Foundations exist: every report is content-hashed (SHA-256), facts carry per-document provenance, human overrides are separately persisted with reviewer identity and date. Phase C adds revision tracking across resubmissions and a digital-seal integration study. |
+| **AO4** | Configurable data pipeline with an NRC or AHJ digitalized-codes database | Directly aligned with EO5 plan: schema mapping to the NRC format, plus a ruleset-sync mechanism (rules are versioned data files — a codes-database pipeline is an importer, not a re-architecture). |
 
 **Additional prototype evidence (proof of feasibility, TRL 5–6):**
 
@@ -66,22 +79,25 @@ All "prototype evidence today" claims below are true of the repository at https:
 - **Verification catches real errors — the core argument for this methodology.** Encoding from memory or secondary sources fails: verification against the published text caught a wrong ceiling-height rule (2300 mm flat — actually the pre-2015/Ontario value; NBC 2020 is 2100 mm over a defined partial area), a structurally wrong guard-height encoding, and a mis-structured egress-window exception. A checker whose rules are not evidence-verified is a liability; ours ships the evidence.
 - **Engine capabilities:** four-status output; FAIL dominance (a violation is never masked by a missing fact elsewhere in the same check); exception clauses; fact-to-fact comparisons with offsets (e.g. tread depth ≥ run and ≤ run + 25 mm); confidence gating at a configurable threshold (0.9).
 - **Current end-to-end run:** 54 checks against a 25-entity sample dwelling — 26 pass / 11 fail / 16 info-not-available / 1 routed to human review; full audit trail in `reports/last_report.json`.
-- **53 passing pytest tests** across engine, extractors (IFC + PDF), exporters, and review server.
+- **Ontario OBC 2024 variant ruleset delivered** (23 rules, 19 verified; per-rule NBC-difference notes) — the multi-jurisdiction pattern EO10 requires, already proven.
+- **Validated on a real Ontario permit drawing** (change of use): tiled high-DPI extraction recovered 17 facts (~6× whole-sheet); every LLM value routed to human review — zero AI-decided verdicts on real input; flagged a tread run 1 mm under the OBC minimum (`docs/casestudy-real-permit.md`).
+- **65 passing pytest tests** across engine, extractors (IFC + PDF, incl. tiling), exporters, and review server.
 
 ## 4. Work plan — 18 months, 3 phases
 
-### Phase A (M1–M6): Ruleset industrialization + Ontario OBC variant
+### Phase A (M1–M6): Ruleset industrialization — Part 9 depth, Part 3 entry, French codes
 
-Goal: from 38 rules to production-scale Part 9 coverage, with the rule-authoring pipeline itself as a product.
+Goal: from 61 rules (38 NBC + 23 OBC) to production-scale coverage across the Notice's required scope, with the rule-authoring pipeline itself as a product.
 
-- **A1.** Rule-authoring toolchain: schema validation, verification-evidence linter (no rule marked verified without quote + source), coverage dashboard against the Part 9 table of contents.
+- **A1.** Rule-authoring toolchain: schema validation, verification-evidence linter (no rule marked verified without quote + source), coverage dashboard against the Part 9 and Part 3 tables of contents.
 - **A2.** Expand NBC 2020 Part 9 coverage to 150+ verified rules (target divisions: 9.5–9.12, 9.25–9.27, 9.32, 9.36), prioritized by pilot-municipality review-failure statistics.
-- **A3.** **Ontario OBC variant ruleset.** The prototype's verification notes already document material NBC-vs-OBC differences per rule (egress windows: per-floor requirement and 1000 mm max sill; guards: 920 mm exit stairs / 1500 mm above 10 m; ceiling heights: OBC retains the 2.3 m/75% structure; handrail heights: 1070 mm only since 2022). Phase A formalizes jurisdiction as a first-class ruleset dimension.
-- **A4.** P.Eng/code-consultant review of all rule encodings; adjudicate flagged judgment calls (e.g. guard-opening "prevent passage of a 100 mm sphere" encoded as < 100 vs ≤ 100).
-- **A5.** ACCORD/buildingSMART alignment study: map the rule schema to emerging open formats (IDS, bSDD); decision memo on adoption.
+- **A3.** **Part 3 entry (EO2):** encode the first Part 3 rule categories — occupancy classification (3.1.2), fire separations (3.1.8/3.3), exits and travel distance (3.4), barrier-free design (3.8) — with the same verification discipline; publish a Part 3/Part 9 typology coverage matrix.
+- **A4.** **Jurisdiction/language variants (EO10):** the delivered Ontario OBC 2024 variant (23 rules, per-rule NBC-difference notes) proves the multi-code pattern. Add the **French NBC (CNB 2020)** ruleset — same provision numbering, French verbatim quotes — and scope a Quebec Construction Code (Chapter I) variant with a Québec code consultant. Bilingual UI strings.
+- **A5.** P.Eng/code-consultant review of all rule encodings; adjudicate flagged judgment calls (e.g. guard-opening "prevent passage of a 100 mm sphere" encoded as < 100 vs ≤ 100).
+- **A6.** Digitalized-code format compatibility (EO5/AO4): request NRC sample data; map our schema bidirectionally to the NRC/AHJ format; ACCORD/buildingSMART (IDS, bSDD) alignment memo (AO1).
 
-**Milestone M6:** ≥150 verified NBC rules + OBC variant layer; independent code-consultant sign-off; toolchain demo.
-**Deliverables:** ruleset releases, verification evidence corpus, jurisdiction-variant design report, standards-alignment memo.
+**Milestone M6:** ≥150 verified NBC Part 9 rules + first Part 3 categories + OBC variant + CNB (French) ruleset started; independent code-consultant sign-off; toolchain demo.
+**Deliverables:** ruleset releases (NBC-EN, NBC-FR, OBC), Part 3 coverage matrix, verification evidence corpus, NRC-format mapping memo, standards-alignment memo.
 
 ### Phase B (M7–M12): Municipal pilot with real permit sets
 
@@ -100,9 +116,10 @@ Goal: prove the pipeline on real applications, with practicing plans examiners i
 Goal: a deployable system and a route to regulatory acceptance.
 
 - **C1.** Versioned, documented open API (OpenAPI spec, authentication, tenancy); integration adapter against at least one municipal e-permitting workflow (EO7).
-- **C2.** Security, privacy (drawings are applicants' IP), and reliability hardening; third-party security review; deployment packaging (cloud + on-premises option for municipalities).
-- **C3.** Certification/acceptance path: engage NRC Codes Canada and provincial regulators on what evidence a determinism-verified checker needs for formal acceptance as a pre-check aid; publish the determinism verification protocol.
-- **C4.** Final prototype delivery to NRC per Phase 2 requirements; dissemination (conference presentations, open documentation).
+- **C2.** Security, privacy (drawings are applicants' IP), and reliability hardening; third-party security review; **Canadian data-residency deployment (EO8)** — Canadian-region cloud with Canadian-hosted or on-prem model inference for the extraction path; on-premises packaging for municipalities.
+- **C3.** **BCF export (EO9/AO1)** — compliance issues anchored to IFC GlobalIds (already carried as fact provenance); revision tracking across resubmissions and digital-seal integration study (AO3).
+- **C4.** Certification/acceptance path: engage NRC Codes Canada and provincial regulators on what evidence a determinism-verified checker needs for formal acceptance as a pre-check aid; publish the determinism verification protocol.
+- **C5.** Final prototype delivery to NRC per Phase 2 requirements; dissemination (conference presentations, open documentation).
 
 **Milestone M18:** delivered prototype (TRL 7–8): full pipeline, open API, pilot-validated, certification-path report.
 **Deliverables:** prototype delivery package, API documentation, security review report, final project report.
@@ -139,7 +156,8 @@ Goal: a deployable system and a route to regulatory acceptance.
 | **IFC quality in real permit submissions** — real-world models may lack the attributes/quantity sets the extractor expects, or applicants may submit no BIM at all | Extractor already implements a fallback chain (attributes → property sets → Qto quantity sets → geometry) and reports `info_not_available` rather than guessing. The PDF path is a co-equal input, not an afterthought, because drawings remain the dominant Part 9 submission format. Phase B measures against real permit sets before any claims are made. |
 | **LLM extraction accuracy** — vision models will misread drawings | Structurally mitigated, not just monitored: LLM facts are hard-capped at 0.89 confidence, below the engine's 0.9 threshold, so **every** LLM-extracted fact is routed to human review; the prompt forbids inferring un-annotated values; extraction errors can therefore cause reviewer workload, never a wrong automated verdict. Phase B calibrates measured precision/recall. |
 | **Rule maintenance burden** — codes change (NBC 2025 published); hand-encoded rules rot | The `verification_notes` evidence trail (verbatim quote + source + date + reviewer per rule) makes every rule re-verifiable and diff-able against a new code edition; Phase A builds the authoring toolchain that enforces it. Our own V1 experience — 3 substantive errors caught in 12 initially-encoded rules — is the existence proof that unverified rules fail and that the evidence discipline works. |
-| **Entry at Phase 2 eligibility** — no ISC Phase 1 award held | Proposal targets the official Entry at Phase 2 pathway (outside-funded feasibility, TRL 5–9). Prototype evidence package (feasibility document, determinism demo, test suite, verified ruleset) is the required proof of feasibility. **If the Challenge Notice is not open to Entry at Phase 2, stop and reassess.** |
+| **Part 3 scope (EO2)** — prototype coverage is Part 9 only; Part 3 buildings are architecturally different (occupant loads, fire separations, travel distances need spatial/topological facts) | The rule schema is typology-generic; Phase A3 starts Part 3 with categories whose facts our extractors can already supply (occupancy, door/exit dimensions), then expands to topology-dependent rules alongside Phase B extraction hardening. Coverage matrix reported honestly per milestone. |
+| **Bilingual codes (EO10)** — no French ruleset yet; Quebec Construction Code has provincial amendments | CNB 2020 is the same code with the same numbering — rulesets are data, so the French variant is a translation-and-reverify task, not new engineering (the OBC variant already proved the multi-code pattern). Québec code consultant budgeted for the QCC variant scope. |
 | **Municipal partnership risk** — pilots depend on letters of support not yet secured | Two candidate municipalities identified; outreach is a pre-submission action item. Pilot design tolerates a single municipality at reduced corpus size. |
 
 ## 8. Limitations (honest statement)
@@ -153,21 +171,23 @@ Mirroring the project's feasibility evidence, we state plainly what the prototyp
 5. **The 0.9 confidence threshold is an engineering default, not an empirically calibrated value**; Phase B calibrates it and makes it a per-deployment setting.
 6. **Some encodings embed interpretation judgment calls** (e.g. guard openings encoded as < 100 mm to "prevent passage" of a 100 mm sphere). These are flagged in `verification_notes` for professional adjudication rather than silently decided.
 7. **The tool is a pre-check aid, not a permit decision system.** It is designed to make plans examiners faster and more consistent; the human remains the authority, and nothing in the architecture proposes otherwise.
-8. **Zoning bylaws and Parts other than Part 9 are out of scope** for this project.
+8. **Part 3 coverage does not exist yet** (EO2 requires it; it is a committed Phase A deliverable, entered honestly as the largest scope risk), and **no French ruleset exists yet** (EO10; Phase A deliverable). Zoning bylaws remain out of scope — the Notice concerns building-code compliance.
 
 ## 9. Pre-submission checklist (remove before submission)
 
-- [ ] Locate the official Challenge Notice; replace working title, confirm challenge number, sponsoring department, and closing details.
-- [ ] Replace every "per interpretation — VERIFY" EO row with the official Essential Outcomes text; obtain EO5's subject; map Additional Outcomes (point-rated, 0–10 pts).
-- [ ] **Confirm the challenge is open for Entry at Phase 2** (no Phase 1 award held) and confirm the Notice's maximum grant amount and duration.
-- [ ] Confirm EcoWorks incorporation and all ISC small-business eligibility criteria.
-- [ ] Secure P.Eng/code-consultant commitment (Fanshawe network) and municipal letters of support (Middlesex Centre, London).
-- [ ] Attach feasibility evidence document (T6) with architecture diagram, screenshots, sample reports, determinism SHA demonstration.
+- [x] ~~Locate the official Challenge Notice~~ — found 2026-07-07 (opened same day); title, ID, sponsor, deadline confirmed above.
+- [x] ~~Replace interpolated EO rows with official text~~ — all ten official EOs + four Additional Outcomes mapped (§3, §3a).
+- [x] ~~Confirm Phase 2 entry~~ — the Notice accepts **direct Phase 2 proposals** (TRL 5–9); no Phase 1 prerequisite. Max $500,000 / 18 months confirmed; budget fits.
+- [ ] Confirm EcoWorks incorporation and all ISC small-business eligibility criteria (**hard gate — for-profit Canadian corporation required**).
+- [ ] Secure P.Eng/code-consultant commitment (Fanshawe network) and municipal letters of support (Middlesex Centre, London) — feeds the 20-pt Implementation Team criterion.
+- [ ] Address the point-rated criteria explicitly in the submission form: project plan (20 pts), team (20 pts), **inclusivity (20 pts — prepare a substantive plan)**, financial controls (10), commercialization (10), S&T + project risks (10+10).
+- [ ] Add a Québec code consultant contact for the EO10/QCC scope (budget line exists).
+- [ ] Consider requesting NRC sample digitalized-code data (offered in EO5) via the question process — **questions close 10 days before the 2026-08-04 deadline (~July 25)**.
+- [ ] Attach feasibility evidence document (docs/feasibility-evidence.md) incl. the real-permit case study, determinism SHA demonstration, and test-suite results.
 
 ---
 
-*Sources for program-structure claims (accessed 2026-07-07):*
-- *ISC Challenge Stream overview — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/challenges (Phase 1: up to 6 months / $150,000; Phase 2: up to 2 years / $1,000,000, occasionally up to $2M).*
-- *ISC program eligibility and process — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/program-eligibility-and-process (small-business eligibility criteria; phase funding).*
-- *ISC Grant Instructions and Procedures, Call 004 — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/grant-instructions-and-procedures-call-004 (Entry at Phase 2 quotation; TRL 5–9; evaluation criteria structure; Essential vs Additional Outcomes assessment; 65/130 minimum score).*
-- *NRC Construction Sector Digitalization and Productivity Challenge program — https://nrc.canada.ca/en/research-development/research-collaboration/programs/construction-digitalization-productivity-challenge-program ("Performing R&D to support the development of digital portals for submitting electronic building plans and permits and to support virtual inspections").*
+*Sources (accessed 2026-07-07):*
+- ***Official Challenge Notice** — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/deterministic-artificial-intelligence-assisted-compliance-checking-building-permit-applications (all Essential/Additional Outcomes quoted; $500K/18 months/2 grants; direct Phase 2 entry TRL 5–9; opened 2026-07-07, closes 2026-08-04 14:00 ET; evaluation criteria).*
+- *ISC program eligibility and process — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/program-eligibility-and-process (small-business eligibility criteria).*
+- *ISC Grant Instructions and Procedures, Call 004 — https://ised-isde.canada.ca/site/innovative-solutions-canada/en/grant-instructions-and-procedures-call-004 (evaluation criteria structure; 65/130 minimum score).*

@@ -55,12 +55,16 @@ engine/export.py PDF + Excel, byte-deterministic, provision + provenance per che
 ### T6 — Feasibility evidence document  ✅ DONE 2026-07-07
 docs/feasibility-evidence.md + docs/determinism_demo.sh (5 runs -> identical SHA-256).
 
-### T7 — Proposal draft  ✅ DRAFT 2026-07-07 (needs business verification)
-docs/proposal-draft.md written. ⚠️ The official ISC challenge posting could NOT be found —
-ALL EO1–EO7 wording in the draft is interpolated and MUST be verified against the real
-Challenge Notice. Eligibility flags: Phase 1 prerequisite (Entry-at-Phase-2 pathway exists
-for TRL 5–9 proven with outside funding — our evidence fits), Canadian for-profit incorp
-required. Phase 2 ceiling ~$1M/2yr; $475K/18mo plan fits.
+### T7 — Proposal draft  ✅ UPDATED 2026-07-07 against the OFFICIAL Challenge Notice
+Official posting found (opened 2026-07-07, closes 2026-08-04 14:00 ET): "Deterministic
+artificial intelligence-assisted compliance checking for building permit applications",
+NRC, direct Phase 2 entry (TRL 5-9, NO Phase 1 prerequisite — earlier red flag RESOLVED),
+max $500K / 18 months / ~2 grants. All 10 official EOs + 4 Additional Outcomes now mapped
+in docs/proposal-draft.md. EO6's four verdict categories match our engine's four statuses
+verbatim. Honest gaps -> Phase A commitments: Part 3 coverage (EO2), French/CNB + Quebec
+Construction Code rulesets (EO10), Canadian-residency deployment (EO8), BCF export (EO9).
+Remaining items are business: incorporation, P.Eng + municipal letters, inclusivity plan
+(20 evaluation pts), consider asking NRC for sample digitalized-code data before ~Jul 25.
 
 ## Open decisions
 1. Rule format future: stay JSON or adopt/align with ACCORD open formats (BSDD, IDS)?
