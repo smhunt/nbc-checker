@@ -182,3 +182,21 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
 - DIRECTION (user): Canadian content and codes only — US permit sets removed from the
   corpus and fetch script (13 Canadian sets remain: Calgary x6 incl. 23-sheet new home,
   Ottawa x4 OBC, Edmonton, Alberta OGL, Winnipeg).
+
+## 2026-07-10 — Session 5d (multi-page extraction, plan T1-T7 executed)
+- Plan docs/superpowers/plans/2026-07-10-multipage-extraction.md executed in full, TDD,
+  one commit per task. 407 -> tests passing incl. 12 classifier + 5 multi-page + 3
+  progress + 3 server tests.
+- Deterministic page selection (extractors/page_select.py): skip needs strong checklist
+  evidence; scans fail open (no_signal); every skip carries a reason; page cap (12,
+  NBC_MAX_TILED_PAGES) reported. Corpus-validated: Ottawa skips p1-4, Calgary 26 CAD
+  sheets keep all (cap only), scanned suite all included.
+- extract_tiled: pages=auto|all|1,3-5, per-page adaptive choose_grid (server no longer
+  hardcodes 3x3), page-qualified provenance ("p6 tile r1c2"), cross-page merge (with T1
+  parenthetical dedupe fix), project.pages audit metadata; page_index deprecated shim.
+- ACCEPTANCE (real Ottawa addition, --pages auto): 8p -> processed [5,6,7,8], 4 checklist
+  skips with reasons, 16 tiles (4x 2x2), 5 entities / 8 facts ALL bboxed, evidence spans
+  pages 6 AND 8 (section-view facts the single-page pipeline could never see), max conf
+  0.89. CLI --pages flag; UI pages input + processed-pages summary.
+- Smoke command (corpus gitignored, not CI):
+  python3 extractors/pdf_extractor.py --tiled --pages auto samples/external/permits/ottawa_addition.pdf

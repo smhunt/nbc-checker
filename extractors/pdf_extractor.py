@@ -585,20 +585,36 @@ def extract_tiled(
 if __name__ == "__main__":
     import sys
 
+    # Running as a script puts extractors/ (not the repo root) on sys.path;
+    # the package-absolute page_select import needs the root.
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     args = sys.argv[1:]
     if not args:
         print(
-            "usage: python3 extractors/pdf_extractor.py [--tiled [CxR]] <drawing.pdf>",
+            "usage: python3 extractors/pdf_extractor.py [--tiled [CxR]] "
+            "[--pages auto|all|1,3-5] <drawing.pdf>",
             file=sys.stderr,
         )
         sys.exit(2)
-    if args[0] == "--tiled":
-        grid = (2, 2)
-        rest = args[1:]
-        if rest and "x" in rest[0]:
-            c, r = rest[0].lower().split("x")
+    tiled = False
+    grid = None  # None -> per-page adaptive choose_grid
+    pages_spec = "auto"
+    rest = []
+    it = iter(args)
+    for a in it:
+        if a == "--tiled":
+            tiled = True
+        elif a == "--pages":
+            pages_spec = next(it)
+        elif tiled and "x" in a and a.replace("x", "").isdigit():
+            c, r = a.lower().split("x")
             grid = (int(c), int(r))
-            rest = rest[1:]
-        print(json.dumps(extract_tiled(rest[0], grid=grid), indent=2))
+        else:
+            rest.append(a)
+    progress = lambda s, d, t: print(f"[{d}/{t}] {s}", file=sys.stderr)  # noqa: E731
+    if tiled:
+        print(json.dumps(extract_tiled(rest[0], grid=grid, pages=pages_spec,
+                                       progress_cb=progress), indent=2))
     else:
-        print(json.dumps(extract(args[0]), indent=2))
+        print(json.dumps(extract(rest[0], progress_cb=progress), indent=2))

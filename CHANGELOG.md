@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- **Multi-page PDF extraction**: tiled mode processes all drawing pages (deterministic page classifier skips checklist/cover pages with per-page reasons in `project.pages`; scans fail open; `pages=auto|all|1,3-5` on upload and CLI), adaptive per-page tile grid (letter 2x2 / large sheets 3x3), cross-page entity merge keeping each fact's own page evidence, cumulative "page 2/4" progress with continuous ETA
 - Verbose processing progress: stage-by-stage messages, tile counters, elapsed time and a live ETA (measured per-tile timing) during PDF analysis
 - Resizable review drawer (drag the left edge; width persists; double-click to reset)
 - Larger evidence locator: 4:3 viewer plus an Expand overlay (85% of the screen, 200 dpi)
