@@ -428,3 +428,99 @@ def test_entity_key_internal_parens_untouched():
     a = _entity_key({"entity_type": "door", "name": "Door (main) entrance"})
     b = _entity_key({"entity_type": "door", "name": "Door entrance"})
     assert a != b
+
+
+# --------------------------------------------------------------------------
+# Multi-page extraction (T3)
+# --------------------------------------------------------------------------
+
+def _paged_tile(page, label, conf, name="Window A", fact="overall_width_mm", value=914):
+    """A fake tile descriptor + its payload for multi-page bypass tests."""
+    tile = {"path": f"/tmp/p{page}_{label}.png", "label": label,
+            "row": 1, "col": 1, "clip": [0, 0, 500, 500],
+            "page_w": 1000, "page_h": 1000, "page": page}
+    payload = {"entities": [{"entity_type": "window", "id": "w1", "name": name,
+               "attributes": {fact: {"value": value, "confidence": conf,
+                                     "bbox": [0.2, 0.2, 0.4, 0.4]}}}]}
+    return tile, payload
+
+
+def test_multipage_fake_tiles_stamp_correct_page_evidence():
+    t6, p6 = _paged_tile(6, "r1c1", 0.6)
+    t7, p7 = _paged_tile(7, "r1c1", 0.6, fact="overall_height_mm", value=1219)
+    payloads = {t6["path"]: p6, t7["path"]: p7}
+    facts = extract_tiled(TILED_PDF, runner=lambda pr, ip: json.dumps(payloads[ip]),
+                          tiles=[t6, t7])
+    attrs = facts["entities"][0]["attributes"]
+    assert attrs["overall_width_mm"]["evidence"]["page"] == 6
+    assert attrs["overall_height_mm"]["evidence"]["page"] == 7
+    assert "p6 tile r1c1" in attrs["overall_width_mm"]["source"]
+
+
+def test_cross_page_dedupe_keeps_winning_facts_page_provenance():
+    # Same window: schedule (p6) at 0.6, elevation (p7) at 0.8 -> one entity,
+    # the shared fact's evidence cites page 7.
+    t6, p6 = _paged_tile(6, "r1c1", 0.6, name="Window A (schedule)")
+    t7, p7 = _paged_tile(7, "r1c1", 0.8, name="Window A")
+    payloads = {t6["path"]: p6, t7["path"]: p7}
+    facts = extract_tiled(TILED_PDF, runner=lambda pr, ip: json.dumps(payloads[ip]),
+                          tiles=[t6, t7])
+    assert len(facts["entities"]) == 1
+    fact = facts["entities"][0]["attributes"]["overall_width_mm"]
+    assert fact["confidence"] == 0.8
+    assert fact["evidence"]["page"] == 7
+
+
+def test_page_index_shim_equivalent_to_pages_list(tmp_path):
+    import fitz
+    pdf = tmp_path / "two_page.pdf"
+    doc = fitz.open()
+    for text in ["SITE PLAN SCALE 1:250", "FLOOR PLAN SCALE 1:50"]:
+        page = doc.new_page(width=612, height=792)
+        page.insert_text((72, 72), text)
+    doc.save(pdf)
+    runner = lambda pr, ip: json.dumps({"entities": [{
+        "entity_type": "room", "id": "r", "name": "Kitchen",
+        "attributes": {"room_use": {"value": "kitchen", "confidence": 0.8}}}]})
+    a = extract_tiled(str(pdf), runner=runner, page_index=1, grid=(1, 1))
+    b = extract_tiled(str(pdf), runner=runner, pages=[2], grid=(1, 1))
+    assert a["entities"] == b["entities"]
+    assert a["project"]["pages"]["processed"] == [2]
+
+
+def test_project_pages_metadata_processed_and_skipped(tmp_path):
+    import fitz
+    pdf = tmp_path / "mixed.pdf"
+    doc = fitz.open()
+    p1 = doc.new_page(width=612, height=792)  # checklist-ish prose page
+    checklist = ("Building permit application checklist. Submission requirements: "
+                 "provide a floor plan drawing. " + "word " * 120)
+    rect = fitz.Rect(36, 36, 576, 756)
+    p1.insert_textbox(rect, checklist)
+    p2 = doc.new_page(width=612, height=792)
+    p2.insert_text((72, 72), "FLOOR PLAN SCALE 1:50 SECTION A-A")
+    doc.save(pdf)
+    facts = extract_tiled(str(pdf),
+                          runner=lambda pr, ip: json.dumps({"entities": []}),
+                          pages="auto", grid=(1, 1))
+    meta = facts["project"]["pages"]
+    assert meta["total"] == 2
+    assert meta["processed"] == [2]
+    assert meta["skipped"][0]["page"] == 1 and meta["skipped"][0]["label"] == "text"
+    assert meta["selection"] == "auto"
+    assert facts["project"]["tiles"] == ["p2:r1c1"]
+
+
+def test_multipage_tile_sources_include_page(tmp_path):
+    import fitz
+    pdf = tmp_path / "one_drawing.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((72, 72), "ELEVATION SCALE 1:100")
+    doc.save(pdf)
+    facts = extract_tiled(str(pdf), runner=lambda pr, ip: json.dumps({"entities": [{
+        "entity_type": "room", "id": "r", "name": "K",
+        "attributes": {"room_use": {"value": "kitchen", "confidence": 0.7}}}]}),
+        pages="all", grid=(1, 1))
+    src = facts["entities"][0]["attributes"]["room_use"]["source"]
+    assert "p1 tile r1c1" in src

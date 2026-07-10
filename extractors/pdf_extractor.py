@@ -430,40 +430,28 @@ def merge_tile_facts(tile_facts: list) -> dict:
     return {"entities": entities}
 
 
-def extract_tiled(
-    pdf_path: str,
-    runner=run_claude_image,
-    grid: tuple = (2, 2),
-    dpi: int = 200,
-    tiles: list | None = None,
-    out_dir: str | None = None,
-    page_index: int = 0,
-    progress_cb=None,
-) -> dict:
-    """Tiled extraction: render+slice a page, extract each tile, merge results.
+def _tile_source(pdf_name: str, tile: dict) -> str:
+    """Human-readable provenance for one tile. Page-qualified when the tile
+    knows its page (rendered path / paged fake tiles); legacy format kept for
+    pageless fake tiles so existing fixtures stay valid."""
+    if "page" in tile:
+        return f"{pdf_name} p{tile['page']} tile {tile['label']} (LLM extraction)"
+    return f"{pdf_name} tile {tile['label']} (LLM extraction)"
 
-    `tiles` may be supplied directly (list of `{"path","label","row","col"}`)
-    to bypass rendering — used by unit tests so no PDF/PyMuPDF is needed there.
-    Every fact is capped at MAX_LLM_CONFIDENCE per tile (EO1) before merging,
-    and each fact's source records which tile it came from.
+
+def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped,
+                   progress_cb, stage_prefix, done_offset, grand_total):
+    """Run the LLM over one page's tiles, stamping provenance + evidence.
+
+    Progress callbacks are reporting only — never feed back into the facts
+    (EO1 and determinism: identical inputs yield identical outputs with or
+    without a callback attached).
     """
-    pdf_name = os.path.basename(pdf_path)
-    if tiles is None:
-        if progress_cb:
-            progress_cb("rendering page into tiles", 0, 0)
-        tiles = render_page_to_tiles(
-            pdf_path, grid=grid, dpi=dpi, out_dir=out_dir, page_index=page_index
-        )
-
-    tile_facts = []
-    skipped = []
     for i, tile in enumerate(tiles):
         if progress_cb:
-            # Progress reporting only — never feeds back into the facts (EO1
-            # and determinism: identical inputs yield identical outputs with
-            # or without a callback attached).
-            progress_cb(f"extracting tile {tile['label']}", i, len(tiles))
-        tile_source = f"{pdf_name} tile {tile['label']} (LLM extraction)"
+            progress_cb(f"{stage_prefix}extracting tile {tile['label']}",
+                        done_offset + i, grand_total)
+        tile_source = _tile_source(pdf_name, tile)
         raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
         try:
             entities = _parse_entities(raw_text, tile_source)
@@ -471,7 +459,8 @@ def extract_tiled(
             # Tiles are independent: a crop the model answers in pure prose
             # (e.g. "no dimensions in this region") must not sink the other
             # tiles. Record it and move on.
-            skipped.append(tile["label"])
+            label = f"p{tile['page']}:{tile['label']}" if "page" in tile else tile["label"]
+            skipped.append(label)
             continue
         # Stamp tile provenance onto every fact so the winning instance after
         # the merge always says which crop it was read from — and convert the
@@ -493,15 +482,101 @@ def extract_tiled(
                 attr["evidence"] = evidence
         tile_facts.append({"tile": tile["label"], "entities": entities})
 
+
+def extract_tiled(
+    pdf_path: str,
+    runner=run_claude_image,
+    grid: tuple | None = None,
+    dpi: int = 200,
+    tiles: list | None = None,
+    out_dir: str | None = None,
+    page_index: int | None = None,
+    pages="auto",
+    max_pages: int | None = None,
+    progress_cb=None,
+) -> dict:
+    """Tiled extraction over the DRAWING PAGES of a (multi-page) PDF.
+
+    Page selection (`pages`): "auto" (deterministic classifier — checklist
+    pages skipped with reasons, scans included fail-open), "all", or an
+    explicit 1-based list / "1,3-5" spec. Every skip decision is reported in
+    `project.pages` so the reviewer sees exactly what was not read. `grid`
+    None means per-page `choose_grid` (letter sheets 2x2, large sheets 3x3).
+    `page_index` (0-based, single page) is a deprecated shim for the old
+    single-page API. `tiles` may be supplied directly to bypass rendering —
+    used by unit tests; descriptors may carry "page" (1-based).
+
+    Every fact is capped at MAX_LLM_CONFIDENCE per tile (EO1) before the
+    global cross-page merge, and each fact's evidence keeps the page it was
+    actually read from.
+    """
+    pdf_name = os.path.basename(pdf_path)
+    tile_facts: list = []
+    skipped_tiles: list = []
+
+    if tiles is not None:
+        # Bypass path (tests): one pre-rendered tile set, no selection.
+        _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped_tiles,
+                       progress_cb, "", 0, len(tiles))
+        if progress_cb:
+            progress_cb("merging extracted facts", len(tiles), len(tiles))
+        merged = merge_tile_facts(tile_facts)
+        return {
+            "project": {
+                "name": f"{pdf_name} (tiled drawing extraction)",
+                "sources": [pdf_path],
+                "tiles": [t["label"] for t in tiles],
+                "tiles_unparsed": skipped_tiles,
+            },
+            "entities": merged["entities"],
+        }
+
+    from extractors.page_select import (collect_page_stats, parse_pages_spec,
+                                        select_pages)
+
+    if page_index is not None:  # deprecated single-page shim
+        pages = [page_index + 1]
+    spec = parse_pages_spec(pages) if isinstance(pages, str) else list(pages)
+    stats = collect_page_stats(pdf_path)
+    selection = select_pages(stats, spec, max_pages)
+    stat_by_page = {s.page: s for s in stats}
+
+    # Grids (and therefore the tile grand total) are known before rendering.
+    plans = []
+    for p in selection.selected:
+        st = stat_by_page[p]
+        g = grid or choose_grid(st.width, st.height)
+        plans.append((p, g, g[0] * g[1]))
+    grand_total = sum(n for _, _, n in plans)
+
+    processed_labels = []
+    done = 0
+    for ordinal, (p, g, n_tiles) in enumerate(plans, start=1):
+        prefix = f"page {ordinal}/{len(plans)} (pdf p{p}): "
+        if progress_cb:
+            progress_cb(f"{prefix}rendering tiles", done, grand_total)
+        page_tiles = render_page_to_tiles(
+            pdf_path, grid=g, dpi=dpi, out_dir=out_dir, page_index=p - 1)
+        processed_labels.extend(f"p{p}:{t['label']}" for t in page_tiles)
+        _extract_tiles(pdf_name, page_tiles, runner, tile_facts, skipped_tiles,
+                       progress_cb, prefix, done, grand_total)
+        done += len(page_tiles)
+
     if progress_cb:
-        progress_cb("merging extracted facts", len(tiles), len(tiles))
+        progress_cb("merging extracted facts", grand_total, grand_total)
     merged = merge_tile_facts(tile_facts)
     return {
         "project": {
             "name": f"{pdf_name} (tiled drawing extraction)",
             "sources": [pdf_path],
-            "tiles": [t["label"] for t in tiles],
-            "tiles_unparsed": skipped,
+            "pages": {
+                "total": len(stats),
+                "processed": list(selection.selected),
+                "skipped": list(selection.skipped),
+                "selection": spec if isinstance(spec, str) else list(spec),
+            },
+            "tiles": processed_labels,
+            "tiles_unparsed": skipped_tiles,
         },
         "entities": merged["entities"],
     }
