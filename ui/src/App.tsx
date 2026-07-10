@@ -22,7 +22,7 @@ export default function App() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   // Fact name the drawer should auto-focus in the evidence viewer — set when
   // a row is opened via its ⌖ evidence affordance, cleared on plain row click.
-  const [evidenceFocus, setEvidenceFocus] = useState<string | null>(null)
+  const [evidenceFocus, setEvidenceFocus] = useState<{ fact: string; nonce: number } | null>(null)
   const [showAbout, setShowAbout] = useState(false)
 
   const loadSample = useCallback(() => {
@@ -148,7 +148,8 @@ export default function App() {
             }}
             onViewEvidence={(r) => {
               setSelectedKey(resultKey(r))
-              setEvidenceFocus(r.facts_used.find((f) => f.evidence)?.fact ?? null)
+              const fact = r.facts_used.find((f) => f.evidence)?.fact
+              setEvidenceFocus(fact ? { fact, nonce: Date.now() } : null)
             }}
           />
         </div>

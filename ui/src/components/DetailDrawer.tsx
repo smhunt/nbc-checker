@@ -27,7 +27,9 @@ interface Props {
   // Fact name to auto-focus in the evidence viewer when the drawer opens
   // (same effect as clicking that fact's ⌖ view button). Optional — absent
   // means the drawer opens with the viewer closed, as before.
-  initialEvidenceFocus?: string
+  // nonce makes re-clicking the same row's ⌖ re-open the viewer even when
+  // the fact name is unchanged (fresh object identity re-fires the effect).
+  initialEvidenceFocus?: { fact: string; nonce: number }
   onOverride: (entityId: string, fact: string, value: string, note: string) => Promise<void>
   onDeleteOverride: (entityId: string, fact: string) => Promise<void>
   onClose: () => void
@@ -101,7 +103,7 @@ export function DetailDrawer({
   const [focused, setFocused] = useState<{ fact: string; evidence: Evidence } | null>(null)
   useEffect(() => {
     const f = initialEvidenceFocus
-      ? result.facts_used.find((g) => g.fact === initialEvidenceFocus && g.evidence)
+      ? result.facts_used.find((g) => g.fact === initialEvidenceFocus.fact && g.evidence)
       : undefined
     setFocused(f ? { fact: f.fact, evidence: f.evidence! } : null)
   }, [result, initialEvidenceFocus])
