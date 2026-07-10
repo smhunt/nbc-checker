@@ -179,3 +179,6 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   NBC): zero false verdicts — everything routed to info_not_available / uncertain
   (kitchen room_use at 0.89 -> applicability review). Follow-ups: multi-page extraction
   loop (checklist pages precede drawings), dedupe 'Window A (schedule)' vs 'Window A'.
+- DIRECTION (user): Canadian content and codes only — US permit sets removed from the
+  corpus and fetch script (13 Canadian sets remain: Calgary x6 incl. 23-sheet new home,
+  Ottawa x4 OBC, Edmonton, Alberta OGL, Winnipeg).
