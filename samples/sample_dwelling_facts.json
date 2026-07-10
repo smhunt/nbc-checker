@@ -446,17 +446,17 @@
         "climate_zone": {
           "value": "5",
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "has_hrv": {
           "value": false,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "effective_rsi": {
           "value": 2.78,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         }
       }
     },
@@ -468,17 +468,17 @@
         "climate_zone": {
           "value": "6",
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "has_hrv": {
           "value": false,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "effective_rsi": {
           "value": 3.35,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         }
       }
     },
@@ -490,22 +490,22 @@
         "ceiling_type": {
           "value": "below_attic",
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "climate_zone": {
           "value": "5",
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "has_hrv": {
           "value": false,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         },
         "effective_rsi": {
           "value": 9.12,
           "confidence": 1.0,
-          "source": "drawings A-000 (spec table)"
+          "source": "designer-declared assembly value (energy compliance spec, application form)"
         }
       }
     }
