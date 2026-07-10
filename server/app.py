@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT))
 
 from engine.checker import run_ruleset  # noqa: E402
 from engine.export import to_pdf, to_xlsx  # noqa: E402
-from server.jobs import STORE  # noqa: E402
+from server.jobs import STORE, make_progress_cb  # noqa: E402
 from server.overrides import apply_overrides, evidence_for, load_overrides, save_overrides  # noqa: E402
 from server.pdfrender import (  # noqa: E402
     FORBIDDEN_NAME_TOKENS,
@@ -235,8 +235,6 @@ def _job_state(job) -> dict:
 def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") -> None:
     """Background worker: extract facts from the PDF, then mark the job done."""
     try:
-        import time as _time
-
         from extractors.pdf_extractor import extract, extract_tiled
 
         STORE.update(job_id, status="extracting",
@@ -244,19 +242,9 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") ->
                      if mode == "tiled" else "Reading the drawing…")
 
         # Progress callback: verbose stage + tile counters + per-tile timing
-        # for the ETA. Purely observational — the facts are identical with or
-        # without it.
-        last_tick = {"t": _time.time(), "counted": False}
-
-        def _cb(stage: str, done: int, total: int) -> None:
-            now = _time.time()
-            job = STORE.get(job_id)
-            if job is not None and last_tick["counted"] and done > job.progress_done:
-                job.tile_durations.append(round(now - last_tick["t"], 2))
-            last_tick["t"] = now
-            last_tick["counted"] = "extracting tile" in stage
-            STORE.update(job_id, stage=stage, progress_done=done, progress_total=total,
-                         stage_changed_at=now)
+        # for the ETA (server/jobs.py::make_progress_cb). Purely observational
+        # — the facts are identical with or without it.
+        _cb = make_progress_cb(STORE, job_id)
 
         if mode == "tiled":
             # grid=None -> per-page adaptive choose_grid (letter 2x2, big sheets 3x3)

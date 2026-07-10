@@ -214,3 +214,44 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   BLOCKED ON USER: needs ANTHROPIC_API_KEY on this machine).
 - Projected: 12-page tiled job ~14 min -> ~3.5 min (x4 workers) minus blank/cache
   savings; reviewable from first completed page; Haiku possibly another 2-3x.
+
+## 2026-07-10 — Session 5f (extraction speedups wave 2 — blank-skip + cache, TDD)
+Executed docs/superpowers/plans/subplans/B-blankskip-cache.md in full (all 6 tasks),
+on top of wave 1's runner=None + select_runner() + .identity refactor. 432 -> 462
+tests passing.
+- **Blank-tile skip** (`extractors/pdf_extractor.py`): `render_page_to_tiles` now
+  gathers page-level drawing/image bounding rects ONCE per page and stamps each
+  tile with `content: {words, vector_items, images}` (fitz clip-intersection
+  counts, overlap strip included). `classify_tile_content` is a pure zero-threshold
+  classifier (blank only if all three are 0; missing stats fail open). `_extract_tiles`
+  gates on it (`NBC_BLANK_TILE_SKIP=0` disables, default on): blank tiles are recorded
+  in `project.tiles_skipped` and the runner is never called for them. `project.tiles`
+  changed meaning — now the labels actually SENT to the LLM (blank-skipped tiles
+  excluded); checked ui/src for consumers first — none exist, so no UI change needed.
+- **extract_cache.py** (new): `cache_key` = sha256(schema + runner identity/cache_id +
+  prompt + sha256(input bytes)); `cached(runner, cache_dir=None)` wraps a runner with
+  a same-signature cache storing RAW response text only (never parsed facts — parser/
+  EO1-cap/bbox fixes must keep re-applying to cache replays). Atomic writes (.tmp +
+  os.replace); fails open on `NBC_EXTRACT_CACHE=0`, an unreadable input file, or a
+  corrupt entry (miss + rewrite); a runner exception is never cached. `.stats`
+  (hits/misses/bypassed) never enters facts output — verified by a dedicated test.
+- **Wired as default**: `extract`/`extract_tiled`'s `runner=None` resolution became
+  `cached(select_runner(kind))`; an explicit `runner=` (every test fake in the suite)
+  bypasses both the factory and the cache entirely — locked by
+  `test_explicit_runner_is_never_wrapped`. Added `tests/conftest.py` (autouse fixture
+  redirecting `NBC_EXTRACT_CACHE_DIR` to a tmp dir per test) so the suite never writes
+  into the real `reports/extract_cache/`.
+- **make_progress_cb** (`server/jobs.py`): extracted the `_cb` closure out of
+  `server/app.py::_run_extraction` into a directly-testable `make_progress_cb(store,
+  job_id)`, with a new `_MIN_COUNTED_TILE_S = 1.0` floor excluding sub-second
+  intervals (cache hits, blank skips) from `tile_durations` so the ETA average isn't
+  dragged toward zero. Replaced the old `inspect.getsource` regex test with 3 direct
+  behavioral tests exercising the callback against a real `JobStore`.
+- Tests: 5 render/classify tests, 6 skip-wiring tests, 13 extract_cache tests, 4
+  cache-as-default tests, 3 make_progress_cb tests (net +2 in test_jobs_progress.py
+  after removing the getsource test) = 30 new, all green; full suite 462 passed.
+- Docs: CLAUDE.md facts-schema paragraph gained `project.tiles_skipped` / cache dir
+  notes; CHANGELOG.md Unreleased gained Blank-tile skip + Extraction response cache
+  entries plus a Changed line for the ETA floor / jobs.py refactor.
+- Next: wave 3 (plan A, parallel tiles) benefits directly from `make_progress_cb`
+  already living in jobs.py.

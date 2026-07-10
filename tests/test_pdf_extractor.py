@@ -605,3 +605,247 @@ def test_multipage_tile_sources_include_page(tmp_path):
         pages="all", grid=(1, 1))
     src = facts["entities"][0]["attributes"]["room_use"]["source"]
     assert "p1 tile r1c1" in src
+
+
+# --------------------------------------------------------------------------
+# Blank-tile skip (wave 2, sub-plan B, tasks B1/B2)
+# --------------------------------------------------------------------------
+
+def test_classify_tile_content_blank_when_all_zero():
+    from extractors.pdf_extractor import classify_tile_content
+    blank, reason = classify_tile_content({"words": 0, "vector_items": 0, "images": 0})
+    assert blank is True
+    assert reason == "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)"
+
+
+def test_classify_tile_content_fail_open_without_stats():
+    from extractors.pdf_extractor import classify_tile_content
+    for content in (None, {}):
+        blank, reason = classify_tile_content(content)
+        assert blank is False
+        assert reason == "no content stats — fail-open"
+
+
+def test_classify_tile_content_any_image_means_not_blank():
+    from extractors.pdf_extractor import classify_tile_content
+    assert classify_tile_content({"words": 0, "vector_items": 0, "images": 1})[0] is False
+    assert classify_tile_content({"words": 1, "vector_items": 0, "images": 0})[0] is False
+    assert classify_tile_content({"words": 0, "vector_items": 1, "images": 0})[0] is False
+
+
+def test_rendered_tiles_carry_content_stats(tmp_path):
+    import fitz
+    from extractors.pdf_extractor import render_page_to_tiles
+
+    pdf = tmp_path / "quadrant.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=400, height=400)
+    # Text placed well inside the top-left quadrant, clear of the 12% overlap
+    # strips around the tile boundaries at x=176/224 and y=176/224.
+    page.insert_textbox(fitz.Rect(10, 10, 100, 40), "TEST WORD")
+    doc.save(pdf)
+
+    tiles = render_page_to_tiles(str(pdf), grid=(2, 2), dpi=72, out_dir=str(tmp_path))
+    by_label = {t["label"]: t for t in tiles}
+    assert by_label["r1c1"]["content"]["words"] > 0
+    for label in ("r1c2", "r2c1", "r2c2"):
+        assert by_label[label]["content"] == {"words": 0, "vector_items": 0, "images": 0}
+
+
+def test_scan_page_full_page_image_marks_every_tile_nonblank(tmp_path):
+    import fitz
+    from extractors.pdf_extractor import classify_tile_content, render_page_to_tiles
+
+    pdf = tmp_path / "scan.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=400, height=400)
+    pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 10, 10))
+    pix.set_rect(pix.irect, (200, 0, 0))
+    page.insert_image(page.rect, pixmap=pix)  # simulates a full-page scan
+    doc.save(pdf)
+
+    tiles = render_page_to_tiles(str(pdf), grid=(2, 2), dpi=72, out_dir=str(tmp_path))
+    assert len(tiles) == 4
+    for t in tiles:
+        assert t["content"]["images"] >= 1
+        assert classify_tile_content(t["content"])[0] is False  # never skipped
+
+
+def _content_tile(label, content=None, **extra):
+    """Fake tile descriptor carrying explicit content stats for skip-wiring
+    tests, bypassing PyMuPDF rendering entirely (like `fake_tiles`)."""
+    t = {"path": f"/tmp/{label}.png", "label": label, "row": 1, "col": 1}
+    if content is not None:
+        t["content"] = content
+    t.update(extra)
+    return t
+
+
+def test_blank_tile_skipped_reported_and_runner_not_called():
+    calls = []
+
+    def runner(prompt, path):
+        calls.append(path)
+        return json.dumps(_stair("Main stair", 0.7))
+
+    tiles = [
+        _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),
+        _content_tile("r1c2", {"words": 5, "vector_items": 0, "images": 0}),
+    ]
+    facts = extract_tiled(TILED_PDF, runner=runner, tiles=tiles)
+    assert calls == ["/tmp/r1c2.png"]  # runner never called for the blank tile
+    assert facts["project"]["tiles"] == ["r1c2"]
+    assert facts["project"]["tiles_skipped"] == [{
+        "tile": "r1c1",
+        "reason": "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)",
+    }]
+
+
+def test_blank_skip_deterministic_two_runs_identical():
+    tiles = [
+        _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),
+        _content_tile("r1c2", {"words": 5, "vector_items": 0, "images": 0}),
+    ]
+    kwargs = dict(runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)), tiles=tiles)
+    assert extract_tiled(TILED_PDF, **kwargs) == extract_tiled(TILED_PDF, **kwargs)
+
+
+def test_blank_skip_disabled_by_env(monkeypatch):
+    monkeypatch.setenv("NBC_BLANK_TILE_SKIP", "0")
+    calls = []
+
+    def runner(prompt, path):
+        calls.append(path)
+        return json.dumps(_stair("Main stair", 0.7))
+
+    tiles = [_content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0})]
+    facts = extract_tiled(TILED_PDF, runner=runner, tiles=tiles)
+    assert calls == ["/tmp/r1c1.png"]  # gate disabled -> runner still called
+    assert facts["project"]["tiles_skipped"] == []
+    assert facts["project"]["tiles"] == ["r1c1"]
+
+
+def test_overlap_strip_content_prevents_skip():
+    # Content stats already reflect the overlap-inclusive clip (computed
+    # upstream in render_page_to_tiles) -- a tile whose only content sits in
+    # the 12% seam still reports non-zero counts and must not be skipped.
+    tiles = [_content_tile("r1c1", {"words": 1, "vector_items": 0, "images": 0})]
+    facts = extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                          tiles=tiles)
+    assert facts["project"]["tiles_skipped"] == []
+
+
+def test_scan_fail_open_end_to_end():
+    # No content stats at all (legacy/pageless bypass fixtures) -> fail open,
+    # exactly like a scanned page with no PyMuPDF text/vector signal.
+    facts = extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                          tiles=fake_tiles("r1c1"))
+    assert facts["project"]["tiles_skipped"] == []
+    assert facts["project"]["tiles"] == ["r1c1"]
+
+
+def test_progress_ticks_fire_for_skipped_tiles():
+    events = []
+    tiles = [
+        _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),
+        _content_tile("r1c2", {"words": 5, "vector_items": 0, "images": 0}),
+    ]
+    extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                 tiles=tiles, progress_cb=lambda s, d, t: events.append(s))
+    assert events[0] == "skipping blank tile r1c1"
+    assert "extracting tile" not in events[0]  # must fail the ETA duration guard
+    assert events[1] == "extracting tile r1c2"
+
+
+# --------------------------------------------------------------------------
+# Cache-as-default wiring (wave 2, sub-plan B, task B4)
+# --------------------------------------------------------------------------
+
+def _real_tiles(tmp_path, *labels):
+    """Like `fake_tiles`, but the tile paths point at real on-disk files, so
+    the cache wrapper's input-bytes read succeeds instead of fail-opening."""
+    out = []
+    for label in labels:
+        p = tmp_path / f"{label}.png"
+        p.write_bytes(f"tile-bytes-{label}".encode())
+        out.append({"path": str(p), "label": label, "row": int(label[1]), "col": int(label[3])})
+    return out
+
+
+def _counting_runner():
+    calls = []
+
+    def runner(prompt, path):
+        calls.append(path)
+        return json.dumps(_stair("Main stair", 0.6))
+
+    runner.calls = calls
+    runner.identity = "cli:claude"
+    return runner
+
+
+def test_cached_tiled_replay_byte_identical_to_fresh(tmp_path):
+    from extractors.extract_cache import cached
+
+    tiles = _real_tiles(tmp_path, "r1c1", "r1c2")
+    fresh_runner = _counting_runner()
+    fresh = extract_tiled(TILED_PDF, runner=fresh_runner, tiles=tiles)
+
+    cache_dir = tmp_path / "cache"
+    inner = _counting_runner()
+    wrapped = cached(inner, cache_dir=str(cache_dir))
+    # Two runs through the SAME cache dir: only the first should call the runner.
+    first = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles)
+    replay = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles)
+
+    assert len(inner.calls) == 2  # one call per tile, ONCE (first run only)
+    assert json.dumps(replay, sort_keys=True) == json.dumps(first, sort_keys=True)
+    assert json.dumps(replay, sort_keys=True) == json.dumps(fresh, sort_keys=True)
+
+
+def test_confidence_cap_applied_on_cache_replay(tmp_path):
+    from extractors.extract_cache import cached
+
+    def runner(prompt, path):
+        return json.dumps(_stair("Main stair", 1.0))  # model claims certainty
+
+    wrapped = cached(runner, cache_dir=str(tmp_path / "cache"))
+    tiles = _real_tiles(tmp_path, "r1c1")
+    first = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles)
+    replay = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles)  # served from cache
+    for facts in (first, replay):
+        fact = facts["entities"][0]["attributes"]["riser_height_mm"]
+        assert fact["confidence"] == MAX_LLM_CONFIDENCE == 0.89  # EO1 cap re-applied
+    assert wrapped.stats["hits"] == 1
+
+
+def test_cache_stats_never_in_facts_output(tmp_path):
+    from extractors.extract_cache import cached
+
+    wrapped = cached(lambda p, i: json.dumps(_stair("Main stair", 0.6)),
+                     cache_dir=str(tmp_path / "cache"))
+    facts = extract_tiled(TILED_PDF, runner=wrapped, tiles=_real_tiles(tmp_path, "r1c1"))
+    dumped = json.dumps(facts)
+    assert "hits" not in dumped and "misses" not in dumped and "bypassed" not in dumped
+    assert "stats" not in dumped
+
+
+def test_explicit_runner_is_never_wrapped(monkeypatch):
+    """An explicit runner (every test fake in this suite) must reach
+    extract/extract_tiled completely unwrapped -- select_runner and cached()
+    are only invoked on the runner=None factory path."""
+    import extractors.extract_cache as extract_cache_mod
+
+    def boom(*a, **kw):
+        raise AssertionError("cached() must not be called for an explicit runner")
+
+    monkeypatch.setattr("extractors.pdf_extractor.cached", boom)
+    monkeypatch.setattr("extractors.pdf_extractor.select_runner",
+                        lambda kind: (_ for _ in ()).throw(
+                            AssertionError("select_runner must not be called")))
+    facts = extract(PDF, runner=fake_runner_for(json.dumps(model_payload(confidence=0.7))))
+    assert facts["entities"][0]["attributes"]["riser_height_mm"]["value"] == 190
+    tiled = extract_tiled(TILED_PDF, runner=tile_runner({"r1c1": _stair("Main stair", 0.7)}),
+                          tiles=fake_tiles("r1c1"))
+    assert tiled["entities"][0]["attributes"]["riser_height_mm"]["value"] == 190
+    assert extract_cache_mod.cached is not boom  # sanity: monkeypatch scoped to pdf_extractor

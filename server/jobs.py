@@ -22,6 +22,16 @@ _OVERHEAD_S = 3.0
 # Seed for the ETA before the first tile of a job finishes.
 _SEED_AVG_S = 25.0
 
+# Durations below this floor are excluded from Job.tile_durations. Cache hits
+# and blank-tile skips complete in milliseconds; averaging them in with real
+# 10-60s tile calls would drag the measured per-tile average toward zero and
+# make the ETA for the remaining REAL tiles wildly optimistic. (Blank-skip
+# stage text never contains "extracting tile" so it never starts a counted
+# interval at all -- this floor is the second line of defense, and also
+# covers occasional sub-second REAL completions under wave-3 parallelism,
+# where losing a sample is acceptable and purely observational.)
+_MIN_COUNTED_TILE_S = 1.0
+
 
 def estimate_eta(durations: list[float], remaining: int, seed_avg: float,
                  in_stage_elapsed: float = 0.0) -> float | None:
@@ -116,3 +126,37 @@ class JobStore:
 
 
 STORE = JobStore()
+
+
+def make_progress_cb(store: JobStore, job_id: str):
+    """Build a `progress_cb(stage, done, total)` for one upload job: records
+    verbose stage text, tile counters, and per-tile durations for the live
+    ETA (`Job.eta_s` / `estimate_eta`).
+
+    A tile's duration is only counted when the PREVIOUS callback's stage
+    contained "extracting tile" (i.e. a real extraction call just finished,
+    not a render/merge/skip stage) AND it clears `_MIN_COUNTED_TILE_S` --
+    sub-second completions (cache hits, blank-tile skips) are excluded so
+    they don't drag the measured average toward zero.
+
+    Purely a reporting side channel: extraction produces byte-identical facts
+    whether or not a progress_cb is attached (`extractors/pdf_extractor.py`'s
+    `_extract_tiles` never lets callback state influence facts) -- locked by
+    the `*_progress_cb_does_not_change_output` tests in
+    `tests/test_jobs_progress.py`.
+    """
+    last_tick = {"t": time.time(), "counted": False}
+
+    def _cb(stage: str, done: int, total: int) -> None:
+        now = time.time()
+        job = store.get(job_id)
+        if job is not None and last_tick["counted"] and done > job.progress_done:
+            duration = round(now - last_tick["t"], 2)
+            if duration >= _MIN_COUNTED_TILE_S:
+                job.tile_durations.append(duration)
+        last_tick["t"] = now
+        last_tick["counted"] = "extracting tile" in stage
+        store.update(job_id, stage=stage, progress_done=done, progress_total=total,
+                     stage_changed_at=now)
+
+    return _cb

@@ -31,6 +31,7 @@ if __package__ in (None, ""):  # executed as a script: extractors/ is sys.path[0
 
 # Runner plumbing lives in extractors/runners.py; the CLI runners are
 # re-exported here for back-compat (existing imports, __main__ usage).
+from extractors.extract_cache import cached
 from extractors.runners import (  # noqa: F401  (re-exports)
     CLI_TIMEOUT_S,
     run_claude,
@@ -199,12 +200,16 @@ def extract(pdf_path: str, runner=None, progress_cb=None) -> dict:
     the engine will report `uncertain` for all of them, forcing human review.
 
     `runner=None` resolves via `select_runner("pdf")` at call time (API iff
-    ANTHROPIC_API_KEY, NBC_RUNNER override); passing a runner bypasses the
-    factory (tests, A/B harnesses). The runner's `.identity` is recorded in
-    `project.extractor` so the report says which model family produced it.
+    ANTHROPIC_API_KEY, NBC_RUNNER override) and wraps it in the raw-response
+    cache (`extractors.extract_cache.cached`, `NBC_EXTRACT_CACHE=0` to
+    disable); passing a runner explicitly bypasses BOTH the factory and the
+    cache (tests, A/B harnesses) — every test fake in this codebase takes
+    this path and is never cache-wrapped. The runner's `.identity` (which the
+    cache wrapper forwards unchanged) is recorded in `project.extractor` so
+    the report says which model family produced it.
     """
     if runner is None:
-        runner = select_runner("pdf")
+        runner = cached(select_runner("pdf"))
     pdf_name = os.path.basename(pdf_path)
     if progress_cb:
         progress_cb("reading the drawing (single pass)", 0, 1)
@@ -294,6 +299,15 @@ def render_page_to_tiles(
         tile_w, tile_h = pw / cols, ph / rows
         ox, oy = tile_w * overlap, tile_h * overlap
 
+        # Content signal for the blank-tile skip, fetched ONCE per page (not
+        # per tile — get_drawings/get_image_info walk the whole page content
+        # stream). Bounding rects only; per-tile counts below are just
+        # intersection tests against each tile's clip. A full-page scan image
+        # intersects every clip, so scanned sheets are never skipped.
+        drawing_rects = [d["rect"] for d in page.get_drawings() if d.get("rect")]
+        image_rects = [fitz.Rect(info["bbox"]) for info in page.get_image_info()
+                       if info.get("bbox")]
+
         tiles = []
         for r in range(rows):
             for c in range(cols):
@@ -306,14 +320,44 @@ def render_page_to_tiles(
                 label = f"r{r + 1}c{c + 1}"
                 path = os.path.join(out_dir, f"{stem}_{label}.png")
                 pix.save(path)
+                # words = len(...) uses fitz's own clip-intersection semantics
+                # (a word is included if its bbox intersects clip); vector/image
+                # counts use the same intersection test against the rects
+                # gathered once above. clip already includes the overlap strip,
+                # so content only in the seam still counts as non-blank.
+                words = len(page.get_text("words", clip=clip))
+                vector_items = sum(1 for rect in drawing_rects if clip.intersects(rect))
+                images = sum(1 for rect in image_rects if clip.intersects(rect))
                 tiles.append({
                     "path": path, "label": label, "row": r + 1, "col": c + 1,
                     "clip": [x0, y0, x1, y1], "page_w": pw, "page_h": ph,
                     "page": page_index + 1,
+                    "content": {"words": words, "vector_items": vector_items,
+                               "images": images},
                 })
     finally:
         doc.close()
     return tiles
+
+
+def classify_tile_content(content: dict | None) -> tuple:
+    """Pure, env-free: is this tile's rendered crop blank? -> (blank, reason).
+
+    Blank ONLY when words == vector_items == images == 0 (threshold zero, no
+    tuning) over the tile's overlap-inclusive clip — a tile whose only content
+    is in the 12% overlap seam with a neighbour is therefore non-blank by
+    construction. Missing/None stats fail open (never skip without positive
+    evidence): a full-page scan image intersects every tile's clip, so
+    scanned sheets are structurally never skipped.
+    """
+    if not content:
+        return False, "no content stats — fail-open"
+    words = content.get("words") or 0
+    vector_items = content.get("vector_items") or 0
+    images = content.get("images") or 0
+    if words == 0 and vector_items == 0 and images == 0:
+        return True, "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)"
+    return False, f"content: {words} words, {vector_items} vector items, {images} images"
 
 
 def _tile_prompt(pdf_name: str, tile: dict) -> str:
@@ -408,27 +452,51 @@ def _tile_source(pdf_name: str, tile: dict) -> str:
     return f"{pdf_name} tile {tile['label']} (LLM extraction)"
 
 
-def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped,
-                   progress_cb, stage_prefix, done_offset, grand_total):
+def _tile_label(tile: dict) -> str:
+    """Metadata label for one tile: page-qualified when the tile knows its
+    page (rendered / paged fake tiles), bare label for legacy pageless
+    fixtures. Shared by tiles_unparsed, tiles_skipped and project.tiles so
+    all three report the same identifier for the same tile."""
+    return f"p{tile['page']}:{tile['label']}" if "page" in tile else tile["label"]
+
+
+def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped, tiles_skipped,
+                   sent_labels, progress_cb, stage_prefix, done_offset, grand_total):
     """Run the LLM over one page's tiles, stamping provenance + evidence.
 
-    Progress callbacks are reporting only — never feed back into the facts
-    (EO1 and determinism: identical inputs yield identical outputs with or
-    without a callback attached).
+    Blank tiles (content stats all-zero; NBC_BLANK_TILE_SKIP=0 disables,
+    default on) are recorded in `tiles_skipped` and the runner is never
+    called for them — they never enter `sent_labels`. Progress callbacks are
+    reporting only — never feed back into the facts (EO1 and determinism:
+    identical inputs yield identical outputs with or without a callback
+    attached).
     """
+    skip_enabled = os.environ.get("NBC_BLANK_TILE_SKIP", "1").strip() != "0"
     for i, tile in enumerate(tiles):
+        label = _tile_label(tile)
+        if skip_enabled:
+            blank, reason = classify_tile_content(tile.get("content"))
+            if blank:
+                if progress_cb:
+                    # Deliberately does NOT contain "extracting tile" — this
+                    # fails the ETA duration guard on purpose (a skip takes
+                    # ~0s and must not be averaged in with real tile timings).
+                    progress_cb(f"{stage_prefix}skipping blank tile {tile['label']}",
+                                done_offset + i, grand_total)
+                tiles_skipped.append({"tile": label, "reason": reason})
+                continue
         if progress_cb:
             progress_cb(f"{stage_prefix}extracting tile {tile['label']}",
                         done_offset + i, grand_total)
         tile_source = _tile_source(pdf_name, tile)
         raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
+        sent_labels.append(label)
         try:
             entities = _parse_entities(raw_text, tile_source)
         except ValueError:
             # Tiles are independent: a crop the model answers in pure prose
             # (e.g. "no dimensions in this region") must not sink the other
             # tiles. Record it and move on.
-            label = f"p{tile['page']}:{tile['label']}" if "page" in tile else tile["label"]
             skipped.append(label)
             continue
         # Stamp tile provenance onto every fact so the winning instance after
@@ -480,19 +548,26 @@ def extract_tiled(
     actually read from.
 
     `runner=None` resolves via `select_runner("image")` ONCE, here at job
-    start (no mid-job fallback); its `.identity` lands in `project.extractor`.
+    start (no mid-job fallback), and wraps it in the raw-response cache
+    (`extractors.extract_cache.cached`, `NBC_EXTRACT_CACHE=0` to disable);
+    passing a runner explicitly bypasses BOTH the factory and the cache
+    (tests, A/B harnesses) — every test fake in this codebase takes this path
+    and is never cache-wrapped. Its `.identity` (forwarded unchanged by the
+    cache wrapper) lands in `project.extractor`.
     """
     if runner is None:
-        runner = select_runner("image")
+        runner = cached(select_runner("image"))
     pdf_name = os.path.basename(pdf_path)
     extractor_identity = getattr(runner, "identity", "unknown")
     tile_facts: list = []
-    skipped_tiles: list = []
+    skipped_tiles: list = []  # tiles_unparsed: runner replied, parse failed
+    blank_tiles: list = []    # tiles_skipped: blank crop, runner never called
 
     if tiles is not None:
         # Bypass path (tests): one pre-rendered tile set, no selection.
-        _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped_tiles,
-                       progress_cb, "", 0, len(tiles))
+        sent_labels: list = []
+        _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped_tiles, blank_tiles,
+                       sent_labels, progress_cb, "", 0, len(tiles))
         if progress_cb:
             progress_cb("merging extracted facts", len(tiles), len(tiles))
         merged = merge_tile_facts(tile_facts)
@@ -501,8 +576,11 @@ def extract_tiled(
                 "name": f"{pdf_name} (tiled drawing extraction)",
                 "sources": [pdf_path],
                 "extractor": extractor_identity,
-                "tiles": [t["label"] for t in tiles],
+                # Labels actually sent to the LLM (blank-skipped tiles excluded;
+                # see tiles_skipped for those). Always present, [] when empty.
+                "tiles": sent_labels,
                 "tiles_unparsed": skipped_tiles,
+                "tiles_skipped": blank_tiles,
             },
             "entities": merged["entities"],
         }
@@ -525,7 +603,7 @@ def extract_tiled(
         plans.append((p, g, g[0] * g[1]))
     grand_total = sum(n for _, _, n in plans)
 
-    processed_labels = []
+    sent_labels: list = []
     done = 0
     for ordinal, (p, g, n_tiles) in enumerate(plans, start=1):
         prefix = f"page {ordinal}/{len(plans)} (pdf p{p}): "
@@ -533,9 +611,8 @@ def extract_tiled(
             progress_cb(f"{prefix}rendering tiles", done, grand_total)
         page_tiles = render_page_to_tiles(
             pdf_path, grid=g, dpi=dpi, out_dir=out_dir, page_index=p - 1)
-        processed_labels.extend(f"p{p}:{t['label']}" for t in page_tiles)
-        _extract_tiles(pdf_name, page_tiles, runner, tile_facts, skipped_tiles,
-                       progress_cb, prefix, done, grand_total)
+        _extract_tiles(pdf_name, page_tiles, runner, tile_facts, skipped_tiles, blank_tiles,
+                       sent_labels, progress_cb, prefix, done, grand_total)
         done += len(page_tiles)
 
     if progress_cb:
@@ -552,8 +629,11 @@ def extract_tiled(
                 "skipped": list(selection.skipped),
                 "selection": spec if isinstance(spec, str) else list(spec),
             },
-            "tiles": processed_labels,
+            # Labels actually sent to the LLM (blank-skipped tiles excluded;
+            # see tiles_skipped for those). Always present, [] when empty.
+            "tiles": sent_labels,
             "tiles_unparsed": skipped_tiles,
+            "tiles_skipped": blank_tiles,
         },
         "entities": merged["entities"],
     }

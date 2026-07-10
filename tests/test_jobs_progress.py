@@ -3,7 +3,7 @@ import json
 import time
 
 from extractors.pdf_extractor import extract, extract_tiled
-from server.jobs import Job, estimate_eta
+from server.jobs import Job, JobStore, estimate_eta, make_progress_cb
 
 
 def _payload():
@@ -136,11 +136,64 @@ def test_multipage_progress_cb_does_not_change_output(tmp_path):
     assert silent == noisy
 
 
-def test_worker_duration_counter_survives_page_prefix():
-    """The upload worker counts tile durations by stage text; the page prefix
-    must not break the match."""
-    import inspect
+def _job_cb(mode="tiled"):
+    """A store + job wired up like `_run_extraction`'s real usage, plus the
+    `progress_cb` `make_progress_cb` builds for it."""
+    store = JobStore()
+    job = store.create(filename="f.pdf", ruleset_key="nbc", mode=mode)
+    cb = make_progress_cb(store, job.id)
+    return store, job, cb
 
-    from server import app as server_app
-    src = inspect.getsource(server_app._run_extraction)
-    assert '"extracting tile" in stage' in src
+
+def test_progress_cb_counts_normal_tile_durations(monkeypatch):
+    """The page-prefixed stage text ("page 1/2 (pdf p1): extracting tile
+    r1c1") must still match the "extracting tile" substring the duration
+    counter keys on."""
+    store, job, cb = _job_cb()
+    t = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: t[0])
+
+    cb("page 1/2 (pdf p1): extracting tile r1c1", 0, 4)
+    t[0] += 12.0
+    cb("page 1/2 (pdf p1): extracting tile r1c2", 1, 4)  # closes the r1c1 interval
+    t[0] += 8.0
+    cb("page 1/2 (pdf p1): extracting tile r2c1", 2, 4)  # closes the r1c2 interval
+
+    assert store.get(job.id).tile_durations == [12.0, 8.0]
+
+
+def test_progress_cb_excludes_subsecond_ticks_from_eta_stats(monkeypatch):
+    """A cache hit or a blank-tile skip completes in well under a second;
+    such intervals must not enter tile_durations (they would drag the
+    measured per-tile average toward zero and make the ETA for the
+    remaining REAL tiles wildly optimistic)."""
+    store, job, cb = _job_cb()
+    t = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: t[0])
+
+    cb("extracting tile r1c1", 0, 3)
+    t[0] += 0.3  # cache hit: well under the 1.0s floor
+    cb("extracting tile r1c2", 1, 3)
+    t[0] += 15.0  # a real, slow tile
+    cb("extracting tile r1c3", 2, 3)
+
+    assert store.get(job.id).tile_durations == [15.0]
+
+
+def test_progress_cb_skip_stage_never_counts_duration(monkeypatch):
+    """The blank-skip stage text never contains "extracting tile", so the
+    interval STARTING at a skip tick is never counted as a tile duration —
+    independent of how long it is (fails the guard "on purpose", per the
+    sub-plan). The interval ENDING at a skip tick (measuring the real tile
+    extraction that preceded it) is still counted normally."""
+    store, job, cb = _job_cb()
+    t = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: t[0])
+
+    cb("extracting tile r1c1", 0, 3)
+    t[0] += 15.0  # r1c1's own real extraction time
+    cb("skipping blank tile r1c2", 1, 3)  # closes r1c1's interval -> counted
+    t[0] += 20.0  # elapsed since the skip tick -- must NOT be counted
+    cb("extracting tile r1c3", 2, 3)
+
+    assert store.get(job.id).tile_durations == [15.0]
