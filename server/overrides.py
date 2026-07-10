@@ -41,6 +41,20 @@ def save_overrides(path: str, overrides: dict) -> None:
         f.write("\n")
 
 
+def evidence_for(facts: dict, entity_id: str, fact: str) -> dict | None:
+    """Machine-usable evidence region ({doc, page, bbox?}) of the current
+    fact, if any. Copied into override records so a human confirmation keeps
+    its link to the drawing region that justified it (the audit story)."""
+    for entity in facts.get("entities", []):
+        if entity.get("id") == entity_id:
+            attr = entity.get("attributes", {}).get(fact)
+            if isinstance(attr, dict):
+                ev = attr.get("evidence")
+                return ev if isinstance(ev, dict) else None
+            return None
+    return None
+
+
 def apply_overrides(facts: dict, overrides: dict) -> dict:
     """Return a NEW facts document with overrides merged into entity attributes.
 

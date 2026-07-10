@@ -36,7 +36,7 @@ sys.path.insert(0, str(ROOT))
 from engine.checker import run_ruleset  # noqa: E402
 from engine.export import to_pdf, to_xlsx  # noqa: E402
 from server.jobs import STORE  # noqa: E402
-from server.overrides import apply_overrides, load_overrides, save_overrides  # noqa: E402
+from server.overrides import apply_overrides, evidence_for, load_overrides, save_overrides  # noqa: E402
 from server.pdfrender import (  # noqa: E402
     FORBIDDEN_NAME_TOKENS,
     render_page_png,
@@ -150,11 +150,16 @@ def post_override(body: OverrideRequest) -> dict:
     overrides = load_overrides(path)
     note = body.note.strip() or "confirmed by reviewer"
     today = datetime.date.today().isoformat()
-    overrides.setdefault(body.entity_id, {})[body.fact] = {
+    record = {
         "value": _coerce_value(body.value),
         "confidence": 1.0,
         "source": f"human review: {note} ({today})",
     }
+    # Keep the confirmed fact's link to the drawing region that justified it.
+    evidence = evidence_for(_load_json(_facts_path()), body.entity_id, body.fact)
+    if evidence is not None:
+        record["evidence"] = evidence
+    overrides.setdefault(body.entity_id, {})[body.fact] = record
     save_overrides(path, overrides)
     return _state()
 
@@ -293,11 +298,15 @@ def job_override(job_id: str, body: OverrideRequest) -> dict:
         raise HTTPException(status_code=404, detail="job not found or not ready")
     note = body.note.strip() or "confirmed by reviewer"
     today = datetime.date.today().isoformat()
-    job.overrides.setdefault(body.entity_id, {})[body.fact] = {
+    record = {
         "value": _coerce_value(body.value),
         "confidence": 1.0,
         "source": f"human review: {note} ({today})",
     }
+    evidence = evidence_for(job.facts, body.entity_id, body.fact)
+    if evidence is not None:
+        record["evidence"] = evidence
+    job.overrides.setdefault(body.entity_id, {})[body.fact] = record
     out = job.public()
     out.update(_job_state(job))
     return out

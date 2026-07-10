@@ -379,3 +379,42 @@ def test_job_pdf_download(client, evidence_pdf):
     assert r.content[:4] == b"%PDF"
     # Missing upload -> 404.
     assert client.get("/api/jobs/nojob999/pdf").status_code == 404
+
+
+def test_override_preserves_evidence(tmp_path, monkeypatch):
+    """Confirming a fact must keep its drawing-region link (audit story)."""
+    ev = {"doc": "A-201_stair_section.pdf", "page": 1, "bbox": [0.41, 0.31, 0.47, 0.34]}
+    facts = {
+        "project": {"name": "ev-test"},
+        "entities": [{
+            "entity_type": "handrail", "id": "hr-1", "name": "HR",
+            "attributes": {"height_above_nosing_mm": {
+                "value": 920, "confidence": 0.82, "source": "pdf", "evidence": ev}},
+        }],
+    }
+    facts_path = tmp_path / "facts.json"
+    facts_path.write_text(json.dumps(facts))
+    monkeypatch.setenv("NBC_FACTS", str(facts_path))
+    monkeypatch.setenv("NBC_OVERRIDES", str(tmp_path / "ov.json"))
+    from fastapi.testclient import TestClient
+
+    from server.app import app
+    c = TestClient(app)
+
+    r = c.post("/api/override", json={
+        "entity_id": "hr-1", "fact": "height_above_nosing_mm",
+        "value": 920, "note": "confirmed on drawing"})
+    assert r.status_code == 200
+    state = r.json()
+    attr = next(e for e in state["facts"]["entities"] if e["id"] == "hr-1")[
+        "attributes"]["height_above_nosing_mm"]
+    assert attr["confidence"] == 1.0 and attr["evidence"] == ev
+    # ... and the engine's audit trail carries it too.
+    used = [f for res in state["report"]["results"] for f in res["facts_used"]
+            if f["fact"] == "height_above_nosing_mm"]
+    assert used and all(f["evidence"] == ev for f in used)
+    # Deleting the override restores the original (evidence intact).
+    r = c.delete("/api/override/hr-1/height_above_nosing_mm")
+    attr = next(e for e in r.json()["facts"]["entities"] if e["id"] == "hr-1")[
+        "attributes"]["height_above_nosing_mm"]
+    assert attr["confidence"] == 0.82 and attr["evidence"] == ev
