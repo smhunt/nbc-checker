@@ -67,6 +67,19 @@ EXPECTED = [
     ("NBC-3.8.3.6-bf-door-operating-device-height", "DR-03", "info_not_available"),
     ("NBC-3.8.3.12-wc-stall-dimensions", "WCS-01", "pass"),
     ("NBC-3.8.3.12-wc-stall-grab-bar", "WCS-01", "info_not_available"),
+    # follow-up tier/companion rules (2026-07-10 batch)
+    ("NBC-3.4.3.2-exit-stair-min-width-multi-storey", "STAIR-EX-3", "fail"),   # 950 < 1100 tier
+    ("NBC-3.4.3.2-exit-stair-min-width", "STAIR-EX-3", "pass"),                # base 900 still passes
+    ("NBC-3.4.6.3-max-vertical-rise-B2", "STAIR-EX-3", "fail"),                # 3000 > 2400 for B2
+    ("NBC-3.1.8.4-closure-45min-separation", "door-45m-01", "pass"),
+    ("NBC-3.1.8.4-closure-1.5h-separation", "door-90m-01", "pass"),
+    ("NBC-3.1.8.4-closure-3h-separation", "door-3h-01", "fail"),               # 90 < 120
+    ("NBC-3.1.8.4-closure-4h-separation", "door-4h-01", "pass"),
+    ("NBC-3.8.3.3-exterior-walk-width", "WALK-01", "fail"),                    # 1450 < 1600
+    ("NBC-3.8.3.2-bf-path-clear-width", "WALK-01", "pass"),                    # interior rule also fires
+    ("NBC-3.8.3.8-controls-mounting-height", "CTRL-01", "pass"),
+    ("NBC-3.4.3.4-headroom-clearance-exit-corridor", "CORR-EX-1", "info_not_available"),
+    ("NBC-3.4.3.4-headroom-clearance-exit-door", "DOOR-EX-1", "info_not_available"),
 ]
 
 

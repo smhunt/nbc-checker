@@ -175,6 +175,61 @@
       "attributes": { "is_intended_for_occupancy": true, "exit_count": 1, "occupant_load_count": 45 }
     },
     {
+      "entity_type": "exit_stair",
+      "id": "STAIR-EX-3",
+      "name": "Exit Stair C (serves 4 storeys, hospital wing)",
+      "attributes": {
+        "serves_more_than_2_storeys_above_or_1_below_lowest_exit": true,
+        "occupancy_group": "B2",
+        "clear_width_mm": 950,
+        "flight_vertical_rise_mm": 3000
+      }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-3h-01",
+      "name": "Door D21 in 3 h separation to storage garage",
+      "attributes": {
+        "separation_rating_h": 3,
+        "closure_rating_min": { "value": 90, "confidence": 0.95, "source": "A-601 door schedule, mark D21 (PDF sheet A-601)" }
+      }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-45m-01",
+      "name": "Door D30 in 45 min corridor separation",
+      "attributes": { "separation_rating_h": 0.75, "closure_rating_min": 45, "has_self_closing_device": true }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-90m-01",
+      "name": "Door D31 in 1.5 h separation",
+      "attributes": { "separation_rating_h": 1.5, "closure_rating_min": 60, "has_self_closing_device": true }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-4h-01",
+      "name": "Door D32 in 4 h firewall",
+      "attributes": { "separation_rating_h": 4, "closure_rating_min": 180, "has_self_closing_device": true }
+    },
+    {
+      "entity_type": "bf_corridor",
+      "id": "WALK-01",
+      "name": "Exterior walk from parking to main entrance",
+      "attributes": {
+        "is_exterior_walk": true,
+        "clear_width_mm": { "value": 1450, "confidence": 0.95, "source": "plans.pdf sheet A-100, site plan dimension" }
+      }
+    },
+    {
+      "entity_type": "bf_control",
+      "id": "CTRL-01",
+      "name": "Power door operator push plate, main entrance",
+      "attributes": {
+        "mounting_height_mm": { "value": 1050, "confidence": 0.95, "source": "plans.pdf sheet A-100, entrance elevation note" }
+      }
+    },
+    {
       "entity_type": "bf_entrance",
       "id": "ENT-01",
       "name": "Main entrance, north elevation",

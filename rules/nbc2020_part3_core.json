@@ -766,6 +766,217 @@
         "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
         "notes": "Encodes presence + horizontal-component mounting height. Not encoded: component lengths (>=760 mm), vertical component position (150 mm in front of WC), rear-wall grab bar (Clause (g)), structural requirements (3.7.2.7). If drawings do not show grab bars, leave has_l_shaped_side_grab_bar ABSENT so the engine reports info_not_available — never infer false."
       }
+    },
+    {
+      "rule_id": "NBC-3.4.3.2-exit-stair-min-width-multi-storey",
+      "provision": "NBC 2020 Sentence 3.4.3.2.(8), Table 3.4.3.2.-A note (2)",
+      "title": "Minimum width of exit stairs serving more than 2 storeys above (or more than 1 below) the lowest exit level",
+      "applies_to": {
+        "entity_type": "exit_stair",
+        "where": { "serves_more_than_2_storeys_above_or_1_below_lowest_exit": true }
+      },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 1100 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.4.3.2.-A: Stairs, mm — 900 (1) / 1 100 (2). Note (2): Serving more than 2 storeys above the lowest exit level or more than 1 storey below the lowest exit level.]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.4.3.2.-A note (2); verbatim in reference/nbc2020.txt lines ~15966-15982)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (follow-up from base-rule verification_notes; quote spot-checked in official extract)",
+        "notes": "Closes the under-coverage flagged on NBC-3.4.3.2-exit-stair-min-width: the note-(2) OR trigger cannot be expressed in AND-only where-conditions, so it is collapsed into one extractor-computed boolean fact. The base 900 mm rule still applies to the same stair (both rules fire; the tier rule adds the stricter check). If the boolean is absent, this rule reports applicability info_not_available — extractors serving multi-storey buildings must emit it."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.3-max-vertical-rise-B2",
+      "provision": "NBC 2020 Sentence 3.4.6.3.(1)",
+      "title": "Maximum vertical rise of exit stair flights — Group B, Division 2 occupancies",
+      "applies_to": {
+        "entity_type": "exit_stair",
+        "where": { "occupancy_group": "B2" }
+      },
+      "requires": { "all": [ { "fact": "flight_vertical_rise_mm", "op": "<=", "value": 2400 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) No flight of stairs shall have a vertical rise of more than 3.7 m between floors or landings, except that a flight of stairs serving as an exit in a Group B, Division 2 occupancy shall have a vertical rise not more than 2.4 m between floors or landings.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.4.6.3.(1); verbatim in reference/nbc2020.txt lines ~16217-16220)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (follow-up from base-rule verification_notes; quote spot-checked in official extract)",
+        "notes": "Companion to NBC-3.4.6.3-max-vertical-rise-and-landings closing its flagged leniency: B2 exit stairs are limited to 2 400 mm. occupancy_group is the major occupancy the exit stair serves (extractor vocabulary matches major_occupancy: B2). Both rules fire for B2 stairs; this one carries the governing stricter limit."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-45min-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 45 min fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 0.75 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 45 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions). Not machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h (45 min = 0.75), closure_rating_min in min",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 45 min — Minimum Fire-Protection Rating of Closure 45 min]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8544-8560, row line ~8555)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (row from the table transcribed during 1h/2h rule verification; spot-checked in official extract)",
+        "notes": "Completes the Table 3.1.8.4 rows together with the 1.5 h, 3 h and 4 h companion rules. 45 min separations are the public-corridor case (3.3.1.4.(2))."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-1.5h-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 1.5 h fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 1.5 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 60 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions). Not machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h, closure_rating_min in min (1 h = 60)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 1.5 h — Minimum Fire-Protection Rating of Closure 1 h]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8544-8560, row line ~8557)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (row transcribed during 1h/2h rule verification; spot-checked in official extract)",
+        "notes": "1 h closure encoded as 60 min per the standardized minutes unit."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-3h-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 3 h fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 3 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 120 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions). Not machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h, closure_rating_min in min (2 h = 120)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 3 h — Minimum Fire-Protection Rating of Closure 2 h]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8544-8560, row line ~8559)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (row transcribed during 1h/2h rule verification; spot-checked in official extract)",
+        "notes": "2 h closure encoded as 120 min per the standardized minutes unit."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-4h-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 4 h fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 4 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 180 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions). Not machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h, closure_rating_min in min (3 h = 180)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 4 h — Minimum Fire-Protection Rating of Closure 3 h]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8544-8560, row line ~8560)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (row transcribed during 1h/2h rule verification; spot-checked in official extract)",
+        "notes": "3 h closure encoded as 180 min per the standardized minutes unit. Completes all six Table 3.1.8.4 rows."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.3-exterior-walk-width",
+      "provision": "NBC 2020 Clause 3.8.3.3.(1)(b)",
+      "title": "Exterior walk in a barrier-free path of travel — minimum width",
+      "applies_to": { "entity_type": "bf_corridor", "where": { "is_exterior_walk": true } },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 1600 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Exterior walks that form part of a barrier-free path of travel shall a) have a slip-resistant, continuous and even surface, b) be not less than 1 600 mm wide, c) have a level area conforming to Clause 3.8.3.5.(1)(c) adjacent to an entrance doorway, and d) be designed in accordance with Clause 8.2.1 of CSA B651, \"Accessible design for the built environment.\"",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.8.3.3. Exterior Walks; verbatim in reference/nbc2020.txt lines ~18027-18036)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (direct check of official extract)",
+        "notes": "Interior paths use 1 000 mm (3.8.3.2); exterior walks are stricter at 1 600 mm. bf_corridor entities carry is_exterior_walk true/false; the interior rule (NBC-3.8.3.2-bf-path-clear-width) has an empty where so it also fires on exterior walks — harmless (1600 > 1000, never conflicting verdicts on compliant walks; a 900 mm exterior walk fails both). Clauses (a)/(c)/(d) qualitative or cross-referencing — not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.8-controls-mounting-height",
+      "provision": "NBC 2020 Sub-clause 3.8.3.8.(1)(a)(ii)",
+      "title": "Barrier-free controls mounted 400 mm to 1 200 mm above the floor",
+      "applies_to": { "entity_type": "bf_control", "where": {} },
+      "requires": { "all": [
+        { "fact": "mounting_height_mm", "op": ">=", "value": 400 },
+        { "fact": "mounting_height_mm", "op": "<=", "value": 1200 }
+      ] },
+      "exceptions": [
+        { "description": "Sentence (1)(a) opening: applies 'where located in a storey where a barrier-free path of travel is required and unless otherwise stated' — article-specific overrides (e.g. door-operating devices 900-1100 per 3.8.3.6.(4)) govern their own entity types; bf_control covers general controls only." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Controls described in this Section shall a) where located in a storey where a barrier-free path of travel is required and unless otherwise stated, i) be in or adjacent to the barrier-free path of travel, ii) be mounted 400 mm to 1 200 mm above the floor, and iii) be adjacent to and centred on either the length or the width of a clear floor space of 1 350 mm by 800 mm,",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.8.3.8. Controls; verbatim in reference/nbc2020.txt lines ~18210-18218)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (direct check of official extract)",
+        "notes": "Adds the bf_control entity type the original agent flagged as missing. Only the dimensional sub-clause (ii) is encoded; (i) path adjacency and (iii) clear-floor-space centring are geometric, and Clause (b) one-hand/closed-fist operability is qualitative — review items."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.4-headroom-clearance-exit-corridor",
+      "provision": "NBC 2020 Sentence 3.4.3.4.(1)",
+      "title": "Clear height in exit corridors and passageways: min 2 050 mm",
+      "applies_to": { "entity_type": "exit_corridor", "where": {} },
+      "requires": { "all": [ { "fact": "clear_height_mm", "op": ">=", "value": 2050 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (4) and (5), every exit shall have a clear height over the clear width of the exit of not less than 2 050 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.3.4.; verbatim in reference/nbc2020.txt lines ~16029-16032)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (companion instance of verified exit_stair rule; quote from same sentence)",
+        "notes": "Mechanical companion of NBC-3.4.3.4-headroom-clearance-exit for the exit_corridor entity type (the sentence covers every exit)."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.4-headroom-clearance-exit-door",
+      "provision": "NBC 2020 Sentence 3.4.3.4.(4)",
+      "title": "Headroom clearance for exit doorways: min 2 030 mm",
+      "applies_to": { "entity_type": "exit_door", "where": {} },
+      "requires": { "all": [ { "fact": "headroom_mm", "op": ">=", "value": 2030 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.4.3.4.(5): a door closer or other device may reduce doorway headroom, but never below 1 980 mm. Encoding the 1 980 floor for devices needs a device-specific fact (device_underside_height_mm); a doorway at 1 980-2 029 mm due to a closer will FAIL this rule and route to human review — conservative, never lenient." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "4) Except as permitted by Sentence (5), the headroom clearance for doorways shall be not less than 2 030 mm. 5) No door closer or other device shall be installed so as to reduce the headroom clearance of a doorway to less than 1 980 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.3.4.; verbatim in reference/nbc2020.txt lines ~16037-16042)"
+        ],
+        "verified_date": "2026-07-10",
+        "reviewer": "Claude (companion instance from verified article; quote spot-checked in official extract)",
+        "notes": "Doorway-specific figure (laxer than the 2 050 mm general exit height). headroom_mm is the clear opening height of the doorway itself."
+      }
     }
   ]
 }
