@@ -124,6 +124,103 @@
       }
     },
     {
+      "entity_type": "exit_stair",
+      "id": "STAIR-EX-1",
+      "name": "Exit Stair A (compliant)",
+      "attributes": {
+        "clear_width_mm": 1200,
+        "flight_vertical_rise_mm": 3400,
+        "has_landing_at_top_and_bottom_of_flight": true,
+        "landing_width_mm": 1200,
+        "handrail_height_mm": 920,
+        "has_guard": true,
+        "guard_height_mm": 1100,
+        "tread_run_mm": 280,
+        "riser_height_mm": 180,
+        "clear_height_mm": 2100
+      }
+    },
+    {
+      "entity_type": "exit_stair",
+      "id": "STAIR-EX-2",
+      "name": "Exit Stair B (multiple violations, missing headroom, uncertain handrail)",
+      "attributes": {
+        "clear_width_mm": 850,
+        "flight_vertical_rise_mm": 3900,
+        "has_landing_at_top_and_bottom_of_flight": true,
+        "landing_width_mm": 850,
+        "handrail_height_mm": { "value": 900, "confidence": 0.8, "source": "PDF A-201 stair section, region (410,220)-(690,410), LLM-extracted" },
+        "has_guard": true,
+        "guard_height_mm": 1000,
+        "tread_run_mm": 255,
+        "riser_height_mm": 195
+      }
+    },
+    {
+      "entity_type": "exit_door",
+      "id": "DOOR-EX-1",
+      "name": "Exit door from stair shaft (too narrow)",
+      "attributes": { "clear_width_mm": 810 }
+    },
+    {
+      "entity_type": "exit_corridor",
+      "id": "CORR-EX-1",
+      "name": "Second floor exit corridor",
+      "attributes": { "clear_width_mm": 1100 }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "FLOOR-2",
+      "name": "Second storey office floor area (single exit)",
+      "attributes": { "is_intended_for_occupancy": true, "exit_count": 1, "occupant_load_count": 45 }
+    },
+    {
+      "entity_type": "bf_entrance",
+      "id": "ENT-01",
+      "name": "Main entrance, north elevation",
+      "attributes": {
+        "is_service_entrance": false,
+        "is_barrier_free": { "value": true, "confidence": 0.95, "source": "plans.pdf sheet A-100, site plan note 4 (power door operator + level threshold)" }
+      }
+    },
+    {
+      "entity_type": "bf_corridor",
+      "id": "COR-01",
+      "name": "Level 1 corridor to washrooms",
+      "attributes": {
+        "clear_width_mm": { "value": 1050, "confidence": 0.8, "source": "plans.pdf sheet A-101, dimension string grid C-D (scaled, low legibility)" }
+      }
+    },
+    {
+      "entity_type": "bf_ramp",
+      "id": "RMP-01",
+      "name": "Exterior entrance ramp",
+      "attributes": {
+        "clear_width_mm": { "value": 1100, "confidence": 0.95, "source": "plans.pdf sheet A-102, ramp plan" },
+        "slope_ratio_denominator": { "value": 12, "confidence": 0.95, "source": "plans.pdf sheet A-102, ramp section note 'SLOPE 1:12 MAX'" },
+        "landing_length_mm": { "value": 1500, "confidence": 0.95, "source": "plans.pdf sheet A-102, ramp plan" },
+        "landing_interval_mm": { "value": 8500, "confidence": 0.95, "source": "plans.pdf sheet A-102, ramp plan" },
+        "handrail_height_mm": { "value": 900, "confidence": 0.95, "source": "plans.pdf sheet A-102, ramp section detail 3" }
+      }
+    },
+    {
+      "entity_type": "bf_door",
+      "id": "DR-03",
+      "name": "Door D3 — universal washroom",
+      "attributes": {
+        "clear_width_mm": { "value": 810, "confidence": 0.95, "source": "plans.pdf sheet A-601, door schedule D3 (clear opening column)" }
+      }
+    },
+    {
+      "entity_type": "bf_washroom_stall",
+      "id": "WCS-01",
+      "name": "Accessible stall, Level 1 women's washroom",
+      "attributes": {
+        "stall_width_mm": { "value": 1500, "confidence": 0.95, "source": "plans.pdf sheet A-401, enlarged washroom plan" },
+        "stall_depth_mm": { "value": 1600, "confidence": 0.95, "source": "plans.pdf sheet A-401, enlarged washroom plan" }
+      }
+    },
+    {
       "entity_type": "floor_area",
       "id": "fa-unit-301",
       "name": "Dwelling unit 301 (3 bedrooms)",

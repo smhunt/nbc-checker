@@ -2,7 +2,7 @@
   "ruleset_id": "nbc2020-part3-core",
   "code_edition": "NBC 2020",
   "schema_version": "0.2.0",
-  "description": "First NBC 2020 Part 3 rule categories (challenge EO2: Part 3 + Part 9 typology coverage). Same verification discipline as the Part 9 ruleset: every rule carries verification_notes with verbatim quote from the official NRC text (reference/nbc2020.txt), sources, date, reviewer; verified_against_code_text may only be true when quote and sources are populated. Categories: fire separations (3.1.3/3.1.8/3.3.1.4), occupancy classification and occupant load (3.1.2/3.1.17). Exits (3.4) and barrier-free (3.8) follow.",
+  "description": "First NBC 2020 Part 3 rule categories (challenge EO2: Part 3 + Part 9 typology coverage). Same verification discipline as the Part 9 ruleset: every rule carries verification_notes with verbatim quote from the official NRC text (reference/nbc2020.txt), sources, date, reviewer; verified_against_code_text may only be true when quote and sources are populated. Categories: fire separations (3.1.3/3.1.8/3.3.1.4), occupancy classification and occupant load (3.1.2/3.1.17), exits (3.4), accessibility (3.8).",
   "rules": [
     {
       "rule_id": "NBC-3.1.3.1-separation-C-D",
@@ -328,6 +328,443 @@
         "verified_date": "2026-07-09",
         "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
         "notes": "NBC 2020 contains NO Article 3.1.17.2 — posting lives in Sentence 3.1.17.1.(2). The actual sentence is NOT limited to assembly occupancies and has NO occupant-count trigger threshold: it applies to ANY floor area designed for a load other than the Table 3.1.17.1. value. occupant_load_differs_from_table is a deterministic extractor-computed boolean (design_occupant_load != table-derived load); if the extractor cannot determine it, applicability is undeterminable and the engine reports accordingly."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.2-exit-stair-min-width",
+      "provision": "NBC 2020 Sentence 3.4.3.2.(8), Table 3.4.3.2.-A",
+      "title": "Minimum width of exit stairs (Group A, B Div 1, C, D, E, F occupancies)",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 900 } ] },
+      "exceptions": [
+        { "description": "Table 3.4.3.2.-A note (2): 1 100 mm required when the stair serves more than 2 storeys above the lowest exit level or more than 1 storey below it — a STRICTER case, not an excusal; not encoded because the engine's where-conditions cannot express the OR trigger. A 950 mm stair serving 3 storeys would wrongly pass this rule — see verification_notes." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "8) The minimum widths of exits shall conform to Tables 3.4.3.2.-A and 3.4.3.2.-B. [Table 3.4.3.2.-A Minimum Widths of Exit Corridors, Passageways, Ramps, Stairs and Doorways in Group A, Group B, Division 1, and Groups C, D, E and F Occupancies: Stairs, mm — 900 (1) / 1 100 (2). Notes: (1) Serving not more than 2 storeys above the lowest exit level or not more than 1 storey below the lowest exit level. (2) Serving more than 2 storeys above the lowest exit level or more than 1 storey below the lowest exit level.]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.4.3.2.(8) and Table 3.4.3.2.-A; verbatim in reference/nbc2020.txt lines ~15966-15982)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Encodes the 900 mm floor only. UNDER-COVERAGE: the 1 100 mm tier (note (2)) needs a boolean fact (serves >2 storeys above OR >1 below lowest exit level) or two split rules — follow-up. Table 3.4.3.2.-B (Group B Div 2/3, incl. 1 650 mm stairs serving patients' sleeping rooms) not encoded. Per-occupant aggregate width factors (Sentences (1)-(3): 6.1/8/9.2/18.4/1.8/2.4 mm per person) documented, not encoded; Sentence (7): each exit contributes at most half the required width."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.2-exit-doorway-min-width",
+      "provision": "NBC 2020 Sentence 3.4.3.2.(8), Table 3.4.3.2.-A",
+      "title": "Minimum width of exit doorways (Group A, B Div 1, C, D, E, F occupancies)",
+      "applies_to": { "entity_type": "exit_door", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 850 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.4.3.2.-A Minimum Widths of Exit Corridors, Passageways, Ramps, Stairs and Doorways in Group A, Group B, Division 1, and Groups C, D, E and F Occupancies: Doorways, mm — 850]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.4.3.2.-A; verbatim in reference/nbc2020.txt lines ~15968-15978)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Table 3.4.3.2.-B gives 1 050 mm for Group B Div 2 doorways serving patients'/residents' sleeping rooms — not encoded. Aggregate occupant-load width per 3.4.3.2.(1) (6.1 mm/person for doorways) still governs when it exceeds 850 mm; formula in notes only."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.2-exit-corridor-min-width",
+      "provision": "NBC 2020 Sentence 3.4.3.2.(8), Table 3.4.3.2.-A",
+      "title": "Minimum width of exit corridors and passageways",
+      "applies_to": { "entity_type": "exit_corridor", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 1100 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.4.3.2.-A Minimum Widths of Exit Corridors, Passageways, Ramps, Stairs and Doorways: Exit Corridors and Passageways, mm — 1 100]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.4.3.2.-A; verbatim in reference/nbc2020.txt lines ~15968-15978)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "1 100 mm applies uniformly in both Tables A and B for exit corridors and passageways, so this rule is occupancy-independent. Exit ramps also require 1 100 mm per Table A (no exit_ramp width rule drafted yet)."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.3-max-vertical-rise-and-landings",
+      "provision": "NBC 2020 Sentences 3.4.6.3.(1) and 3.4.6.3.(2)",
+      "title": "Maximum vertical rise of exit stair flights and required landings",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [
+        { "fact": "flight_vertical_rise_mm", "op": "<=", "value": 3700 },
+        { "fact": "has_landing_at_top_and_bottom_of_flight", "op": "==", "value": true }
+      ] },
+      "exceptions": [
+        { "description": "3.4.6.3.(1): stricter 2 400 mm limit for exit stairs in Group B, Division 2 occupancies — a STRICTER case, not an excusal; not encoded (needs where {occupancy_group: 'B2'} companion rule)." },
+        { "description": "3.4.6.3.(3): a landing may be omitted at the bottom of an EXTERIOR stair or ramp provided there is no gate, door or fixed obstruction within the lesser of the stair/ramp width or 1 100 mm — depends on obstruction geometry the extractor does not derive; documentation-only." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) No flight of stairs shall have a vertical rise of more than 3.7 m between floors or landings, except that a flight of stairs serving as an exit in a Group B, Division 2 occupancy shall have a vertical rise not more than 2.4 m between floors or landings. 2) Except as provided in Sentence (3), a landing shall be provided a) at the top and bottom of each flight of interior and exterior stairs, b) at the top and bottom of every section of ramp, c) where a doorway opens onto a stair or ramp, d) where a ramp opens onto a stair, and e) where a stair opens onto a ramp.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.6.3.; verbatim in reference/nbc2020.txt lines ~16217-16231)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "3.7 m converted to 3 700 mm per project unit convention. Landing requirement encoded as a single boolean covering Clause (2)(a) only (top+bottom of each flight); clauses (b)-(e) not encoded. Related: 3.4.6.2.(1) separately requires every flight of interior stairs to have not less than 3 risers — not encoded here."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.4-landing-width",
+      "provision": "NBC 2020 Sentence 3.4.6.4.(1)",
+      "title": "Landing at least as wide as the stairway it serves",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [
+        { "fact": "landing_width_mm", "op": ">=", "value_fact": "clear_width_mm" }
+      ] },
+      "exceptions": [
+        { "description": "3.4.6.4.(2): in a straight stairway (or one turning less than 90 degrees) the landing LENGTH need not exceed the lesser of the required stair width or 1 100 mm — affects length only, not the width comparison encoded here; documentation-only." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as provided in Sentence (2), a landing shall be at least as wide and as long as the width of the stairway in which it occurs. 2) In a straight stairway and in a stairway that turns less than 90°, the length of the landing need not be more than the lesser of a) the required width of stair, or b) 1 100 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.6.4.; verbatim in reference/nbc2020.txt lines ~16232-16244)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Fact-to-fact comparison: landing_width_mm >= clear_width_mm. The 'as long as' (length) half of Sentence (1) is NOT encoded because its Sentence (2) relief requires min(required_width, 1100), which the requires schema cannot express. Sentences (4)-(5) (level areas where doorways/stairs empty onto ramps: 300 mm / 900 mm) not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.5-handrail-height-exit",
+      "provision": "NBC 2020 Sentence 3.4.6.5.(7)",
+      "title": "Handrail height in exits: 865 mm to 1 070 mm",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [
+        { "fact": "handrail_height_mm", "op": ">=", "value": 865 },
+        { "fact": "handrail_height_mm", "op": "<=", "value": 1070 }
+      ] },
+      "exceptions": [
+        { "fact": "is_supplementary_handrail", "op": "==", "value": true,
+          "description": "3.4.6.5.(8): handrails installed in addition to required handrails need not comply with Sentence (7)." },
+        { "description": "Clause 3.8.3.5.(1)(e) (accessibility) imposes 865-965 mm on barrier-free ramps — cross-reference only, encoded separately in the 3.8 category." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "7) Except as provided in Sentence (8) and Clause 3.8.3.5.(1)(e), the height of handrails on stairs, on aisles with steps and on ramps shall be a) not less than 865 mm, and b) not more than 1 070 mm. 8) Handrails installed in addition to required handrails need not comply with Sentence (7).",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.6.5.; verbatim in reference/nbc2020.txt lines ~16283-16289)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Measurement per 3.4.6.5.(6): vertically from top of handrail to a line tangent to tread nosings or to ramp/floor/landing surface. Part 9 comparison: Sentence 9.8.7.4.(2) uses the IDENTICAL 865-1070 mm range in NBC 2020. Handrail count (Sentences (1)-(2)), graspability (5), 300 mm extensions (12), and 50/60 mm wall clearance (13) verified present but not encoded in this rule."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.6-guard-height-exit",
+      "provision": "NBC 2020 Sentence 3.4.6.6.(2)",
+      "title": "Guard height for exit stairs, exit ramps and their landings: min 1 070 mm",
+      "applies_to": { "entity_type": "exit_stair", "where": { "has_guard": true } },
+      "requires": { "all": [ { "fact": "guard_height_mm", "op": ">=", "value": 1070 } ] },
+      "exceptions": [
+        { "description": "3.4.6.6.(4): guards for EXTERIOR stairs and landings more than 10 m above adjacent ground level require not less than 1 500 mm — a STRICTER case, not an excusal; not encoded." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Except as required by Sentence (4), the height of guards for exit stairs and exit ramps as well as their landings shall be not less than 1 070 mm. 4) The height of guards for exterior stairs and landings more than 10 m above adjacent ground level shall be not less than 1 500 mm measured vertically to the top of the guard from the surface of the landing or from a line drawn through the outside edges of the stair nosings.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.6.6. Guards; verbatim in reference/nbc2020.txt lines ~16307-16330)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: no 920 mm value exists in Article 3.4.6.6 — that is a Part 9/Ontario figure. Part 3 exit guard heights are 1 070 mm (S2) and 1 500 mm (exterior >10 m, S4). Guard trigger (S1: elevation difference >600 mm or adjacent slope >1:2) encoded via where {has_guard: true} rather than deriving the trigger. S5 (100 mm sphere openings) and S7 (no climbable elements 140-900 mm) verified present, not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.6.8-tread-run-riser-height",
+      "provision": "NBC 2020 Sentences 3.4.6.8.(1) and 3.4.6.8.(2)",
+      "title": "Exit stair treads and risers: run >= 280 mm, rise 125-180 mm",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [
+        { "fact": "tread_run_mm", "op": ">=", "value": 280 },
+        { "fact": "riser_height_mm", "op": ">=", "value": 125 },
+        { "fact": "riser_height_mm", "op": "<=", "value": 180 }
+      ] },
+      "exceptions": [
+        { "fact": "is_within_dwelling_unit", "op": "==", "value": true,
+          "description": "3.4.6.8.(1): 'Except as permitted for dwelling units' — dwelling-unit stairs use Part 9 dimensions (see nbc2020_part9_core.json stair rules)." },
+        { "description": "3.4.6.8.(1): Sentence 3.4.7.5.(1) permits different dimensions for fire escapes — documentation-only (fire escapes are a distinct exit facility type)." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted for dwelling units and by Sentence 3.4.7.5.(1) for fire escapes, steps for stairs shall have a run of not less than 280 mm between successive steps. 2) Steps for stairs referred to in Sentence (1) shall have a rise between successive treads not less than 125 mm and not more than 180 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.6.8. Treads and Risers; verbatim in reference/nbc2020.txt lines ~16357-16366)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "These are also the qualifying dimensions for the favourable 8 mm/person width factor in Clause 3.4.3.2.(1)(b). Uniformity tolerances (S4-S5: 5 mm adjacent / 10 mm flight), no open risers (S3), max 1:50 tread slope (S7), and 6-13 mm nosing bevel (S8) verified present but not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.3.4-headroom-clearance-exit",
+      "provision": "NBC 2020 Sentence 3.4.3.4.(1)",
+      "title": "Clear height over the clear width of every exit: min 2 050 mm",
+      "applies_to": { "entity_type": "exit_stair", "where": {} },
+      "requires": { "all": [ { "fact": "clear_height_mm", "op": ">=", "value": 2050 } ] },
+      "exceptions": [
+        { "description": "3.4.3.4.(4): headroom clearance for DOORWAYS shall be not less than 2 030 mm (separate doorway figure — not an excusal for stairs)." },
+        { "description": "3.4.3.4.(5): a door closer or other device may reduce doorway headroom to not less than 1 980 mm." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (4) and (5), every exit shall have a clear height over the clear width of the exit of not less than 2 050 mm. 4) Except as permitted by Sentence (5), the headroom clearance for doorways shall be not less than 2 030 mm. 5) No door closer or other device shall be installed so as to reduce the headroom clearance of a doorway to less than 1 980 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.3.4. Headroom Clearance; verbatim in reference/nbc2020.txt lines ~16029-16042)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: exit headroom is Article 3.4.3.4, not 3.4.6.2 (which is 'Minimum Number of Risers'). Sentence (1) applies to EVERY exit; this rule instance is scoped to exit_stair (measurement per S2: vertically over the clear width from a line tangent to tread/landing nosings to the lowest element above). Companion instances for exit_corridor/exit_ramp (2 050) and exit_door (2 030 / 1 980 with closer) are mechanical copies — follow-up."
+      }
+    },
+    {
+      "rule_id": "NBC-3.4.2.1-min-number-of-exits",
+      "provision": "NBC 2020 Sentence 3.4.2.1.(1)",
+      "title": "Every floor area intended for occupancy served by at least 2 exits",
+      "applies_to": { "entity_type": "floor_area", "where": { "is_intended_for_occupancy": true } },
+      "requires": { "all": [ { "fact": "exit_count", "op": ">=", "value": 2 } ] },
+      "exceptions": [
+        { "description": "3.4.2.1.(2): one exit permitted in a building <=2 storeys where total occupant load <=60 AND (unsprinklered: floor area and travel distance within Table 3.4.2.1.-A, e.g. Group C max 100 m2 / 15 m; or sprinklered: travel distance <=25 m and floor area within Table 3.4.2.1.-B, e.g. Group C max 150 m2). Multi-criteria + occupancy-dependent tables — documentation-only; single-exit floor areas route to human review as FAIL (conservative)." },
+        { "description": "3.4.2.1.(3): where (2) permits a single exit from Group B or C, the exit must be an exterior doorway not more than 1.5 m above adjacent ground level." },
+        { "description": "3.4.2.1.(4): waivable for dwelling units with access to exit conforming to Sentences 3.3.4.4.(1) to (4)." },
+        { "description": "3.4.2.1.(5): exits not required directly from rooftop enclosures with access to exits per Sentences 3.3.1.3.(5) and (6)." }
+      ],
+      "unit_system": "count",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (2) to (4), every floor area intended for occupancy shall be served by at least 2 exits. 2) A floor area in a building not more than 2 storeys in building height, is permitted to be served by one exit provided the total occupant load served by the exit is not more than 60, and a) in a floor area that is not sprinklered throughout, the floor area and the travel distance are not more than the values in Table 3.4.2.1.-A, or b) in a floor area that is sprinklered throughout i) the travel distance is not more than 25 m, and ii) the floor area is not more than the value in Table 3.4.2.1.-B.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.4.2.1.; verbatim in reference/nbc2020.txt lines ~15737-15748)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Encoded as flat count >= 2; the Sentence (2) single-exit permission is deliberately NOT fact-encoded (partial encoding of the conjunction would wrongly excuse non-qualifying floor areas). Table A values: Group A 150 m2/15 m, B 75/10, C 100/15, D 200/25, E 150/15, F2 150/10, F3 200/15; Table B (sprinklered, 25 m travel distance): A 200, B 100, C 150, D 300, E 200, F2 200, F3 300 m2."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.2.2-bf-entrance-required",
+      "provision": "NBC 2020 Sentence 3.8.2.2.(1)",
+      "title": "All pedestrian entrances to a barrier-free storey must be barrier-free",
+      "applies_to": { "entity_type": "bf_entrance", "where": { "is_service_entrance": false } },
+      "requires": { "all": [ { "fact": "is_barrier_free", "op": "==", "value": true } ] },
+      "exceptions": [],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except for service entrances and entrances to suites described in Clause 3.8.2.3.(2)(l), all pedestrian entrances to a barrier-free storey of a building referred to in Sentence 3.8.2.1.(1) shall be barrier-free and shall connect to a barrier-free exterior path of travel complying with Sentence 3.8.2.5.(1).",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-172; verbatim in reference/nbc2020.txt lines ~17686-17690)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: NBC 2020 requires ALL pedestrian entrances barrier-free — the NBC 2015 percentage approach (50%) no longer exists, so no building-level percentage rule is encoded. Service entrances excluded via where-condition; Clause 3.8.2.3.(2)(l) suite entrances NOT encoded — flag out-of-scope upstream. Section-wide applicability exceptions (3.8.2.1.(1): houses incl. secondary suites, Group F Div 1, buildings not occupied daily) must be handled by upstream extraction (do not emit bf_* entities for exempt buildings)."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.2-bf-path-clear-width",
+      "provision": "NBC 2020 Sentence 3.8.3.2.(1)",
+      "title": "Barrier-free path of travel — minimum clear width",
+      "applies_to": { "entity_type": "bf_corridor", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 1000 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.8.3.2.(2): width may reduce to 850 mm for a length of not more than 600 mm with specified level clear floor space at both ends — multi-fact geometric condition, not encoded; a compliant pinch-point design will FAIL this rule and route to human review." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as required elsewhere in this Part or as permitted by Sentence (2) and Article 3.8.3.6. pertaining to doorways, the clear width of a barrier-free path of travel shall be not less than 1 000 mm.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-177; verbatim in reference/nbc2020.txt lines ~17982-17984)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: NBC 2020 value is 1 000 mm — NOT 920 mm (that is the NBC 2015 value; Section 3.8 was retitled 'Accessibility' and substantially rewritten in 2020). Doorways are governed by 3.8.3.6. Sentences (5)/(6) passing-space requirements for long/narrow paths not encoded. 3.8.3.3 'Exterior Walks' (1 600 mm) is a separate article — follow-up rule."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.5-bf-ramp-clear-width",
+      "provision": "NBC 2020 Clause 3.8.3.5.(1)(a)",
+      "title": "Barrier-free ramp — minimum clear width",
+      "applies_to": { "entity_type": "bf_ramp", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 1000 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) A ramp located in a barrier-free path of travel shall a) have a clear width not less than 1 000 mm (see Note A-3.4.3.4.),",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-178; verbatim in reference/nbc2020.txt lines ~18054-18055)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Applies to ramps located in a barrier-free path of travel (what entity_type bf_ramp denotes)."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.5-bf-ramp-max-slope",
+      "provision": "NBC 2020 Clause 3.8.3.5.(1)(b)",
+      "title": "Barrier-free ramp — maximum slope 1 in 12",
+      "applies_to": { "entity_type": "bf_ramp", "where": {} },
+      "requires": { "all": [ { "fact": "slope_ratio_denominator", "op": ">=", "value": 12 } ] },
+      "exceptions": [],
+      "unit_system": "ratio (1:n)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "b) have a uniform slope along its length not more than 1 in 12 (see Note A-3.8.3.5.(1)(b)),",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-178; verbatim in reference/nbc2020.txt lines ~18056-18057)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "SLOPE CONVENTION (used for all 3.8 slope rules): slope_ratio_denominator is n in the as-built slope 1:n (rise:run); shallower = larger n, so 'not more than 1 in 12' encodes as n >= 12. Extractors compute n = run/rise; never emit percent for this fact. The 'uniform slope along its length' condition is not machine-checkable from a single fact."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.5-bf-ramp-landings",
+      "provision": "NBC 2020 Clause 3.8.3.5.(1)(d)",
+      "title": "Barrier-free ramp — landing length and maximum interval",
+      "applies_to": { "entity_type": "bf_ramp", "where": {} },
+      "requires": { "all": [
+        { "fact": "landing_length_mm", "op": ">=", "value": 1350 },
+        { "fact": "landing_interval_mm", "op": "<=", "value": 9000 }
+      ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "d) have a level area not less than 1 350 mm long and at least the same width as the ramp i) at intervals not more than 9 m along its length, and ii) where there is an abrupt change in the direction of the ramp, and",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-178; verbatim in reference/nbc2020.txt lines ~18066-18070)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "9 m encoded as 9000 mm. landing_length_mm = shortest intermediate/end level area; landing_interval_mm = longest distance between successive level areas. 'At least the same width as the ramp', direction-change landings, and Clause (1)(c) door landings (1 700 x 1 700 mm) NOT encoded — geometric, needs review."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.5-bf-ramp-handrail-height",
+      "provision": "NBC 2020 Clause 3.8.3.5.(1)(e)",
+      "title": "Barrier-free ramp — handrail height 865 mm to 965 mm",
+      "applies_to": { "entity_type": "bf_ramp", "where": {} },
+      "requires": { "all": [
+        { "fact": "handrail_height_mm", "op": ">=", "value": 865 },
+        { "fact": "handrail_height_mm", "op": "<=", "value": 965 }
+      ] },
+      "exceptions": [
+        { "description": "Sentence 3.8.3.5.(2): supplementary (non-required) handrails exempt from the height range; Sentence (3): ramps serving as aisles for fixed seating exempt. handrail_height_mm should describe the REQUIRED handrails only." }
+      ],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "e) except as provided in Sentences (2) and (3), be equipped with handrails conforming to Article 3.4.6.5., except that they shall be not less than 865 mm and not more than 965 mm high, and",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-178; verbatim in reference/nbc2020.txt lines ~18071-18074)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "This is the 865-965 mm clause cross-referenced from both Part 9 (9.8.7.4) and Part 3 exits (3.4.6.5) handrail rules — the tighter accessible range."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.6-bf-door-clear-width",
+      "provision": "NBC 2020 Sentence 3.8.3.6.(2)",
+      "title": "Doorway in a barrier-free path of travel — minimum clear width",
+      "applies_to": { "entity_type": "bf_door", "where": {} },
+      "requires": { "all": [ { "fact": "clear_width_mm", "op": ">=", "value": 850 } ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Every doorway that is located in a barrier-free path of travel shall have a clear width not less than 850 mm when the door is in the open position. (See Note A-3.8.3.6.(2).)",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-179; verbatim in reference/nbc2020.txt lines ~18092-18095)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: NBC 2020 value is 850 mm (increased from 800 mm in NBC 2015). clear_width_mm measured with the door in the OPEN position — do not derive from leaf width. Sentence (3) applies the same 850 mm to doorways serving at least one bathroom in a residential suite (covered by tagging those doorways bf_door)."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.6-bf-door-operating-device-height",
+      "provision": "NBC 2020 Sentence 3.8.3.6.(4)",
+      "title": "Barrier-free door-operating device mounting height 900 mm to 1 100 mm",
+      "applies_to": { "entity_type": "bf_door", "where": {} },
+      "requires": { "all": [
+        { "fact": "operating_device_height_mm", "op": ">=", "value": 900 },
+        { "fact": "operating_device_height_mm", "op": "<=", "value": 1100 }
+      ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "4) Door-operating devices shall a) comply with Clause 3.8.3.8.(1)(b), and b) be operable at a height between 900 mm and 1 100 mm above the floor. (See Note A-3.8.3.6.(4).)",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-179; verbatim in reference/nbc2020.txt lines ~18099-18102)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Dimensional part only; the one-hand/closed-fist operability requirement (via 3.8.3.8.(1)(b)) is qualitative, not encoded. General controls mounting range 400-1200 mm (Clause 3.8.3.8.(1)(a)(ii), verified at extract lines ~18212-18217) needs a bf_control entity type — follow-up."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.12-wc-stall-dimensions",
+      "provision": "NBC 2020 Clause 3.8.3.12.(1)(a)",
+      "title": "Accessible water-closet stall — minimum width and depth",
+      "applies_to": { "entity_type": "bf_washroom_stall", "where": {} },
+      "requires": { "all": [
+        { "fact": "stall_width_mm", "op": ">=", "value": 1500 },
+        { "fact": "stall_depth_mm", "op": ">=", "value": 1500 }
+      ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Water-closet stalls and enclosures required by Sentence 3.8.2.8.(5) shall a) be not less than 1 500 mm wide by 1 500 mm deep,",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-182; verbatim in reference/nbc2020.txt lines ~18293-18294)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "BRIEF CORRECTION: stalls are Article 3.8.3.12 (3.8.3.9 is 'Accessible Signs' in NBC 2020). Companion clauses not encoded: (b) lateral transfer space 1 500 x 900 mm, (c) 1 700 x 1 700 mm clear floor space in front, (d)(iii) stall door clear opening 850 mm (tag the stall door bf_door), (e) WC centre line 460-480 mm from side wall."
+      }
+    },
+    {
+      "rule_id": "NBC-3.8.3.12-wc-stall-grab-bar",
+      "provision": "NBC 2020 Clause 3.8.3.12.(1)(f)",
+      "title": "Accessible water-closet stall — L-shaped side grab bar present, horizontal component 750 mm to 850 mm high",
+      "applies_to": { "entity_type": "bf_washroom_stall", "where": {} },
+      "requires": { "all": [
+        { "fact": "has_l_shaped_side_grab_bar", "op": "==", "value": true },
+        { "fact": "grab_bar_horizontal_height_mm", "op": ">=", "value": 750 },
+        { "fact": "grab_bar_horizontal_height_mm", "op": "<=", "value": 850 }
+      ] },
+      "exceptions": [],
+      "unit_system": "mm",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "f) be equipped with an L-shaped grab bar that i) is mounted on the side wall closest to the water closet, ii) has horizontal and vertical components not less than 760 mm long mounted with the horizontal component 750 mm to 850 mm above the floor and the vertical component 150 mm in front of the water closet (see Note A-3.8.3.12.(1)(f)(ii)), and iii) complies with Article 3.7.2.7.,",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1 p. 3-182; verbatim in reference/nbc2020.txt lines ~18334-18342)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Encodes presence + horizontal-component mounting height. Not encoded: component lengths (>=760 mm), vertical component position (150 mm in front of WC), rear-wall grab bar (Clause (g)), structural requirements (3.7.2.7). If drawings do not show grab bars, leave has_l_shaped_side_grab_bar ABSENT so the engine reports info_not_available — never infer false."
       }
     }
   ]
