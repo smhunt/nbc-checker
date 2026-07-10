@@ -249,6 +249,117 @@ def test_tiled_tolerates_prose_wrapped_json_and_skips_pure_prose_tiles():
     assert facts["project"]["tiles_unparsed"] == ["r1c2"]
 
 
+def test_tile_bbox_to_page_maps_fractions_through_clip_rect():
+    from extractors.pdf_extractor import tile_bbox_to_page
+    # tile clip covers the right half of a 1000x500pt page
+    out = tile_bbox_to_page([0.5, 0.5, 0.6, 0.6], [500, 0, 1000, 500], 1000, 500)
+    assert out == [0.75, 0.5, 0.8, 0.6]
+
+
+def test_tile_bbox_inverted_corners_are_swapped():
+    from extractors.pdf_extractor import tile_bbox_to_page
+    out = tile_bbox_to_page([0.6, 0.6, 0.5, 0.5], [500, 0, 1000, 500], 1000, 500)
+    assert out == [0.75, 0.5, 0.8, 0.6]
+
+
+def test_tile_bbox_out_of_range_rejected():
+    from extractors.pdf_extractor import tile_bbox_to_page
+    clip = [0, 0, 100, 100]
+    assert tile_bbox_to_page([-0.1, 0, 0.5, 0.5], clip, 100, 100) is None
+    assert tile_bbox_to_page([0, 0, 1.2, 0.5], clip, 100, 100) is None
+    assert tile_bbox_to_page("junk", clip, 100, 100) is None
+    assert tile_bbox_to_page([0.1, 0.2, 0.3], clip, 100, 100) is None
+    assert tile_bbox_to_page([0.1, float("nan"), 0.3, 0.4], clip, 100, 100) is None
+
+
+def test_tile_bbox_degenerate_or_huge_rejected():
+    from extractors.pdf_extractor import tile_bbox_to_page
+    clip = [0, 0, 1000, 1000]
+    assert tile_bbox_to_page([0.5, 0.5, 0.5, 0.5], clip, 1000, 1000) is None  # zero area
+    assert tile_bbox_to_page([0.0, 0.0, 1.0, 1.0], clip, 1000, 1000) is None  # whole page
+
+
+def _evidence_payload(bbox):
+    return json.dumps({"entities": [{
+        "entity_type": "stair_flight", "id": "s1", "name": "Main stair",
+        "attributes": {"riser_height_mm": {
+            "value": 190, "confidence": 0.8, "bbox": bbox}}}]})
+
+
+def _clip_tile(label, clip, page_w, page_h):
+    return {"path": f"/tmp/{label}.png", "label": label,
+            "row": 1, "col": 1, "clip": clip,
+            "page_w": page_w, "page_h": page_h, "page": 1}
+
+
+def test_evidence_attached_with_doc_page_bbox():
+    tiles = [_clip_tile("r1c1", [500, 0, 1000, 500], 1000, 500)]
+    facts = extract_tiled("A-201.pdf", runner=lambda p, i: _evidence_payload([0.5, 0.5, 0.6, 0.6]),
+                          tiles=tiles)
+    attr = facts["entities"][0]["attributes"]["riser_height_mm"]
+    assert attr["evidence"] == {"doc": "A-201.pdf", "page": 1, "bbox": [0.75, 0.5, 0.8, 0.6]}
+    assert "bbox" not in attr
+    assert "tile r1c1" in attr["source"]
+
+
+def test_missing_or_bad_bbox_degrades_to_page_level_evidence():
+    tiles = [_clip_tile("r1c1", [0, 0, 1000, 500], 1000, 500)]
+    for bad in (None, [2, 2, 3, 3]):
+        payload = _evidence_payload(bad)
+        facts = extract_tiled("A-201.pdf", runner=lambda p, i, _pl=payload: _pl, tiles=tiles)
+        attr = facts["entities"][0]["attributes"]["riser_height_mm"]
+        assert attr["evidence"] == {"doc": "A-201.pdf", "page": 1}
+
+
+def test_tiles_without_clip_still_work_page_level():
+    facts = extract_tiled("A-201.pdf",
+                          runner=lambda p, i: _evidence_payload([0.5, 0.5, 0.6, 0.6]),
+                          tiles=fake_tiles("r1c1"))
+    attr = facts["entities"][0]["attributes"]["riser_height_mm"]
+    assert attr["evidence"] == {"doc": "A-201.pdf", "page": 1}
+
+
+def test_merge_keeps_evidence_of_winning_instance():
+    lo = {"tile": "r1c1", "entities": [{"entity_type": "t", "id": "a", "name": "A",
+          "attributes": {"x_mm": {"value": 1, "confidence": 0.5, "source": "lo",
+                                  "evidence": {"doc": "d.pdf", "page": 1, "bbox": [0.1, 0.1, 0.2, 0.2]}}}}]}
+    hi = {"tile": "r1c2", "entities": [{"entity_type": "t", "id": "a", "name": "A",
+          "attributes": {"x_mm": {"value": 2, "confidence": 0.8, "source": "hi",
+                                  "evidence": {"doc": "d.pdf", "page": 1, "bbox": [0.5, 0.5, 0.6, 0.6]}}}}]}
+    merged = merge_tile_facts([lo, hi])
+    attr = merged["entities"][0]["attributes"]["x_mm"]
+    assert attr["source"] == "hi" and attr["evidence"]["bbox"] == [0.5, 0.5, 0.6, 0.6]
+
+
+def test_whole_pdf_mode_page_only_never_bbox():
+    payload = json.dumps({"entities": [{
+        "entity_type": "stair_flight", "id": "s1", "name": "S",
+        "attributes": {"riser_height_mm": {
+            "value": 190, "confidence": 0.8, "page": 2, "bbox": [0.1, 0.1, 0.2, 0.2]}}}]})
+    facts = extract("A-201.pdf", runner=lambda p, f: payload)
+    attr = facts["entities"][0]["attributes"]["riser_height_mm"]
+    assert attr["evidence"] == {"doc": "A-201.pdf", "page": 2}
+    assert "bbox" not in attr and "page" not in attr
+
+
+def test_whole_pdf_mode_invalid_page_omits_evidence():
+    payload = json.dumps({"entities": [{
+        "entity_type": "stair_flight", "id": "s1", "name": "S",
+        "attributes": {"riser_height_mm": {"value": 190, "confidence": 0.8, "page": 0}}}]})
+    facts = extract("A-201.pdf", runner=lambda p, f: payload)
+    assert "evidence" not in facts["entities"][0]["attributes"]["riser_height_mm"]
+
+
+def test_confidence_cap_unaffected_by_evidence():
+    tiles = [_clip_tile("r1c1", [0, 0, 1000, 500], 1000, 500)]
+    payload = json.dumps({"entities": [{
+        "entity_type": "t", "id": "a", "name": "A",
+        "attributes": {"x_mm": {"value": 1, "confidence": 1.0, "bbox": [0.4, 0.4, 0.5, 0.5]}}}]})
+    facts = extract_tiled("A-201.pdf", runner=lambda p, i: payload, tiles=tiles)
+    attr = facts["entities"][0]["attributes"]["x_mm"]
+    assert attr["confidence"] <= MAX_LLM_CONFIDENCE and "evidence" in attr
+
+
 def test_merge_tile_facts_pure_dedupe_and_highest_confidence():
     # Exercise the merge policy directly, without rendering or a runner.
     tile_facts = [

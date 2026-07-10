@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import subprocess
@@ -32,7 +33,7 @@ MAX_LLM_CONFIDENCE = 0.89
 
 EXTRACTION_PROMPT = '''You are a drawing-takeoff assistant. Extract ONLY dimensions explicitly annotated on this architectural drawing. Return JSON: {"entities": [{"entity_type": "...", "id": "...", "name": "...", "attributes": {"<fact>": {"value": <number>, "confidence": <0..1 your certainty>, "source": "<sheet> <where on sheet>"}}}]}
 Known entity_types and facts: stair_flight (riser_height_mm, tread_run_mm, clear_width_mm, headroom_mm, service), handrail (height_above_nosing_mm), guard (guard_height_mm, fall_height_mm, guard_context, max_opening_mm), room (room_use, ceiling_height_mm), window (overall_height_mm, overall_width_mm), door (clear_width_mm, height_mm).
-NEVER infer a value that is not printed on the drawing. If unsure, omit the fact. Output ONLY the JSON object.'''
+NEVER infer a value that is not printed on the drawing. If unsure, omit the fact. Each attribute may also include "page": <1-based page number the annotation appears on>. Output ONLY the JSON object.'''
 
 CLI_TIMEOUT_S = 300
 
@@ -90,11 +91,63 @@ def _normalize_attribute(value, default_source: str) -> dict:
     """Wrap/cap a model-reported attribute into the facts schema."""
     if not isinstance(value, dict):
         return {"value": value, "confidence": 0.5, "source": default_source}
-    return {
+    out = {
         "value": value.get("value"),
         "confidence": _coerce_confidence(value.get("confidence")),
         "source": value.get("source") or default_source,
     }
+    # Raw locator hints from the model. These are NOT the final evidence
+    # object — the extraction path that knows the page geometry converts
+    # them (tiled: bbox -> page coordinates; whole-PDF: page number only)
+    # and removes the raw keys.
+    if "bbox" in value:
+        out["bbox"] = value["bbox"]
+    if "page" in value:
+        out["page"] = value["page"]
+    return out
+
+
+def tile_bbox_to_page(frac_bbox, clip, page_w, page_h) -> list | None:
+    """Map an LLM-reported bbox (fractions 0-1 of a tile image, top-left
+    origin) to normalized page coordinates via the tile's clip rect (page
+    points, fitz top-left space). Pure and deterministic.
+
+    Returns None (caller degrades to page-level evidence) when the input is
+    malformed, out of range, degenerate, or absurdly large. Because inputs
+    are fractions of the tile the model actually saw, a hallucinated bbox is
+    geometrically confined to that tile — worst case is a wrong region within
+    the right neighbourhood, immediately visible to the reviewer.
+    """
+    if not isinstance(frac_bbox, (list, tuple)) or len(frac_bbox) != 4:
+        return None
+    try:
+        x0, y0, x1, y1 = (float(v) for v in frac_bbox)
+    except (TypeError, ValueError):
+        return None
+    if not all(math.isfinite(v) for v in (x0, y0, x1, y1)):
+        return None
+    if x0 > x1:
+        x0, x1 = x1, x0
+    if y0 > y1:
+        y0, y1 = y1, y0
+    if x0 < 0 or y0 < 0 or x1 > 1 or y1 > 1:
+        return None
+    try:
+        cx0, cy0, cx1, cy1 = (float(v) for v in clip)
+        page_w, page_h = float(page_w), float(page_h)
+    except (TypeError, ValueError):
+        return None
+    cw, ch = cx1 - cx0, cy1 - cy0
+    if cw <= 0 or ch <= 0 or page_w <= 0 or page_h <= 0:
+        return None
+    px0 = (cx0 + x0 * cw) / page_w
+    py0 = (cy0 + y0 * ch) / page_h
+    px1 = (cx0 + x1 * cw) / page_w
+    py1 = (cy0 + y1 * ch) / page_h
+    area = (px1 - px0) * (py1 - py0)
+    if area < 1e-6 or area > 0.6:  # degenerate speck or most-of-the-page box
+        return None
+    return [round(v, 4) for v in (px0, py0, px1, py1)]
 
 
 def _locate_json_object(text: str) -> str:
@@ -164,6 +217,17 @@ def extract(pdf_path: str, runner=run_claude) -> dict:
     raw_text = runner(EXTRACTION_PROMPT, pdf_path)
     entities = _parse_entities(raw_text, f"{pdf_name} (LLM extraction)")
 
+    # Whole-PDF mode has no controlled raster geometry, so bboxes would be
+    # unanchored — discard them and keep page-level evidence only (the viewer
+    # degrades to opening that page fit-to-view).
+    for ent in entities:
+        for attr in ent["attributes"].values():
+            attr.pop("bbox", None)
+            raw_page = attr.pop("page", None)
+            if (isinstance(raw_page, (int, float)) and not isinstance(raw_page, bool)
+                    and float(raw_page).is_integer() and raw_page >= 1):
+                attr["evidence"] = {"doc": pdf_name, "page": int(raw_page)}
+
     return {
         "project": {
             "name": f"{pdf_name} (drawing extraction)",
@@ -229,7 +293,10 @@ def render_page_to_tiles(
 ) -> list:
     """Render one PDF page at `dpi` and slice it into an overlapping grid of
     PNG tiles. Returns a list of tile descriptors:
-    `{"path", "label", "row", "col"}` (rows/cols are 1-based).
+    `{"path", "label", "row", "col", "clip", "page_w", "page_h", "page"}`
+    (rows/cols and page are 1-based; clip is [x0,y0,x1,y1] in page points,
+    fitz top-left space — the geometry needed to map LLM tile-fraction
+    bboxes back to page coordinates).
 
     Requires PyMuPDF (`import fitz`). Each tile is rendered directly from a clip
     rectangle so it keeps full `dpi` resolution rather than being downscaled.
@@ -266,7 +333,11 @@ def render_page_to_tiles(
                 label = f"r{r + 1}c{c + 1}"
                 path = os.path.join(out_dir, f"{stem}_{label}.png")
                 pix.save(path)
-                tiles.append({"path": path, "label": label, "row": r + 1, "col": c + 1})
+                tiles.append({
+                    "path": path, "label": label, "row": r + 1, "col": c + 1,
+                    "clip": [x0, y0, x1, y1], "page_w": pw, "page_h": ph,
+                    "page": page_index + 1,
+                })
     finally:
         doc.close()
     return tiles
@@ -278,7 +349,11 @@ def _tile_prompt(pdf_name: str, tile: dict) -> str:
         f"{EXTRACTION_PROMPT}\n\n"
         f"This is region row {tile['row']} col {tile['col']} (tile {tile['label']}) "
         f"of sheet {pdf_name}. Extract ONLY dimensions visible in THIS crop; "
-        f"ignore anything cut off at the edges of the image."
+        f"ignore anything cut off at the edges of the image.\n"
+        f"Each attribute may also include \"bbox\": [x0, y0, x1, y1] — fractions "
+        f"0-1 of THIS image, origin at the TOP-LEFT corner, drawn tightly around "
+        f"the printed dimension annotation you read the value from. If you cannot "
+        f"locate it precisely, omit bbox."
     )
 
 
@@ -384,10 +459,23 @@ def extract_tiled(
             skipped.append(tile["label"])
             continue
         # Stamp tile provenance onto every fact so the winning instance after
-        # the merge always says which crop it was read from.
+        # the merge always says which crop it was read from — and convert the
+        # model's tile-fraction bbox (if any) into a page-coordinate evidence
+        # object using the tile's deterministic clip geometry.
+        clip = tile.get("clip")
+        page_no = tile.get("page", 1)
         for ent in entities:
             for attr in ent["attributes"].values():
                 attr["source"] = tile_source
+                raw_bbox = attr.pop("bbox", None)
+                attr.pop("page", None)  # the tile knows its page; ignore model's
+                evidence = {"doc": pdf_name, "page": page_no}
+                if clip is not None and raw_bbox is not None:
+                    page_bbox = tile_bbox_to_page(
+                        raw_bbox, clip, tile.get("page_w"), tile.get("page_h"))
+                    if page_bbox is not None:
+                        evidence["bbox"] = page_bbox
+                attr["evidence"] = evidence
         tile_facts.append({"tile": tile["label"], "entities": entities})
 
     merged = merge_tile_facts(tile_facts)
