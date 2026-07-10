@@ -200,3 +200,17 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   0.89. CLI --pages flag; UI pages input + processed-pages summary.
 - Smoke command (corpus gitignored, not CI):
   python3 extractors/pdf_extractor.py --tiled --pages auto samples/external/permits/ottawa_addition.pdf
+
+## 2026-07-10 — Session 5e (extraction speedups — planned, 4 parallel agents)
+- Master plan: docs/superpowers/plans/2026-07-10-extraction-speedups.md (order + seams).
+  Sub-plans by 4 agents: (A) parallel tiles (ThreadPool, index-ordered merge ==
+  serial output, throughput ETA needs NO math change, failure isolation);
+  (B) blank-tile skip (zero-content rule, scans structurally fail-open) + raw-response
+  cache (pre-parse so EO1 cap re-applies; stats never in facts); (C) runners.py factory
+  (API iff key, fail-loud), 1568px API downscale RISK -> A/B harness gates any Haiku
+  flip; (D) page-barrier partial streaming (prefix-stable ids verified, overrides locked
+  until final, no sha on partials, final == non-streaming byte-identical).
+- Wave order: runner infra -> blank+cache -> parallel -> streaming -> A/B (wave 5
+  BLOCKED ON USER: needs ANTHROPIC_API_KEY on this machine).
+- Projected: 12-page tiled job ~14 min -> ~3.5 min (x4 workers) minus blank/cache
+  savings; reviewable from first completed page; Haiku possibly another 2-3x.
