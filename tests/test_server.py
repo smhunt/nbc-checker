@@ -464,3 +464,33 @@ def test_job_public_carries_pages_summary(upload_client, monkeypatch):
     job = upload_client.get(f"/api/jobs/{job_id}").json()
     assert job["pages"] == {"total": 8, "selected": 4, "skipped": 4}
     assert "4 of 8 pages" in job["message"]
+
+
+def test_upload_tiled_job_wires_worker_concurrency(upload_client, monkeypatch):
+    """server/app.py's _run_extraction reads tile_concurrency() once per
+    tiled job, passes it to extract_tiled(workers=...), and records it on
+    the Job so eta_s() can scale its seed by it (wave 3, task A4)."""
+    import extractors.pdf_extractor as pe
+    from server.jobs import STORE
+
+    monkeypatch.setenv("NBC_TILE_CONCURRENCY", "2")
+    seen = {}
+
+    def spy_tiled(p, **k):
+        seen.update(k)
+        return _fake_facts()
+    monkeypatch.setattr(pe, "extract_tiled", spy_tiled)
+
+    r = upload_client.post("/api/upload", data={"ruleset": "nbc", "mode": "tiled"},
+                           files={"file": ("t.pdf", b"%PDF-1.4 fake", "application/pdf")})
+    job_id = r.json()["job_id"]
+    assert seen.get("workers") == 2
+    assert STORE.get(job_id).workers == 2
+
+    # Whole-PDF mode never touches tiling and keeps the Job.workers default.
+    r2 = upload_client.post(
+        "/api/upload",
+        files={"file": ("plan.pdf", b"%PDF-1.4 fake", "application/pdf")},
+        data={"ruleset": "obc", "mode": "whole"},
+    )
+    assert STORE.get(r2.json()["job_id"]).workers == 1

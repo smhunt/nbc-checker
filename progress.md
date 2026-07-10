@@ -255,3 +255,74 @@ tests passing.
   entries plus a Changed line for the ETA floor / jobs.py refactor.
 - Next: wave 3 (plan A, parallel tiles) benefits directly from `make_progress_cb`
   already living in jobs.py.
+
+## 2026-07-10 — Session 5g (extraction speedups wave 3 — parallel tiles, TDD)
+Executed docs/superpowers/plans/subplans/A-parallel-tiles.md in full (all 5 tasks),
+on top of wave 1 (runner=None + select_runner) and wave 2 (blank-skip + cache +
+make_progress_cb). 462 -> 480 tests passing.
+- **`_process_one_tile`** (`extractors/pdf_extractor.py`, new): pure, thread-safe
+  per-tile worker containing the blank-skip check (`classify_tile_content`), the
+  (already-cached) runner call, `_parse_entities`, and provenance/evidence
+  stamping. Never raises — catches `ValueError` (prose-only response),
+  `RuntimeError`/`subprocess.TimeoutExpired` (CLI/API failure). Returns
+  `("ok"|"skipped"|"unparsed"|"failed", payload)`. `_extract_tiles`'s serial
+  branch (workers<=1 or single-tile page) still fires progress BEFORE the
+  runner call, matching pre-wave-3 timing exactly — it pre-checks
+  `classify_tile_content` for that purpose, then delegates to
+  `_process_one_tile` for the actual call (safe: same env-driven check,
+  idempotent).
+- **Parallel branch** (`workers>1` and `len(tiles)>1`): all of a page's tiles
+  submitted to a `ThreadPoolExecutor(max_workers=min(workers, n))` at once,
+  futures keyed by index, collected via `as_completed`, then merged by walking
+  `range(len(tiles))` in INDEX order — parallel output is byte-identical to
+  serial regardless of completion order. Progress: one aggregate event at
+  submit (`"extracting tiles (0/total done, W in flight)"`) plus one per
+  completion (`done`/`in_flight` computed from a formula, not real thread
+  state, so the event stream itself is deterministic even though real
+  completion order isn't); fired ONLY from the coordinating loop. `"extracting
+  tile"` stays a substring of the aggregate string so `make_progress_cb`'s ETA
+  duration guard still fires.
+- **`tile_concurrency()`**: `NBC_TILE_CONCURRENCY` env, default
+  `DEFAULT_TILE_CONCURRENCY = 4`, clamped >= 1 (unset/invalid/non-positive all
+  land on a safe value). `extract_tiled(..., workers=None)` resolves it once at
+  job start; threaded through both the bypass (`tiles=`) and per-page render
+  call sites of `_extract_tiles`.
+- **All-tiles-failed guard**: per `_extract_tiles` call (i.e. per page), if
+  zero tiles parsed AND zero were prose-only skips AND at least one hard-failed,
+  raises `RuntimeError("all N tile(s) failed — is the claude CLI
+  available/authenticated?")`. A page that's legitimately all-blank or
+  all-prose does not trip it. Applies identically in both branches.
+- **`Job.workers`** (`server/jobs.py`): new `int = 1` field; `eta_s()` divides
+  the `_SEED_AVG_S` pre-first-measurement seed by `max(1, workers)` — once real
+  `tile_durations` are measured, `estimate_eta`'s math is unchanged (durations
+  already reflect W-way throughput). `server/app.py::_run_extraction` reads
+  `tile_concurrency()` once for a tiled job, records it on the Job, and passes
+  it to `extract_tiled(workers=...)`.
+- **Sanctioned test updates**: `test_tiled_progress_callback_ordering`,
+  `test_multipage_progress_event_ordering` (test_jobs_progress.py) and
+  `test_progress_ticks_fire_for_skipped_tiles` (test_pdf_extractor.py) — all
+  assert literal per-tile progress strings, which only the serial branch
+  emits — gained explicit `workers=1`. Every other existing tiled test runs
+  through the new default (`NBC_TILE_CONCURRENCY` unset -> 4) unmodified and
+  still passes, since the determinism guarantee makes output independent of
+  branch.
+- New tests (18): `_process_one_tile` shape/blank-skip (2), CLI-error/timeout
+  isolation incl. end-to-end (2), all-failed guard + prose/blank non-trip (2),
+  parallel determinism with deliberately reversed completion order (0ms vs
+  80ms sleep spread) + explicit assertion that completion really was
+  out-of-order (1), aggregate progress monotonicity (1), parallel failure
+  isolation (1), workers=1 exact legacy strings (1), `tile_concurrency()` env
+  clamping (1), parallel progress_cb output-invariance (1), a combined
+  parallel-safety test proving blank-skip and cache-hit still short-circuit
+  the runner under real thread concurrency (1), ETA seed-scaling by workers +
+  aggregate-format duration counting (4), and a server-level test that
+  `_run_extraction` wires `tile_concurrency()` into both `extract_tiled(workers=)`
+  and `Job.workers` (1).
+- Docs: CLAUDE.md facts-schema section gained a paragraph on
+  `NBC_TILE_CONCURRENCY`, the determinism/failure-isolation contract, and the
+  shared-subscription CLI-contention caveat; CHANGELOG.md Unreleased gained a
+  Parallel tile extraction entry plus a Changed line for the failure-isolation
+  behavior change and the CLI stderr format change.
+- Next: wave 4 (plan D, progressive streaming) lands on this stabilized
+  per-page loop — the page barrier survives wave 3 unchanged since parallelism
+  pools WITHIN a page and pages stay a serial outer loop.

@@ -18,12 +18,15 @@ def _tiles(*labels):
 
 
 def test_tiled_progress_callback_ordering():
+    # workers=1 pins exact legacy serial semantics -- this test asserts the
+    # literal per-tile progress strings, which only the serial branch emits.
     events = []
     extract_tiled(
         "A-201.pdf",
         runner=lambda p, i: _payload(),
         tiles=_tiles("r1c1", "r1c2"),
         progress_cb=lambda stage, done, total: events.append((stage, done, total)),
+        workers=1,
     )
     assert events[0] == ("extracting tile r1c1", 0, 2)
     assert events[1] == ("extracting tile r1c2", 1, 2)
@@ -115,10 +118,11 @@ def _drawing_pdf(tmp_path, n_pages):
 
 
 def test_multipage_progress_event_ordering(tmp_path):
+    # workers=1 pins exact legacy serial semantics for this per-tile string test.
     pdf = _drawing_pdf(tmp_path, 2)
     events = []
     extract_tiled(pdf, runner=lambda p, i: _payload(), pages="all", grid=(1, 1),
-                  progress_cb=lambda s, d, t: events.append((s, d, t)))
+                  progress_cb=lambda s, d, t: events.append((s, d, t)), workers=1)
     assert events[0] == ("page 1/2 (pdf p1): rendering tiles", 0, 2)
     assert events[1] == ("page 1/2 (pdf p1): extracting tile r1c1", 0, 2)
     assert events[2] == ("page 2/2 (pdf p2): rendering tiles", 1, 2)
@@ -197,3 +201,70 @@ def test_progress_cb_skip_stage_never_counts_duration(monkeypatch):
     cb("extracting tile r1c3", 2, 3)
 
     assert store.get(job.id).tile_durations == [15.0]
+
+
+# --------------------------------------------------------------------------
+# Parallel tiles: Job.workers + ETA seed scaling (wave 3, sub-plan A, task A4)
+# --------------------------------------------------------------------------
+
+def test_progress_cb_counts_durations_for_aggregate_parallel_format(monkeypatch):
+    """The wave-3 aggregate progress string used for workers>1
+    ('extracting tiles (N/total done, M in flight)') must still contain the
+    'extracting tile' substring the duration counter keys on, so parallel-mode
+    inter-completion gaps still feed the ETA exactly like serial-mode ones."""
+    store, job, cb = _job_cb()
+    t = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: t[0])
+
+    cb("extracting tiles (0/4 done, 4 in flight)", 0, 4)
+    t[0] += 9.0
+    cb("extracting tiles (1/4 done, 3 in flight)", 1, 4)
+    t[0] += 7.0
+    cb("extracting tiles (2/4 done, 2 in flight)", 2, 4)
+
+    assert store.get(job.id).tile_durations == [9.0, 7.0]
+
+
+def test_job_eta_seed_scaled_by_workers():
+    # No durations measured yet -> falls back to the seed, which must be
+    # divided by workers: 8 remaining * (25/4) + 3 overhead == 53.0.
+    job = Job(id="j3", filename="f.pdf", ruleset_key="nbc", mode="tiled", workers=4)
+    job.progress_done, job.progress_total = 0, 8
+    job.stage_changed_at = time.time()
+    eta = job.eta_s()
+    assert eta is not None
+    assert abs(eta - 53.0) < 0.5
+
+
+def test_job_eta_seed_unscaled_at_default_workers():
+    # workers defaults to 1 (whole-PDF mode, or a tiled job that predates
+    # wave 3 wiring) -> seed is unchanged from pre-wave-3 behaviour.
+    job = Job(id="j3b", filename="f.pdf", ruleset_key="nbc", mode="whole")
+    job.progress_done, job.progress_total = 0, 1
+    job.stage_changed_at = time.time()
+    assert job.workers == 1
+    eta = job.eta_s()
+    assert eta is not None
+    assert abs(eta - 28.0) < 0.5  # 25.0 seed + 3.0 overhead, unscaled
+
+
+def test_eta_uses_intercompletion_durations_as_throughput():
+    """Once real inter-completion gaps are measured, `estimate_eta`'s math is
+    UNCHANGED -- the workers seed-scaling only matters before the first
+    measurement. Two jobs with identical measured durations but different
+    `workers` must produce the identical ETA."""
+    job = Job(id="j4", filename="f.pdf", ruleset_key="nbc", mode="tiled", workers=4)
+    job.tile_durations = [5.0, 6.0, 4.0]
+    job.progress_done, job.progress_total = 3, 10
+    job.stage_changed_at = time.time()
+    eta = job.eta_s()
+    expected = estimate_eta(job.tile_durations, remaining=7, seed_avg=25.0 / 4,
+                            in_stage_elapsed=0.0)
+    assert eta is not None
+    assert abs(eta - expected) < 0.5
+
+    job2 = Job(id="j5", filename="f.pdf", ruleset_key="nbc", mode="tiled", workers=1)
+    job2.tile_durations = list(job.tile_durations)
+    job2.progress_done, job2.progress_total = 3, 10
+    job2.stage_changed_at = time.time()
+    assert abs(job2.eta_s() - eta) < 0.5

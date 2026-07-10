@@ -3,6 +3,8 @@
 All tests use a fake runner; no `claude` CLI calls happen here.
 """
 import json
+import subprocess
+import time
 
 import pytest
 
@@ -745,13 +747,14 @@ def test_scan_fail_open_end_to_end():
 
 
 def test_progress_ticks_fire_for_skipped_tiles():
+    # workers=1 pins exact legacy serial semantics for this per-tile string test.
     events = []
     tiles = [
         _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),
         _content_tile("r1c2", {"words": 5, "vector_items": 0, "images": 0}),
     ]
     extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
-                 tiles=tiles, progress_cb=lambda s, d, t: events.append(s))
+                 tiles=tiles, progress_cb=lambda s, d, t: events.append(s), workers=1)
     assert events[0] == "skipping blank tile r1c1"
     assert "extracting tile" not in events[0]  # must fail the ETA duration guard
     assert events[1] == "extracting tile r1c2"
@@ -849,3 +852,275 @@ def test_explicit_runner_is_never_wrapped(monkeypatch):
                           tiles=fake_tiles("r1c1"))
     assert tiled["entities"][0]["attributes"]["riser_height_mm"]["value"] == 190
     assert extract_cache_mod.cached is not boom  # sanity: monkeypatch scoped to pdf_extractor
+
+
+# --------------------------------------------------------------------------
+# Parallel tile extraction (wave 3, sub-plan A)
+# --------------------------------------------------------------------------
+
+def test_process_one_tile_ok_unparsed_shapes():
+    from extractors.pdf_extractor import _process_one_tile
+
+    pdf_name = "A-201.pdf"
+    ok_tile = _clip_tile("r1c1", [500, 0, 1000, 500], 1000, 500)
+    status, payload = _process_one_tile(
+        pdf_name, ok_tile, lambda p, i: json.dumps(_stair("Main stair", 0.7)))
+    assert status == "ok"
+    assert payload["tile"] == "r1c1"
+    ent = payload["entities"][0]
+    assert ent["attributes"]["riser_height_mm"]["value"] == 190
+    assert ent["attributes"]["riser_height_mm"]["evidence"] == {"doc": pdf_name, "page": 1}
+
+    unparsed_tile = _clip_tile("r1c2", [500, 0, 1000, 500], 1000, 500)
+    status, payload = _process_one_tile(
+        pdf_name, unparsed_tile, lambda p, i: "No dimensions visible in this crop.")
+    assert (status, payload) == ("unparsed", "p1:r1c2")  # _clip_tile sets page=1
+
+
+def test_process_one_tile_blank_skip_never_calls_runner():
+    from extractors.pdf_extractor import _process_one_tile
+
+    calls = []
+
+    def runner(prompt, path):
+        calls.append(path)
+        return json.dumps(_stair("Main stair", 0.7))
+
+    blank_tile = _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0})
+    status, payload = _process_one_tile(TILED_PDF, blank_tile, runner)
+    assert status == "skipped"
+    assert payload == {
+        "tile": "r1c1",
+        "reason": "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)",
+    }
+    assert calls == []
+
+
+def test_tile_cli_error_recorded_not_fatal():
+    from extractors.pdf_extractor import _process_one_tile
+
+    def boom(prompt, path):
+        raise RuntimeError("claude CLI exited with code 1: auth expired")
+
+    status, payload = _process_one_tile(TILED_PDF, fake_tiles("r1c1")[0], boom)
+    assert (status, payload) == ("failed", "r1c1")
+
+    # And end-to-end: one hard-failing tile among healthy ones must not sink the page.
+    tiles = fake_tiles("r1c1", "r1c2")
+
+    def runner(prompt, path):
+        if "r1c1" in path:
+            raise RuntimeError("claude CLI exited with code 1: auth expired")
+        return json.dumps(_stair("Main stair", 0.7))
+
+    facts = extract_tiled(TILED_PDF, runner=runner, tiles=tiles, workers=1)
+    assert facts["project"]["tiles_unparsed"] == ["r1c1"]
+    assert len(facts["entities"]) == 1
+
+
+def test_tile_timeout_recorded_not_fatal():
+    from extractors.pdf_extractor import _process_one_tile
+
+    def times_out(prompt, path):
+        raise subprocess.TimeoutExpired(cmd="claude", timeout=300)
+
+    status, payload = _process_one_tile(TILED_PDF, fake_tiles("r1c1")[0], times_out)
+    assert (status, payload) == ("failed", "r1c1")
+
+    tiles = fake_tiles("r1c1", "r1c2")
+
+    def runner(prompt, path):
+        if "r1c1" in path:
+            raise subprocess.TimeoutExpired(cmd="claude", timeout=300)
+        return json.dumps(_stair("Main stair", 0.7))
+
+    facts = extract_tiled(TILED_PDF, runner=runner, tiles=tiles, workers=1)
+    assert facts["project"]["tiles_unparsed"] == ["r1c1"]
+    assert len(facts["entities"]) == 1
+
+
+def test_all_tiles_failed_raises_runtime_error():
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3")
+
+    def always_fails(prompt, path):
+        raise RuntimeError("claude CLI exited with code 1: auth expired")
+
+    with pytest.raises(RuntimeError, match="all 3 tile.s. failed"):
+        extract_tiled(TILED_PDF, runner=always_fails, tiles=tiles, workers=1)
+    # Same guard must hold under parallel execution too.
+    with pytest.raises(RuntimeError, match="all 3 tile.s. failed"):
+        extract_tiled(TILED_PDF, runner=always_fails, tiles=tiles, workers=3)
+
+
+def test_prose_only_tiles_do_not_trigger_all_failed_guard():
+    tiles = fake_tiles("r1c1", "r1c2")
+    # Every tile answers in pure prose -- legitimately no dimensions on this
+    # crop, not a CLI failure. Must NOT raise.
+    facts = extract_tiled(TILED_PDF, runner=lambda p, i: "Nothing to report here.",
+                          tiles=tiles, workers=1)
+    assert facts["project"]["tiles_unparsed"] == ["r1c1", "r1c2"]
+    assert facts["entities"] == []
+
+    # A page that's entirely blank-skipped must not trigger the guard either.
+    blank_tiles = [
+        _content_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),
+        _content_tile("r1c2", {"words": 0, "vector_items": 0, "images": 0}),
+    ]
+
+    def boom(prompt, path):
+        raise AssertionError("runner must not be called for a blank tile")
+
+    facts = extract_tiled(TILED_PDF, runner=boom, tiles=blank_tiles, workers=1)
+    assert facts["project"]["tiles_skipped"] == [
+        {"tile": "r1c1", "reason": "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)"},
+        {"tile": "r1c2", "reason": "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)"},
+    ]
+    assert facts["entities"] == []
+
+
+def test_parallel_output_identical_to_serial():
+    """Determinism-by-construction: tile r1c1 is deliberately the slowest, so
+    its future completes LAST even though it was submitted first -- proving
+    the merge is index-ordered, not completion-ordered."""
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3")
+    delays = {"r1c1": 0.08, "r1c2": 0.0, "r1c3": 0.0}  # generous spread, avoids flake
+    completion_order = []
+
+    def make_runner():
+        def runner(prompt, path):
+            label = path.rsplit("/", 1)[-1].replace(".png", "")
+            time.sleep(delays[label])
+            completion_order.append(label)
+            if label == "r1c1":
+                return json.dumps(_stair("Main stair", 0.6))
+            if label == "r1c2":
+                return "No dimensions visible in this crop."
+            return json.dumps(_stair("Main stair", 0.85))
+        return runner
+
+    serial = extract_tiled(TILED_PDF, runner=make_runner(), tiles=tiles, workers=1)
+
+    completion_order.clear()
+    parallel = extract_tiled(TILED_PDF, runner=make_runner(), tiles=tiles, workers=3)
+
+    # Confirm the test actually forced out-of-order completion -- otherwise
+    # this could pass "by accident" with same-order completion.
+    assert completion_order[-1] == "r1c1", completion_order
+    assert completion_order[0] != "r1c1", completion_order
+
+    assert json.dumps(parallel, sort_keys=True) == json.dumps(serial, sort_keys=True)
+    assert parallel["project"]["tiles_unparsed"] == ["r1c2"]
+    assert parallel["project"]["tiles"] == ["r1c1", "r1c2", "r1c3"]
+    assert len(parallel["entities"]) == 1  # deduped across r1c1/r1c3
+    assert parallel["entities"][0]["attributes"]["riser_height_mm"]["confidence"] == 0.85
+
+
+def test_parallel_progress_done_monotonic_and_completion_counted():
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3", "r1c4")
+    events = []
+    extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                 tiles=tiles, workers=4,
+                 progress_cb=lambda s, d, t: events.append((s, d, t)))
+    dones = [d for _, d, _ in events]
+    assert dones == sorted(dones)
+    assert dones[0] == 0
+    assert dones[-1] == len(tiles)
+    assert events[0] == ("extracting tiles (0/4 done, 4 in flight)", 0, 4)
+    assert events[-2] == ("extracting tiles (4/4 done, 0 in flight)", 4, 4)
+    assert events[-1] == ("merging extracted facts", 4, 4)
+    assert all("extracting tile" in s for s, _, _ in events[:-1])  # substring for the ETA guard
+
+
+def test_parallel_failure_does_not_sink_other_tiles():
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3")
+
+    def runner(prompt, path):
+        if "r1c2" in path:
+            raise RuntimeError("claude CLI exited with code 1: boom")
+        return json.dumps(_stair("Main stair", 0.7))
+
+    facts = extract_tiled(TILED_PDF, runner=runner, tiles=tiles, workers=3)
+    assert len(facts["entities"]) == 1  # r1c1 + r1c3 both parsed and deduped
+    assert facts["project"]["tiles_unparsed"] == ["r1c2"]
+    assert facts["project"]["tiles"] == ["r1c1", "r1c2", "r1c3"]
+
+
+def test_workers_1_emits_exact_legacy_event_strings():
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3")
+    events = []
+    extract_tiled(TILED_PDF, runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                 tiles=tiles, workers=1,
+                 progress_cb=lambda s, d, t: events.append((s, d, t)))
+    assert events[0] == ("extracting tile r1c1", 0, 3)
+    assert events[1] == ("extracting tile r1c2", 1, 3)
+    assert events[2] == ("extracting tile r1c3", 2, 3)
+    assert events[-1] == ("merging extracted facts", 3, 3)
+    assert all("in flight" not in s for s, _, _ in events)
+
+
+def test_env_var_sets_default_concurrency(monkeypatch):
+    from extractors.pdf_extractor import DEFAULT_TILE_CONCURRENCY, tile_concurrency
+
+    monkeypatch.delenv("NBC_TILE_CONCURRENCY", raising=False)
+    assert tile_concurrency() == DEFAULT_TILE_CONCURRENCY == 4
+
+    monkeypatch.setenv("NBC_TILE_CONCURRENCY", "8")
+    assert tile_concurrency() == 8
+
+    monkeypatch.setenv("NBC_TILE_CONCURRENCY", "0")
+    assert tile_concurrency() == 1  # clamped >= 1
+
+    monkeypatch.setenv("NBC_TILE_CONCURRENCY", "-5")
+    assert tile_concurrency() == 1  # clamped >= 1
+
+    monkeypatch.setenv("NBC_TILE_CONCURRENCY", "not-a-number")
+    assert tile_concurrency() == DEFAULT_TILE_CONCURRENCY  # invalid -> default
+
+
+def test_parallel_progress_cb_does_not_change_output():
+    tiles = fake_tiles("r1c1", "r1c2", "r1c3")
+    kwargs = dict(runner=lambda p, i: json.dumps(_stair("Main stair", 0.7)),
+                 tiles=tiles, workers=3)
+    silent = extract_tiled(TILED_PDF, **kwargs)
+    noisy = extract_tiled(TILED_PDF, progress_cb=lambda *a: None, **kwargs)
+    assert silent == noisy
+
+
+def test_parallel_respects_blank_skip_and_cache(tmp_path):
+    """Parallel-safety test: under a worker pool, a blank tile must still
+    never reach the runner, and a cache hit must still short-circuit it on
+    replay -- both properties proven purely serially before wave 3, now
+    proven under real thread concurrency."""
+    from extractors.extract_cache import cached
+
+    def make_tile(label, content):
+        p = tmp_path / f"{label}.png"
+        p.write_bytes(f"tile-bytes-{label}".encode())
+        return {"path": str(p), "label": label, "row": 1, "col": 1, "content": content}
+
+    tiles = [
+        make_tile("r1c1", {"words": 0, "vector_items": 0, "images": 0}),  # blank
+        make_tile("r1c2", {"words": 5, "vector_items": 0, "images": 0}),  # real
+        make_tile("r1c3", {"words": 5, "vector_items": 0, "images": 0}),  # real
+    ]
+    inner_calls = []
+
+    def inner(prompt, path):
+        inner_calls.append(path)
+        return json.dumps(_stair("Main stair", 0.7))
+
+    inner.identity = "cli:claude"
+    wrapped = cached(inner, cache_dir=str(tmp_path / "cache"))
+
+    first = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles, workers=3)
+    assert sorted(inner_calls) == sorted(
+        [str(tmp_path / "r1c2.png"), str(tmp_path / "r1c3.png")])
+    assert first["project"]["tiles_skipped"] == [{
+        "tile": "r1c1",
+        "reason": "blank: 0 words, 0 vector items, 0 images in clip (incl. 12% overlap)",
+    }]
+
+    inner_calls.clear()
+    replay = extract_tiled(TILED_PDF, runner=wrapped, tiles=tiles, workers=3)
+    assert inner_calls == []  # both real tiles served entirely from cache this time
+    assert json.dumps(replay, sort_keys=True) == json.dumps(first, sort_keys=True)

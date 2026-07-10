@@ -76,12 +76,19 @@ class Job:
     tile_durations: list[float] = field(default_factory=list)
     # {"total", "selected", "skipped"} once page selection is known (tiled).
     pages_info: dict | None = None
+    # Tile thread-pool size actually used for this job (wave 3 parallel
+    # tiles); default 1 matches whole-PDF mode and any tiled job that never
+    # sets it. Only the ETA *seed* (pre-first-measurement estimate) is
+    # divided by this -- once real inter-completion durations exist in
+    # `tile_durations`, they already reflect W-way throughput directly and
+    # `estimate_eta`'s math is unchanged.
+    workers: int = 1
 
     def eta_s(self) -> float | None:
         if self.status in ("done", "error"):
             return None
         remaining = max(0, self.progress_total - self.progress_done)
-        return estimate_eta(self.tile_durations, remaining, _SEED_AVG_S,
+        return estimate_eta(self.tile_durations, remaining, _SEED_AVG_S / max(1, self.workers),
                             in_stage_elapsed=time.time() - self.stage_changed_at)
 
     def public(self) -> dict:

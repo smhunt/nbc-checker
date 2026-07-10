@@ -235,7 +235,7 @@ def _job_state(job) -> dict:
 def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") -> None:
     """Background worker: extract facts from the PDF, then mark the job done."""
     try:
-        from extractors.pdf_extractor import extract, extract_tiled
+        from extractors.pdf_extractor import extract, extract_tiled, tile_concurrency
 
         STORE.update(job_id, status="extracting",
                      message="Reading the drawing… tiled mode can take a few minutes."
@@ -248,7 +248,10 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") ->
 
         if mode == "tiled":
             # grid=None -> per-page adaptive choose_grid (letter 2x2, big sheets 3x3)
-            facts = extract_tiled(pdf_path, grid=None, pages=pages_spec, progress_cb=_cb)
+            workers = tile_concurrency()
+            STORE.update(job_id, workers=workers)
+            facts = extract_tiled(pdf_path, grid=None, pages=pages_spec, progress_cb=_cb,
+                                  workers=workers)
         else:
             facts = extract(pdf_path, progress_cb=_cb)
         STORE.update(job_id, stage="running deterministic checks")

@@ -22,7 +22,9 @@ import json
 import math
 import os
 import re
+import subprocess
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 if __package__ in (None, ""):  # executed as a script: extractors/ is sys.path[0],
     import sys as _sys         # the repo root (for `import extractors.*`) is not.
@@ -460,8 +462,97 @@ def _tile_label(tile: dict) -> str:
     return f"p{tile['page']}:{tile['label']}" if "page" in tile else tile["label"]
 
 
+DEFAULT_TILE_CONCURRENCY = 4
+
+
+def tile_concurrency() -> int:
+    """Thread-pool size for `_extract_tiles`' parallel branch.
+
+    `NBC_TILE_CONCURRENCY` env override, default `DEFAULT_TILE_CONCURRENCY`
+    (4), clamped to >= 1 (unset/invalid also falls back to the default; a
+    non-positive value is clamped up rather than rejected). Concurrency of 1
+    takes `_extract_tiles`' exact legacy serial code path — same execution
+    order, same progress strings.
+    """
+    raw = os.environ.get("NBC_TILE_CONCURRENCY", "").strip()
+    if not raw:
+        return DEFAULT_TILE_CONCURRENCY
+    try:
+        n = int(raw)
+    except ValueError:
+        return DEFAULT_TILE_CONCURRENCY
+    return max(1, n)
+
+
+def _process_one_tile(pdf_name: str, tile: dict, runner) -> tuple:
+    """Process one tile end-to-end: blank-skip check, the (already-cached)
+    runner call, entity parsing, and provenance/evidence stamping.
+
+    Never raises — every per-tile fault (blank content, an unparseable LLM
+    response, a CLI RuntimeError, a subprocess timeout) is captured in the
+    returned tuple so one bad tile can never sink its page or job. Touches no
+    shared state (the caller aggregates `tile_facts`/`skipped`/etc.), which is
+    exactly what makes it safe to run from a worker thread.
+
+    Returns one of:
+      ("ok", {"tile": <bare tile label>, "entities": [...]})  -- parsed
+      ("skipped", {"tile": <label>, "reason": <str>})          -- blank crop,
+                                                                   runner never called
+      ("unparsed", <label>)  -- runner replied, JSON didn't parse (prose-only)
+      ("failed", <label>)    -- CLI RuntimeError / subprocess timeout
+
+    `<label>` is `_tile_label(tile)` (page-qualified when the tile knows its
+    page). The blank-skip gate reads `NBC_BLANK_TILE_SKIP` fresh on every
+    call, matching `classify_tile_content`'s env-free, zero-threshold rule.
+    """
+    label = _tile_label(tile)
+    skip_enabled = os.environ.get("NBC_BLANK_TILE_SKIP", "1").strip() != "0"
+    if skip_enabled:
+        blank, reason = classify_tile_content(tile.get("content"))
+        if blank:
+            return ("skipped", {"tile": label, "reason": reason})
+
+    tile_source = _tile_source(pdf_name, tile)
+    try:
+        raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
+    except (RuntimeError, subprocess.TimeoutExpired):
+        # CLI/API failure isolation: a transient error on one tile must not
+        # kill the whole job. Degrades to a tiles_unparsed entry (same bucket
+        # as a prose-only response) — visible to the reviewer, not fatal.
+        return ("failed", label)
+
+    try:
+        entities = _parse_entities(raw_text, tile_source)
+    except ValueError:
+        # Tiles are independent: a crop the model answers in pure prose
+        # (e.g. "no dimensions in this region") must not sink the other
+        # tiles. Record it and move on.
+        return ("unparsed", label)
+
+    # Stamp tile provenance onto every fact so the winning instance after the
+    # merge always says which crop it was read from — and convert the
+    # model's tile-fraction bbox (if any) into a page-coordinate evidence
+    # object using the tile's deterministic clip geometry.
+    clip = tile.get("clip")
+    page_no = tile.get("page", 1)
+    for ent in entities:
+        for attr in ent["attributes"].values():
+            attr["source"] = tile_source
+            raw_bbox = attr.pop("bbox", None)
+            attr.pop("page", None)  # the tile knows its page; ignore model's
+            evidence = {"doc": pdf_name, "page": page_no}
+            if clip is not None and raw_bbox is not None:
+                page_bbox = tile_bbox_to_page(
+                    raw_bbox, clip, tile.get("page_w"), tile.get("page_h"))
+                if page_bbox is not None:
+                    evidence["bbox"] = page_bbox
+            attr["evidence"] = evidence
+    return ("ok", {"tile": tile["label"], "entities": entities})
+
+
 def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped, tiles_skipped,
-                   sent_labels, progress_cb, stage_prefix, done_offset, grand_total):
+                   sent_labels, progress_cb, stage_prefix, done_offset, grand_total,
+                   workers: int = 1):
     """Run the LLM over one page's tiles, stamping provenance + evidence.
 
     Blank tiles (content stats all-zero; NBC_BLANK_TILE_SKIP=0 disables,
@@ -470,54 +561,107 @@ def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped, tiles_skipped,
     reporting only — never feed back into the facts (EO1 and determinism:
     identical inputs yield identical outputs with or without a callback
     attached).
+
+    `workers`: `<= 1` (or a single-tile page) takes the exact legacy serial
+    loop — one tile at a time, "extracting tile <label>" / "skipping blank
+    tile <label>" progress strings, byte-identical to pre-wave-3 behaviour.
+    `> 1` submits every tile to a `ThreadPoolExecutor` at once (futures keyed
+    by tile index via `_process_one_tile`, which is thread-safe: no shared
+    state, no I/O beyond the runner call and file reads); results are
+    collected via `as_completed` but then walked in `range(len(tiles))`
+    INDEX order before touching `tile_facts`/`skipped`/`tiles_skipped`/
+    `sent_labels` — parallel output is therefore identical to serial output
+    regardless of completion order (determinism by construction).
+    `progress_cb` in the parallel branch is invoked ONLY from this
+    coordinating thread/loop, never from a worker.
+
+    Failure isolation (both branches): a per-tile RuntimeError or
+    `subprocess.TimeoutExpired` from the runner degrades to a `tiles_unparsed`
+    entry rather than raising. If EVERY tile in this call hard-failed (zero
+    parsed, zero prose-only skips, at least one hard failure), raises
+    RuntimeError — a page that is legitimately all-blank or all-prose does
+    NOT trip this guard.
     """
     skip_enabled = os.environ.get("NBC_BLANK_TILE_SKIP", "1").strip() != "0"
-    for i, tile in enumerate(tiles):
-        label = _tile_label(tile)
-        if skip_enabled:
-            blank, reason = classify_tile_content(tile.get("content"))
-            if blank:
-                if progress_cb:
-                    # Deliberately does NOT contain "extracting tile" — this
-                    # fails the ETA duration guard on purpose (a skip takes
-                    # ~0s and must not be averaged in with real tile timings).
-                    progress_cb(f"{stage_prefix}skipping blank tile {tile['label']}",
-                                done_offset + i, grand_total)
-                tiles_skipped.append({"tile": label, "reason": reason})
-                continue
+    n = len(tiles)
+    ok_count = unparsed_count = failed_count = 0
+
+    if workers <= 1 or n <= 1:
+        for i, tile in enumerate(tiles):
+            label = _tile_label(tile)
+            if skip_enabled:
+                blank, reason = classify_tile_content(tile.get("content"))
+                if blank:
+                    if progress_cb:
+                        # Deliberately does NOT contain "extracting tile" —
+                        # this fails the ETA duration guard on purpose (a
+                        # skip takes ~0s and must not be averaged in with
+                        # real tile timings).
+                        progress_cb(f"{stage_prefix}skipping blank tile {tile['label']}",
+                                    done_offset + i, grand_total)
+                    tiles_skipped.append({"tile": label, "reason": reason})
+                    continue
+            if progress_cb:
+                progress_cb(f"{stage_prefix}extracting tile {tile['label']}",
+                            done_offset + i, grand_total)
+            # The blank check above already ruled out "skipped" for this
+            # tile, so _process_one_tile's own (redundant but cheap and
+            # pure) blank check can only agree -- this call fires the runner.
+            status, payload = _process_one_tile(pdf_name, tile, runner)
+            sent_labels.append(label)
+            if status == "ok":
+                ok_count += 1
+                tile_facts.append(payload)
+            elif status == "unparsed":
+                unparsed_count += 1
+                skipped.append(payload)
+            elif status == "failed":
+                failed_count += 1
+                skipped.append(payload)
+    else:
+        max_workers = min(workers, n)
+        results: list = [None] * n
         if progress_cb:
-            progress_cb(f"{stage_prefix}extracting tile {tile['label']}",
-                        done_offset + i, grand_total)
-        tile_source = _tile_source(pdf_name, tile)
-        raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
-        sent_labels.append(label)
-        try:
-            entities = _parse_entities(raw_text, tile_source)
-        except ValueError:
-            # Tiles are independent: a crop the model answers in pure prose
-            # (e.g. "no dimensions in this region") must not sink the other
-            # tiles. Record it and move on.
-            skipped.append(label)
-            continue
-        # Stamp tile provenance onto every fact so the winning instance after
-        # the merge always says which crop it was read from — and convert the
-        # model's tile-fraction bbox (if any) into a page-coordinate evidence
-        # object using the tile's deterministic clip geometry.
-        clip = tile.get("clip")
-        page_no = tile.get("page", 1)
-        for ent in entities:
-            for attr in ent["attributes"].values():
-                attr["source"] = tile_source
-                raw_bbox = attr.pop("bbox", None)
-                attr.pop("page", None)  # the tile knows its page; ignore model's
-                evidence = {"doc": pdf_name, "page": page_no}
-                if clip is not None and raw_bbox is not None:
-                    page_bbox = tile_bbox_to_page(
-                        raw_bbox, clip, tile.get("page_w"), tile.get("page_h"))
-                    if page_bbox is not None:
-                        evidence["bbox"] = page_bbox
-                attr["evidence"] = evidence
-        tile_facts.append({"tile": tile["label"], "entities": entities})
+            progress_cb(
+                f"{stage_prefix}extracting tiles (0/{grand_total} done, {max_workers} in flight)",
+                done_offset, grand_total)
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(_process_one_tile, pdf_name, tile, runner): i
+                      for i, tile in enumerate(tiles)}
+            completed = 0
+            for fut in as_completed(futures):
+                i = futures[fut]
+                results[i] = fut.result()
+                completed += 1
+                in_flight = min(max_workers, n - completed)
+                if progress_cb:
+                    progress_cb(
+                        f"{stage_prefix}extracting tiles "
+                        f"({done_offset + completed}/{grand_total} done, {in_flight} in flight)",
+                        done_offset + completed, grand_total)
+        # Merge in tile-INDEX order (not completion order) so parallel output
+        # is byte-identical to serial output -- the determinism guarantee.
+        for i, tile in enumerate(tiles):
+            label = _tile_label(tile)
+            status, payload = results[i]
+            if status == "skipped":
+                tiles_skipped.append(payload)
+                continue
+            sent_labels.append(label)
+            if status == "ok":
+                ok_count += 1
+                tile_facts.append(payload)
+            elif status == "unparsed":
+                unparsed_count += 1
+                skipped.append(payload)
+            elif status == "failed":
+                failed_count += 1
+                skipped.append(payload)
+
+    if ok_count == 0 and unparsed_count == 0 and failed_count > 0:
+        raise RuntimeError(
+            f"all {failed_count} tile(s) failed — is the claude CLI available/authenticated?"
+        )
 
 
 def extract_tiled(
@@ -531,6 +675,7 @@ def extract_tiled(
     pages="auto",
     max_pages: int | None = None,
     progress_cb=None,
+    workers: int | None = None,
 ) -> dict:
     """Tiled extraction over the DRAWING PAGES of a (multi-page) PDF.
 
@@ -554,9 +699,16 @@ def extract_tiled(
     (tests, A/B harnesses) — every test fake in this codebase takes this path
     and is never cache-wrapped. Its `.identity` (forwarded unchanged by the
     cache wrapper) lands in `project.extractor`.
+
+    `workers` (None -> `tile_concurrency()`, `NBC_TILE_CONCURRENCY` env,
+    default 4) is the per-page tile thread-pool size passed to
+    `_extract_tiles`; `workers<=1` reproduces the exact pre-wave-3 serial
+    behaviour (see `_extract_tiles`).
     """
     if runner is None:
         runner = cached(select_runner("image"))
+    if workers is None:
+        workers = tile_concurrency()
     pdf_name = os.path.basename(pdf_path)
     extractor_identity = getattr(runner, "identity", "unknown")
     tile_facts: list = []
@@ -567,7 +719,7 @@ def extract_tiled(
         # Bypass path (tests): one pre-rendered tile set, no selection.
         sent_labels: list = []
         _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped_tiles, blank_tiles,
-                       sent_labels, progress_cb, "", 0, len(tiles))
+                       sent_labels, progress_cb, "", 0, len(tiles), workers=workers)
         if progress_cb:
             progress_cb("merging extracted facts", len(tiles), len(tiles))
         merged = merge_tile_facts(tile_facts)
@@ -612,7 +764,7 @@ def extract_tiled(
         page_tiles = render_page_to_tiles(
             pdf_path, grid=g, dpi=dpi, out_dir=out_dir, page_index=p - 1)
         _extract_tiles(pdf_name, page_tiles, runner, tile_facts, skipped_tiles, blank_tiles,
-                       sent_labels, progress_cb, prefix, done, grand_total)
+                       sent_labels, progress_cb, prefix, done, grand_total, workers=workers)
         done += len(page_tiles)
 
     if progress_cb:
