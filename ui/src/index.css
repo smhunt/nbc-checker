@@ -146,6 +146,57 @@ input {
 .upload-msg { color: var(--text-dim); }
 .upload-err { color: var(--status-fail); }
 
+/* verbose job progress (stage + tile bar + elapsed/ETA) */
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 240px;
+  max-width: 520px;
+}
+
+.upload-progress .stage-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.upload-progress .stage-text {
+  font-weight: 600;
+}
+
+.upload-progress .tile-count {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.upload-progress .progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.upload-progress .progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 300ms ease;
+}
+
+.upload-progress .progress-timing {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.upload-progress .upload-msg {
+  font-size: 11px;
+}
+
 /* ---------- summary bar ---------- */
 
 .summary-bar {
@@ -261,9 +312,39 @@ input {
 
 /* ---------- detail drawer ---------- */
 
-.detail-drawer {
-  width: 420px;
+/* Shell owns the (drag-adjustable) width; the drawer fills it. */
+.drawer-shell {
+  position: relative;
   flex: none;
+  display: flex;
+  min-height: 0;
+}
+
+.drawer-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 5;
+}
+
+.drawer-resize-handle:hover,
+.drawer-resize-handle.active {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+body.drawer-resizing {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: col-resize;
+}
+
+.detail-drawer {
+  width: 100%;
+  min-width: 0;
   border-left: 1px solid var(--border);
   background: var(--bg-panel);
   overflow-y: auto;
@@ -416,11 +497,46 @@ input {
 .evidence-viewport {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+
+/* expanded mode: the same viewer re-homed into a fixed overlay */
+
+.evidence-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+.evidence-viewer.expanded {
+  width: 85vw;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.evidence-viewer.expanded .evidence-viewport {
+  aspect-ratio: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.evidence-expanded-note {
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
 }
 
 .evidence-viewport.dragging {

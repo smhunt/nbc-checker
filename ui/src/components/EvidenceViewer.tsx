@@ -3,6 +3,7 @@
 // input to compliance (EO1) — this component only draws rectangles.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Evidence } from '../api'
+import { pageImageUrl } from '../api'
 
 export interface EvidenceHighlight {
   fact: string
@@ -10,7 +11,7 @@ export interface EvidenceHighlight {
 }
 
 interface Props {
-  imageUrl: string
+  jobId: string | null
   focus: Evidence
   highlights: EvidenceHighlight[]
   onClose: () => void
@@ -37,7 +38,15 @@ function sameRegion(a: Evidence, b: Evidence): boolean {
   )
 }
 
-export function EvidenceViewer({ imageUrl, focus, highlights, onClose }: Props) {
+// Sharper page render in the (much larger) expanded overlay.
+const EXPANDED_DPI = 200
+
+export function EvidenceViewer({ jobId, focus, highlights, onClose }: Props) {
+  // Expanded mode: same viewer, re-homed into a fixed full-screen overlay.
+  const [expanded, setExpanded] = useState(false)
+  // Changing dpi changes the img src, which re-triggers the load flow below
+  // (fit to the new viewport, then re-zoom to the focused bbox).
+  const imageUrl = pageImageUrl(jobId, focus, expanded ? EXPANDED_DPI : undefined)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [imgSize, setImgSize] = useState<{ w: number; h: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -66,6 +75,16 @@ export function EvidenceViewer({ imageUrl, focus, highlights, onClose }: Props) 
   }, [imageUrl])
 
   useEffect(() => setCurrent(focus), [focus])
+
+  // Esc dismisses the expanded overlay (but never the viewer itself).
+  useEffect(() => {
+    if (!expanded) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpanded(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [expanded])
 
   const fitTransform = useCallback((size: { w: number; h: number }): Transform => {
     const vp = viewportRef.current
@@ -164,13 +183,20 @@ export function EvidenceViewer({ imageUrl, focus, highlights, onClose }: Props) 
     setTransform(fitTransform(imgSize))
   }
 
-  return (
-    <div className="evidence-viewer">
+  const viewer = (
+    <div className={`evidence-viewer${expanded ? ' expanded' : ''}`}>
       <div className="evidence-toolbar">
         <button className="btn" onClick={fitPage} disabled={!imgSize}>
           Fit page
         </button>
-        <button className="close-btn" onClick={onClose} title="Close evidence viewer">
+        <button className="btn" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? 'Collapse' : 'Expand'}
+        </button>
+        <button
+          className="close-btn"
+          onClick={expanded ? () => setExpanded(false) : onClose}
+          title={expanded ? 'Close expanded view (Esc)' : 'Close evidence viewer'}
+        >
           ✕
         </button>
       </div>
@@ -230,5 +256,25 @@ export function EvidenceViewer({ imageUrl, focus, highlights, onClose }: Props) 
         </div>
       )}
     </div>
+  )
+
+  if (!expanded) return viewer
+
+  return (
+    <>
+      {/* Placeholder keeps the drawer from collapsing while the viewer is
+          re-homed into the overlay. */}
+      <div className="evidence-expanded-note">
+        Viewer expanded — Esc or ✕ to return
+      </div>
+      <div
+        className="evidence-overlay"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setExpanded(false)
+        }}
+      >
+        {viewer}
+      </div>
+    </>
   )
 }

@@ -1,10 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CheckResult, Evidence, FactUsed, Overrides, RuleMeta } from '../api'
-import { pageImageUrl } from '../api'
 import { EvidenceViewer } from './EvidenceViewer'
 import { StatusPill } from './StatusPill'
 
 const CONFIDENCE_THRESHOLD = 0.9
+
+// Drawer resize: width in px, dragged from the left edge, persisted per browser.
+const DRAWER_WIDTH_KEY = 'nbc.drawerWidth'
+const DEFAULT_DRAWER_WIDTH = 420
+const MIN_DRAWER_WIDTH = 380
+
+function clampDrawerWidth(w: number): number {
+  return Math.min(Math.max(w, MIN_DRAWER_WIDTH), Math.round(window.innerWidth * 0.7))
+}
+
+function initialDrawerWidth(): number {
+  const saved = Number(localStorage.getItem(DRAWER_WIDTH_KEY))
+  return Number.isFinite(saved) && saved > 0 ? clampDrawerWidth(saved) : DEFAULT_DRAWER_WIDTH
+}
 
 interface Props {
   result: CheckResult
@@ -82,6 +95,42 @@ export function DetailDrawer({
   const [focused, setFocused] = useState<{ fact: string; evidence: Evidence } | null>(null)
   useEffect(() => setFocused(null), [result])
 
+  // Drag-resizable width (pointer capture on the left-edge handle, same
+  // pattern as EvidenceViewer's pan drag). Double-click resets to default.
+  const [width, setWidth] = useState(initialDrawerWidth)
+  const [resizing, setResizing] = useState(false)
+  const resizeRef = useRef<{ x: number; w: number } | null>(null)
+
+  useEffect(() => {
+    if (!resizing) localStorage.setItem(DRAWER_WIDTH_KEY, String(width))
+  }, [width, resizing])
+
+  // Text stays unselectable body-wide while the handle is being dragged.
+  useEffect(() => {
+    if (!resizing) return
+    document.body.classList.add('drawer-resizing')
+    return () => document.body.classList.remove('drawer-resizing')
+  }, [resizing])
+
+  const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    resizeRef.current = { x: e.clientX, w: width }
+    setResizing(true)
+  }
+
+  const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = resizeRef.current
+    if (!d) return
+    // Dragging left widens the drawer (it sits on the right side).
+    setWidth(clampDrawerWidth(d.w + (d.x - e.clientX)))
+  }
+
+  const onHandlePointerUp = () => {
+    resizeRef.current = null
+    setResizing(false)
+  }
+
   // All facts on this check with evidence on the same sheet+page as the
   // focused one (deduped by fact name) get highlight rectangles.
   const highlights = focused
@@ -104,7 +153,17 @@ export function DetailDrawer({
   )
 
   return (
-    <aside className="detail-drawer">
+    <div className="drawer-shell" style={{ width }}>
+      <div
+        className={`drawer-resize-handle${resizing ? ' active' : ''}`}
+        title="Drag to resize · double-click to reset"
+        onPointerDown={onHandlePointerDown}
+        onPointerMove={onHandlePointerMove}
+        onPointerUp={onHandlePointerUp}
+        onPointerCancel={onHandlePointerUp}
+        onDoubleClick={() => setWidth(DEFAULT_DRAWER_WIDTH)}
+      />
+      <aside className="detail-drawer">
       <button className="close-btn" onClick={onClose} title="Close">
         ✕
       </button>
@@ -189,7 +248,7 @@ export function DetailDrawer({
                 </span>
               </h3>
               <EvidenceViewer
-                imageUrl={pageImageUrl(jobId, focused.evidence)}
+                jobId={jobId}
                 focus={focused.evidence}
                 highlights={highlights}
                 onClose={() => setFocused(null)}
@@ -243,6 +302,7 @@ export function DetailDrawer({
           ))}
         </>
       )}
-    </aside>
+      </aside>
+    </div>
   )
 }

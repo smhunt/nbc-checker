@@ -145,6 +145,12 @@ export interface Job extends Partial<State> {
   status: JobStatus
   message: string
   error: string | null
+  // Verbose progress (server 0.6+). Optional so old-shape job responses
+  // still typecheck — the UI falls back to the plain message display.
+  stage?: string
+  progress?: { done: number; total: number }
+  elapsed_s?: number
+  eta_s?: number | null
 }
 
 export async function uploadPlan(
