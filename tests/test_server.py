@@ -266,3 +266,116 @@ def test_job_override_flips_and_exports(upload_client):
 
 def test_job_not_found(upload_client):
     assert upload_client.get("/api/jobs/deadbeef").status_code == 404
+
+
+# --- PDF evidence drill-down: document/page serving -------------------------
+
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
+@pytest.fixture
+def evidence_pdf():
+    """A tiny real 1-page PDF placed in reports/uploads as a fake job upload.
+
+    Also reachable through /api/documents since reports/uploads is first in
+    the resolution whitelist. Teardown removes the PDF and any cached PNGs.
+    """
+    import fitz
+
+    from server.app import ROOT
+
+    up_dir = ROOT / "reports" / "uploads"
+    up_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = up_dir / "testjob123.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=200, height=200)
+    page.insert_text((50, 100), "stair riser 210 mm")
+    doc.save(str(pdf_path))
+    doc.close()
+    yield pdf_path
+    pdf_path.unlink(missing_ok=True)
+    cache = ROOT / "reports" / "page_cache"
+    if cache.is_dir():
+        for f in cache.glob("testjob123_p*_*.png"):
+            f.unlink()
+
+
+def test_page_png_renders_and_caches(client, evidence_pdf):
+    from server.app import ROOT
+
+    r = client.get("/api/jobs/testjob123/page/1.png?dpi=96")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content[:8] == PNG_MAGIC
+
+    cache_file = ROOT / "reports" / "page_cache" / "testjob123_p1_96.png"
+    assert cache_file.is_file()
+    mtime = cache_file.stat().st_mtime_ns
+
+    # Second request serves the cached PNG without re-rendering.
+    r2 = client.get("/api/jobs/testjob123/page/1.png?dpi=96")
+    assert r2.status_code == 200
+    assert r2.content == r.content
+    assert cache_file.stat().st_mtime_ns == mtime
+
+    # The documents route resolves the same file from reports/uploads.
+    r3 = client.get("/api/documents/testjob123.pdf/page/1.png?dpi=96")
+    assert r3.status_code == 200
+    assert r3.content[:8] == PNG_MAGIC
+
+
+def test_document_name_traversal_rejected(client, evidence_pdf):
+    from server.pdfrender import resolve_document
+
+    # The resolver itself refuses separators, '..', and empty names outright.
+    for bad in ("../x.pdf", "a/b.pdf", "..\\x.pdf", "..", ""):
+        assert resolve_document(bad) is None
+
+    # URL-encoded traversal decodes to a forbidden name -> 400/404, never 200.
+    for encoded in ("..%2Fx.pdf", "a%2Fb.pdf", "..%5Cx.pdf", "%2E%2E%2Fx.pdf"):
+        r = client.get(f"/api/documents/{encoded}/pdf")
+        assert r.status_code in (400, 404), encoded
+        r = client.get(f"/api/documents/{encoded}/page/1.png")
+        assert r.status_code in (400, 404), encoded
+
+    # Raw traversal segments never reach a file outside the whitelist.
+    r = client.get("/api/documents/../../server/app.py/pdf")
+    assert r.status_code in (400, 404)
+
+    # Job routes reject traversal in job_id the same way.
+    r = client.get("/api/jobs/..%2Ftestjob123/pdf")
+    assert r.status_code in (400, 404)
+
+
+def test_page_out_of_range_404(client, evidence_pdf):
+    r = client.get("/api/jobs/testjob123/page/99.png?dpi=96")
+    assert r.status_code == 404
+    r = client.get("/api/documents/testjob123.pdf/page/0.png?dpi=96")
+    assert r.status_code == 404
+    # Unknown document is also 404, before any rendering happens.
+    r = client.get("/api/documents/no-such-doc-xyz.pdf/page/1.png?dpi=96")
+    assert r.status_code == 404
+
+
+def test_dpi_whitelist_400(client, evidence_pdf):
+    for bad_dpi in (72, 300, 1):
+        r = client.get(f"/api/jobs/testjob123/page/1.png?dpi={bad_dpi}")
+        assert r.status_code == 400, bad_dpi
+        r = client.get(f"/api/documents/testjob123.pdf/page/1.png?dpi={bad_dpi}")
+        assert r.status_code == 400, bad_dpi
+    # Default dpi (150) is whitelisted and renders fine.
+    r = client.get("/api/jobs/testjob123/page/1.png")
+    assert r.status_code == 200
+
+
+def test_job_pdf_download(client, evidence_pdf):
+    r = client.get("/api/jobs/testjob123/pdf")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.content[:4] == b"%PDF"
+    # The documents route serves the same PDF by basename.
+    r = client.get("/api/documents/testjob123.pdf/pdf")
+    assert r.status_code == 200
+    assert r.content[:4] == b"%PDF"
+    # Missing upload -> 404.
+    assert client.get("/api/jobs/nojob999/pdf").status_code == 404

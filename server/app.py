@@ -37,6 +37,11 @@ from engine.checker import run_ruleset  # noqa: E402
 from engine.export import to_pdf, to_xlsx  # noqa: E402
 from server.jobs import STORE  # noqa: E402
 from server.overrides import apply_overrides, load_overrides, save_overrides  # noqa: E402
+from server.pdfrender import (  # noqa: E402
+    FORBIDDEN_NAME_TOKENS,
+    render_page_png,
+    resolve_document,
+)
 
 # Rulesets the user can check an uploaded plan against.
 RULESETS = {
@@ -335,6 +340,84 @@ def job_export(job_id: str, fmt: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename="nbc_report.xlsx",
     )
+
+
+# --- PDF evidence drill-down: serve source PDFs + rendered page PNGs -------
+# Registered BEFORE the StaticFiles mount below — a '/' mount would shadow
+# any route added after it.
+
+ALLOWED_DPI = {96, 150, 200}
+
+
+def _page_cache_dir() -> Path:
+    d = ROOT / "reports" / "page_cache"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _check_name(name: str) -> None:
+    """400 on empty names or anything smelling of path traversal."""
+    if not name or any(tok in name for tok in FORBIDDEN_NAME_TOKENS):
+        raise HTTPException(status_code=400, detail="invalid document name")
+
+
+def _check_dpi(dpi: int) -> None:
+    if dpi not in ALLOWED_DPI:
+        raise HTTPException(
+            status_code=400,
+            detail=f"dpi must be one of {sorted(ALLOWED_DPI)}",
+        )
+
+
+def _page_png_response(pdf_path: Path, page: int, dpi: int) -> FileResponse:
+    try:
+        png = render_page_png(pdf_path, page, dpi, _page_cache_dir())
+    except ValueError as exc:  # page out of range
+        raise HTTPException(status_code=404, detail=str(exc))
+    return FileResponse(png, media_type="image/png")
+
+
+@app.get("/api/documents/{name}/pdf")
+def document_pdf(name: str):
+    """Serve a whitelisted source PDF (reports/uploads, samples/**) by basename."""
+    _check_name(name)
+    path = resolve_document(name)
+    if path is None:
+        raise HTTPException(status_code=404, detail="document not found")
+    return FileResponse(path, media_type="application/pdf", filename=path.name)
+
+
+@app.get("/api/documents/{name}/page/{page}.png")
+def document_page_png(name: str, page: int, dpi: int = 150):
+    """Render one page of a whitelisted PDF to PNG (cached, fixed dpi set)."""
+    _check_name(name)
+    _check_dpi(dpi)
+    path = resolve_document(name)
+    if path is None:
+        raise HTTPException(status_code=404, detail="document not found")
+    return _page_png_response(path, page, dpi)
+
+
+def _job_pdf_path(job_id: str) -> Path:
+    _check_name(job_id)
+    path = ROOT / "reports" / "uploads" / f"{job_id}.pdf"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="job pdf not found")
+    return path
+
+
+@app.get("/api/jobs/{job_id}/pdf")
+def job_pdf(job_id: str):
+    """Serve the original uploaded PDF for a job."""
+    path = _job_pdf_path(job_id)
+    return FileResponse(path, media_type="application/pdf", filename=path.name)
+
+
+@app.get("/api/jobs/{job_id}/page/{page}.png")
+def job_page_png(job_id: str, page: int, dpi: int = 150):
+    """Render one page of a job's uploaded PDF to PNG (cached, fixed dpi set)."""
+    _check_dpi(dpi)
+    return _page_png_response(_job_pdf_path(job_id), page, dpi)
 
 
 # Serve the production UI build from the same origin (no CORS, no dev server).
