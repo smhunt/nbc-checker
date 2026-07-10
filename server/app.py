@@ -232,7 +232,7 @@ def _job_state(job) -> dict:
     }
 
 
-def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
+def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") -> None:
     """Background worker: extract facts from the PDF, then mark the job done."""
     try:
         import time as _time
@@ -259,13 +259,23 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
                          stage_changed_at=now)
 
         if mode == "tiled":
-            facts = extract_tiled(pdf_path, grid=(3, 3), progress_cb=_cb)
+            # grid=None -> per-page adaptive choose_grid (letter 2x2, big sheets 3x3)
+            facts = extract_tiled(pdf_path, grid=None, pages=pages_spec, progress_cb=_cb)
         else:
             facts = extract(pdf_path, progress_cb=_cb)
         STORE.update(job_id, stage="running deterministic checks")
         n = len(facts.get("entities", []))
-        STORE.update(job_id, facts=facts, status="done", stage="done",
-                     message=f"Extracted {n} element(s). All LLM-read values route to human review.")
+        pages_meta = facts.get("project", {}).get("pages")
+        message = f"Extracted {n} element(s). All LLM-read values route to human review."
+        if pages_meta:
+            total, processed = pages_meta["total"], len(pages_meta["processed"])
+            n_skipped = len(pages_meta.get("skipped", []))
+            message = (f"Extracted {n} element(s) from {processed} of {total} pages"
+                       f"{f' ({n_skipped} skipped — see report metadata)' if n_skipped else ''}."
+                       f" All LLM-read values route to human review.")
+            STORE.update(job_id, pages_info={"total": total, "selected": processed,
+                                             "skipped": n_skipped})
+        STORE.update(job_id, facts=facts, status="done", stage="done", message=message)
     except Exception as exc:  # extraction is best-effort; surface the failure
         STORE.update(job_id, status="error", stage="error", error=f"{type(exc).__name__}: {exc}")
 
@@ -275,16 +285,24 @@ async def upload(
     file: UploadFile = File(...),
     ruleset: str = Form("nbc"),
     mode: str = Form("whole"),
+    pages: str = Form("auto"),
 ):
     """Accept a PDF plan, kick off background extraction, return a job id.
 
     ruleset: 'nbc' (NBC 2020) or 'obc' (Ontario OBC 2024).
     mode:    'whole' (fast, one pass) or 'tiled' (slower, ~6x more facts).
+    pages:   'auto' (drawing pages only, skips reported), 'all', or '1,3-5'
+             (tiled mode; whole mode always reads the full file).
     """
     if ruleset not in RULESETS:
         raise HTTPException(status_code=400, detail=f"unknown ruleset '{ruleset}' (use nbc or obc)")
     if mode not in ("whole", "tiled"):
         raise HTTPException(status_code=400, detail=f"unknown mode '{mode}' (use whole or tiled)")
+    from extractors.page_select import parse_pages_spec
+    try:
+        pages_spec = parse_pages_spec(pages)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     fname = file.filename or "upload.pdf"
     if not fname.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="only PDF files are accepted")
@@ -295,7 +313,8 @@ async def upload(
     dest = up_dir / f"{job.id}.pdf"
     dest.write_bytes(await file.read())
 
-    threading.Thread(target=_run_extraction, args=(job.id, str(dest), mode), daemon=True).start()
+    threading.Thread(target=_run_extraction, args=(job.id, str(dest), mode, pages_spec),
+                     daemon=True).start()
     return job.public()
 
 

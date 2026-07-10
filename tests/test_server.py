@@ -418,3 +418,49 @@ def test_override_preserves_evidence(tmp_path, monkeypatch):
     attr = next(e for e in r.json()["facts"]["entities"] if e["id"] == "hr-1")[
         "attributes"]["height_above_nosing_mm"]
     assert attr["confidence"] == 0.82 and attr["evidence"] == ev
+
+
+def test_upload_accepts_pages_param_default_auto(upload_client, monkeypatch):
+    import extractors.pdf_extractor as pe
+    seen = {}
+
+    def spy_tiled(p, **k):
+        seen.update(k)
+        return _fake_facts()
+    monkeypatch.setattr(pe, "extract_tiled", spy_tiled)
+    r = upload_client.post("/api/upload", data={"ruleset": "nbc", "mode": "tiled"},
+                           files={"file": ("t.pdf", b"%PDF-1.4 fake", "application/pdf")})
+    assert r.status_code == 200
+    assert seen.get("pages") == "auto"
+    assert seen.get("grid") is None  # adaptive per-page grid
+
+    r = upload_client.post("/api/upload",
+                           data={"ruleset": "nbc", "mode": "tiled", "pages": "1,3-4"},
+                           files={"file": ("t.pdf", b"%PDF-1.4 fake", "application/pdf")})
+    assert r.status_code == 200
+    assert seen.get("pages") == [1, 3, 4]
+
+
+def test_upload_rejects_malformed_pages_spec(upload_client):
+    r = upload_client.post("/api/upload",
+                           data={"ruleset": "nbc", "mode": "tiled", "pages": "1;bad"},
+                           files={"file": ("t.pdf", b"%PDF-1.4 fake", "application/pdf")})
+    assert r.status_code == 400
+
+
+def test_job_public_carries_pages_summary(upload_client, monkeypatch):
+    import extractors.pdf_extractor as pe
+
+    def facts_with_pages(p, **k):
+        f = _fake_facts()
+        f["project"]["pages"] = {"total": 8, "processed": [5, 6, 7, 8],
+                                 "skipped": [{"page": i, "label": "text", "reason": "checklist"} for i in (1, 2, 3, 4)],
+                                 "selection": "auto"}
+        return f
+    monkeypatch.setattr(pe, "extract_tiled", facts_with_pages)
+    r = upload_client.post("/api/upload", data={"ruleset": "nbc", "mode": "tiled"},
+                           files={"file": ("t.pdf", b"%PDF-1.4 fake", "application/pdf")})
+    job_id = r.json()["job_id"]
+    job = upload_client.get(f"/api/jobs/{job_id}").json()
+    assert job["pages"] == {"total": 8, "selected": 4, "skipped": 4}
+    assert "4 of 8 pages" in job["message"]

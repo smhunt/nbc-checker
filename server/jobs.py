@@ -64,6 +64,8 @@ class Job:
     started_at: float = field(default_factory=time.time)
     stage_changed_at: float = field(default_factory=time.time)
     tile_durations: list[float] = field(default_factory=list)
+    # {"total", "selected", "skipped"} once page selection is known (tiled).
+    pages_info: dict | None = None
 
     def eta_s(self) -> float | None:
         if self.status in ("done", "error"):
@@ -85,6 +87,7 @@ class Job:
             "progress": {"done": self.progress_done, "total": self.progress_total},
             "elapsed_s": round(time.time() - self.started_at, 1),
             "eta_s": self.eta_s(),
+            **({"pages": self.pages_info} if self.pages_info else {}),
         }
 
 
