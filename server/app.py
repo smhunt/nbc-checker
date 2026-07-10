@@ -235,20 +235,38 @@ def _job_state(job) -> dict:
 def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
     """Background worker: extract facts from the PDF, then mark the job done."""
     try:
+        import time as _time
+
         from extractors.pdf_extractor import extract, extract_tiled
 
         STORE.update(job_id, status="extracting",
                      message="Reading the drawing… tiled mode can take a few minutes."
                      if mode == "tiled" else "Reading the drawing…")
+
+        # Progress callback: verbose stage + tile counters + per-tile timing
+        # for the ETA. Purely observational — the facts are identical with or
+        # without it.
+        last_tick = {"t": _time.time(), "counted": False}
+
+        def _cb(stage: str, done: int, total: int) -> None:
+            now = _time.time()
+            job = STORE.get(job_id)
+            if job is not None and last_tick["counted"] and done > job.progress_done:
+                job.tile_durations.append(round(now - last_tick["t"], 2))
+            last_tick["t"] = now
+            last_tick["counted"] = stage.startswith("extracting tile")
+            STORE.update(job_id, stage=stage, progress_done=done, progress_total=total)
+
         if mode == "tiled":
-            facts = extract_tiled(pdf_path, grid=(3, 3))
+            facts = extract_tiled(pdf_path, grid=(3, 3), progress_cb=_cb)
         else:
-            facts = extract(pdf_path)
+            facts = extract(pdf_path, progress_cb=_cb)
+        STORE.update(job_id, stage="running deterministic checks")
         n = len(facts.get("entities", []))
-        STORE.update(job_id, facts=facts, status="done",
+        STORE.update(job_id, facts=facts, status="done", stage="done",
                      message=f"Extracted {n} element(s). All LLM-read values route to human review.")
     except Exception as exc:  # extraction is best-effort; surface the failure
-        STORE.update(job_id, status="error", error=f"{type(exc).__name__}: {exc}")
+        STORE.update(job_id, status="error", stage="error", error=f"{type(exc).__name__}: {exc}")
 
 
 @app.post("/api/upload")

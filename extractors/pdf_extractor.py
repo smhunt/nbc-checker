@@ -207,14 +207,18 @@ def _parse_entities(raw_text: str, default_source: str) -> list:
     return entities
 
 
-def extract(pdf_path: str, runner=run_claude) -> dict:
+def extract(pdf_path: str, runner=run_claude, progress_cb=None) -> dict:
     """Extract annotated dimensions from a drawing PDF into a facts dict.
 
     Every returned fact carries confidence <= MAX_LLM_CONFIDENCE (EO1):
     the engine will report `uncertain` for all of them, forcing human review.
     """
     pdf_name = os.path.basename(pdf_path)
+    if progress_cb:
+        progress_cb("reading the drawing (single pass)", 0, 1)
     raw_text = runner(EXTRACTION_PROMPT, pdf_path)
+    if progress_cb:
+        progress_cb("normalizing extracted facts", 1, 1)
     entities = _parse_entities(raw_text, f"{pdf_name} (LLM extraction)")
 
     # Whole-PDF mode has no controlled raster geometry, so bboxes would be
@@ -431,6 +435,7 @@ def extract_tiled(
     tiles: list | None = None,
     out_dir: str | None = None,
     page_index: int = 0,
+    progress_cb=None,
 ) -> dict:
     """Tiled extraction: render+slice a page, extract each tile, merge results.
 
@@ -441,13 +446,20 @@ def extract_tiled(
     """
     pdf_name = os.path.basename(pdf_path)
     if tiles is None:
+        if progress_cb:
+            progress_cb("rendering page into tiles", 0, 0)
         tiles = render_page_to_tiles(
             pdf_path, grid=grid, dpi=dpi, out_dir=out_dir, page_index=page_index
         )
 
     tile_facts = []
     skipped = []
-    for tile in tiles:
+    for i, tile in enumerate(tiles):
+        if progress_cb:
+            # Progress reporting only — never feeds back into the facts (EO1
+            # and determinism: identical inputs yield identical outputs with
+            # or without a callback attached).
+            progress_cb(f"extracting tile {tile['label']}", i, len(tiles))
         tile_source = f"{pdf_name} tile {tile['label']} (LLM extraction)"
         raw_text = runner(_tile_prompt(pdf_name, tile), tile["path"])
         try:
@@ -478,6 +490,8 @@ def extract_tiled(
                 attr["evidence"] = evidence
         tile_facts.append({"tile": tile["label"], "entities": entities})
 
+    if progress_cb:
+        progress_cb("merging extracted facts", len(tiles), len(tiles))
     merged = merge_tile_facts(tile_facts)
     return {
         "project": {

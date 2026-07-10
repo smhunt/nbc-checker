@@ -200,7 +200,7 @@ def upload_client(client, monkeypatch):
     # Run the background "thread" synchronously and stub the extractor.
     import extractors.pdf_extractor as pe
     import server.app as appmod
-    monkeypatch.setattr(pe, "extract", lambda p: _fake_facts())
+    monkeypatch.setattr(pe, "extract", lambda p, **k: _fake_facts())
     monkeypatch.setattr(pe, "extract_tiled", lambda p, **k: _fake_facts())
 
     class _SyncThread:
