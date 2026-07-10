@@ -142,3 +142,19 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   bf_control entity for 3.8.3.8, exterior walks 1600 mm
 - Multi-page PDF extraction loop (schema already carries 1-based page)
 - Real tiled-extraction run to eyeball LLM bbox quality on the casestudy sheet
+
+## 2026-07-10 — Session 5b (UI sprint: progress/ETA, resizable drawer, larger locator)
+- Part 3 follow-ups: 45 rules total (multi-storey stair tier via boolean fact, B2 rise,
+  all six closure rows, exterior walks 1600, bf_control 400-1200, headroom companions)
+- Proposal EO2 updated: Part 3 gap -> delivered evidence (35->45 rules)
+- Backend: extract/extract_tiled accept observational progress_cb (facts proven identical
+  with/without); jobs expose stage/progress/elapsed/eta_s; ETA from measured tile times
+- UI: verbose processing panel (stage, tile n of m, elapsed, local ETA countdown,
+  "finishing up…"), drag-resizable drawer (380px-70vw, localStorage, dbl-click reset),
+  evidence viewer 4:3 + Expand overlay (85vw/85vh, 200 dpi, Esc dismiss)
+- LIVE verification: real 9-tile job through the browser — progress read "extracting tile
+  r2c1 / tile 3 of 9 / 0:37 elapsed ~70s remaining"; real elapsed 158.9s (~17s/tile, seed
+  25 was conservative). ALL 7 real-run facts carried bboxes within ~2% of PyMuPDF
+  ground-truth annotation positions; expanded viewer highlighted the annotation from the
+  uploaded job's own evidence. Drawer resize persisted (420->681, localStorage).
+- 377 tests passing. Sprint plan: docs/superpowers/plans/2026-07-10-ui-progress-sprint.md

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 ### Added
+- Verbose processing progress: stage-by-stage messages, tile counters, elapsed time and a live ETA (measured per-tile timing) during PDF analysis
+- Resizable review drawer (drag the left edge; width persists; double-click to reset)
+- Larger evidence locator: 4:3 viewer plus an Expand overlay (85% of the screen, 200 dpi)
 - NBC 2020 **Part 3 ruleset** (`rules/nbc2020_part3_core.json`) — first Part 3 categories per Challenge Notice EO2: fire separations, closures, corridor separations, self-closing devices, occupant load, occupancy classification; all verified verbatim against the official NRC text
 - Engine `in`/`not_in` operators (set-membership requirements, e.g. valid major-occupancy groups)
 - Ruleset schema + verification-contract test suite across all rulesets
