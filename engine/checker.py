@@ -39,6 +39,8 @@ OPS = {
     "<": lambda a, b: a < b,
     "==": lambda a, b: a == b,
     "!=": lambda a, b: a != b,
+    "in": lambda a, b: a in b,
+    "not_in": lambda a, b: a not in b,
 }
 
 # Status dominance within a single check: a violation must never be masked by

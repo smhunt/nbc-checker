@@ -126,6 +126,22 @@ def test_value_fact_comparison_recorded():
     assert any("run_mm+25" in c for c in res.comparisons)
 
 
+def test_in_operator_pass():
+    r = mk_rule(requires={"all": [{"fact": "grp", "op": "in", "value": ["C", "D", "E"]}]})
+    assert one(r, mk_entity(grp="D")).status == Status.PASS
+
+
+def test_in_operator_fail():
+    r = mk_rule(requires={"all": [{"fact": "grp", "op": "in", "value": ["C", "D", "E"]}]})
+    assert one(r, mk_entity(grp="Z9")).status == Status.FAIL
+
+
+def test_not_in_operator():
+    r = mk_rule(requires={"all": [{"fact": "grp", "op": "not_in", "value": ["F1"]}]})
+    assert one(r, mk_entity(grp="C")).status == Status.PASS
+    assert one(r, mk_entity(grp="F1")).status == Status.FAIL
+
+
 def test_determinism():
     rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
     f = {"project": {}, "entities": [mk_entity(x_mm=150)]}
