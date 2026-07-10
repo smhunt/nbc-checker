@@ -3,12 +3,23 @@
 
 export type CheckStatus = 'pass' | 'fail' | 'info_not_available' | 'uncertain'
 
+// Machine-usable provenance region for a fact extracted from a PDF drawing.
+// bbox is [x0, y0, x1, y1] normalized 0-1, top-left origin, y-down (raster
+// space — same convention as the server-rendered page PNGs). Absent bbox
+// degrades to a page-level view; absent evidence degrades to source-string-only.
+export interface Evidence {
+  doc: string
+  page: number
+  bbox?: [number, number, number, number]
+}
+
 export interface FactUsed {
   fact: string
   value: unknown
   confidence: number | null
   source: string | null
   present: boolean
+  evidence?: Evidence | null
 }
 
 export interface CheckResult {
@@ -40,6 +51,7 @@ export interface FactObject {
   value: unknown
   confidence?: number
   source?: string
+  evidence?: Evidence | null
 }
 
 export interface Entity {
@@ -83,6 +95,14 @@ export interface OverrideBody {
   fact: string
   value: unknown
   note: string
+}
+
+// URL of the server-rendered PNG for the page an evidence region points at.
+// Job PDFs are addressed by job id; sample/pre-loaded documents by basename.
+export function pageImageUrl(jobId: string | null, ev: Evidence, dpi = 150): string {
+  return jobId
+    ? `/api/jobs/${encodeURIComponent(jobId)}/page/${ev.page}.png?dpi=${dpi}`
+    : `/api/documents/${encodeURIComponent(ev.doc)}/page/${ev.page}.png?dpi=${dpi}`
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {

@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import type { CheckResult, FactUsed, Overrides, RuleMeta } from '../api'
+import { useEffect, useState } from 'react'
+import type { CheckResult, Evidence, FactUsed, Overrides, RuleMeta } from '../api'
+import { pageImageUrl } from '../api'
+import { EvidenceViewer } from './EvidenceViewer'
 import { StatusPill } from './StatusPill'
 
 const CONFIDENCE_THRESHOLD = 0.9
@@ -8,6 +10,7 @@ interface Props {
   result: CheckResult
   ruleMeta: RuleMeta | undefined
   overrides: Overrides
+  jobId: string | null
   onOverride: (entityId: string, fact: string, value: string, note: string) => Promise<void>
   onDeleteOverride: (entityId: string, fact: string) => Promise<void>
   onClose: () => void
@@ -67,12 +70,31 @@ export function DetailDrawer({
   result,
   ruleMeta,
   overrides,
+  jobId,
   onOverride,
   onDeleteOverride,
   onClose,
 }: Props) {
   const notes = ruleMeta?.verification_notes
   const entityOverrides = overrides[result.entity_id] ?? {}
+
+  // Fact whose evidence region is open in the drawing viewer.
+  const [focused, setFocused] = useState<{ fact: string; evidence: Evidence } | null>(null)
+  useEffect(() => setFocused(null), [result])
+
+  // All facts on this check with evidence on the same sheet+page as the
+  // focused one (deduped by fact name) get highlight rectangles.
+  const highlights = focused
+    ? result.facts_used
+        .filter(
+          (f) =>
+            f.evidence &&
+            f.evidence.doc === focused.evidence.doc &&
+            f.evidence.page === focused.evidence.page,
+        )
+        .filter((f, i, arr) => arr.findIndex((g) => g.fact === f.fact) === i)
+        .map((f) => ({ fact: f.fact, evidence: f.evidence as Evidence }))
+    : []
 
   // Facts the reviewer can act on: low-confidence or absent, deduplicated
   const reviewable = result.facts_used.filter(
@@ -137,12 +159,43 @@ export function DetailDrawer({
                     <td className={`mono${low ? ' low-confidence' : ''}`}>
                       {f.confidence !== null && f.present ? f.confidence.toFixed(2) : '—'}
                     </td>
-                    <td className="source-cell">{f.source ?? '—'}</td>
+                    <td className="source-cell">
+                      {f.source ?? '—'}
+                      {f.evidence && (
+                        <button
+                          className={`evidence-btn${
+                            focused?.fact === f.fact ? ' active' : ''
+                          }`}
+                          title="View this fact on the drawing"
+                          onClick={() =>
+                            setFocused({ fact: f.fact, evidence: f.evidence! })
+                          }
+                        >
+                          ⌖ view
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
+          {focused && (
+            <>
+              <h3>
+                Evidence{' '}
+                <span className="evidence-loc mono">
+                  {focused.evidence.doc} · p.{focused.evidence.page}
+                </span>
+              </h3>
+              <EvidenceViewer
+                imageUrl={pageImageUrl(jobId, focused.evidence)}
+                focus={focused.evidence}
+                highlights={highlights}
+                onClose={() => setFocused(null)}
+              />
+            </>
+          )}
         </>
       )}
 

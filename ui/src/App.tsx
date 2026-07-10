@@ -145,6 +145,7 @@ export default function App() {
             result={selected}
             ruleMeta={state.rules[selected.rule_id]}
             overrides={state.overrides}
+            jobId={jobId}
             onOverride={handleOverride}
             onDeleteOverride={handleDeleteOverride}
             onClose={() => setSelectedKey(null)}
