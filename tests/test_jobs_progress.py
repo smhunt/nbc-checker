@@ -58,14 +58,46 @@ def test_estimate_eta_none_when_nothing_remains():
     assert estimate_eta([5.0], remaining=0, seed_avg=25.0) == 3.0
 
 
+def test_estimate_eta_decreases_with_time_spent_in_current_stage():
+    # The server-side ETA must fall between tile completions, not sit frozen
+    # until the next callback (the UI re-anchors to it every poll).
+    e0 = estimate_eta([10.0], remaining=3, seed_avg=25.0, in_stage_elapsed=0.0)
+    e4 = estimate_eta([10.0], remaining=3, seed_avg=25.0, in_stage_elapsed=4.0)
+    assert e0 == 33.0 and e4 == 29.0
+
+
+def test_estimate_eta_overrun_tile_does_not_go_negative():
+    # Current tile has taken longer than the average: its remaining share
+    # clamps to 0, later tiles still counted.
+    e = estimate_eta([10.0], remaining=3, seed_avg=25.0, in_stage_elapsed=50.0)
+    assert e == 23.0  # 0 + 2*10 + 3
+
+
+def test_estimate_eta_none_when_last_unit_budget_exhausted():
+    # Single remaining unit (whole-PDF pass or final tile) running past its
+    # estimate: no basis for a number — UI shows "finishing up…".
+    assert estimate_eta([], remaining=1, seed_avg=25.0, in_stage_elapsed=30.0) is None
+
+
+def test_job_eta_falls_as_clock_advances():
+    job = Job(id="j2", filename="f.pdf", ruleset_key="nbc", mode="whole")
+    job.stage = "reading the drawing (single pass)"
+    job.progress_done, job.progress_total = 0, 1
+    job.stage_changed_at = time.time() - 5
+    eta = job.public()["eta_s"]
+    assert eta is not None and abs(eta - (25.0 - 5 + 3.0)) < 0.5
+
+
 def test_job_public_carries_progress_fields():
     job = Job(id="j1", filename="f.pdf", ruleset_key="nbc", mode="tiled")
     job.started_at = time.time() - 10
     job.stage = "extracting tile r1c1"
     job.progress_done, job.progress_total = 1, 9
     job.tile_durations = [12.0]
+    job.stage_changed_at = time.time()
     pub = job.public()
     assert pub["stage"] == "extracting tile r1c1"
     assert pub["progress"] == {"done": 1, "total": 9}
     assert pub["elapsed_s"] >= 10
-    assert pub["eta_s"] == estimate_eta([12.0], remaining=8, seed_avg=25.0)
+    expected = estimate_eta([12.0], remaining=8, seed_avg=25.0, in_stage_elapsed=0.0)
+    assert abs(pub["eta_s"] - expected) < 0.5

@@ -23,11 +23,27 @@ _OVERHEAD_S = 3.0
 _SEED_AVG_S = 25.0
 
 
-def estimate_eta(durations: list[float], remaining: int, seed_avg: float) -> float:
-    """Estimated seconds to completion. Pure: mean measured tile duration
-    (seed_avg before any measurement) x remaining tiles + fixed overhead."""
+def estimate_eta(durations: list[float], remaining: int, seed_avg: float,
+                 in_stage_elapsed: float = 0.0) -> float | None:
+    """Estimated seconds to completion, falling smoothly as the clock runs.
+
+    `remaining` INCLUDES the in-progress unit; `in_stage_elapsed` is how long
+    that unit has already been running, so the estimate decreases between
+    callbacks instead of sitting frozen until the next tile completes (the UI
+    re-anchors to this value on every poll — a frozen value produced a
+    sawtooth countdown). Returns None when the last remaining unit has
+    exhausted its budget: there is no basis for a number and the UI should
+    say "finishing up…" instead.
+    """
     per_tile = sum(durations) / len(durations) if durations else seed_avg
-    return round(per_tile * max(0, remaining) + _OVERHEAD_S, 1)
+    if remaining <= 0:
+        return _OVERHEAD_S
+    current_left = per_tile - max(0.0, in_stage_elapsed)
+    if current_left <= 0:
+        if remaining <= 1:
+            return None
+        current_left = 0.0
+    return round(current_left + per_tile * (remaining - 1) + _OVERHEAD_S, 1)
 
 
 @dataclass
@@ -46,13 +62,15 @@ class Job:
     progress_done: int = 0
     progress_total: int = 0
     started_at: float = field(default_factory=time.time)
+    stage_changed_at: float = field(default_factory=time.time)
     tile_durations: list[float] = field(default_factory=list)
 
     def eta_s(self) -> float | None:
         if self.status in ("done", "error"):
             return None
         remaining = max(0, self.progress_total - self.progress_done)
-        return estimate_eta(self.tile_durations, remaining, _SEED_AVG_S)
+        return estimate_eta(self.tile_durations, remaining, _SEED_AVG_S,
+                            in_stage_elapsed=time.time() - self.stage_changed_at)
 
     def public(self) -> dict:
         return {

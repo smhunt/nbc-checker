@@ -255,7 +255,8 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
                 job.tile_durations.append(round(now - last_tick["t"], 2))
             last_tick["t"] = now
             last_tick["counted"] = stage.startswith("extracting tile")
-            STORE.update(job_id, stage=stage, progress_done=done, progress_total=total)
+            STORE.update(job_id, stage=stage, progress_done=done, progress_total=total,
+                         stage_changed_at=now)
 
         if mode == "tiled":
             facts = extract_tiled(pdf_path, grid=(3, 3), progress_cb=_cb)
