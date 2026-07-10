@@ -511,6 +511,87 @@ def test_project_pages_metadata_processed_and_skipped(tmp_path):
     assert facts["project"]["tiles"] == ["p2:r1c1"]
 
 
+# --------------------------------------------------------------------------
+# Runner factory resolution + extractor provenance (wave 1)
+# --------------------------------------------------------------------------
+
+def _identity_runner(identity, payload):
+    """A fake runner carrying an .identity, like factory-built runners do."""
+
+    def runner(prompt, path):
+        return payload if isinstance(payload, str) else json.dumps(payload)
+
+    runner.identity = identity
+    return runner
+
+
+def test_extract_resolves_runner_via_select_runner_pdf(monkeypatch):
+    calls = []
+    fake = _identity_runner("cli:claude", model_payload(confidence=0.7))
+
+    def fake_select(kind):
+        calls.append(kind)
+        return fake
+
+    monkeypatch.setattr("extractors.pdf_extractor.select_runner", fake_select)
+    facts = extract(PDF)  # no runner passed -> factory resolves at call time
+    assert calls == ["pdf"]
+    assert facts["project"]["extractor"] == "cli:claude"
+    assert facts["entities"][0]["attributes"]["riser_height_mm"]["value"] == 190
+
+
+def test_extract_tiled_resolves_runner_via_select_runner_image(monkeypatch):
+    calls = []
+    fake = _identity_runner("api:claude-sonnet-4-6", _stair("Main stair", 0.7))
+
+    def fake_select(kind):
+        calls.append(kind)
+        return fake
+
+    monkeypatch.setattr("extractors.pdf_extractor.select_runner", fake_select)
+    facts = extract_tiled(TILED_PDF, tiles=fake_tiles("r1c1"))
+    assert calls == ["image"]  # selected ONCE, at job start
+    assert facts["project"]["extractor"] == "api:claude-sonnet-4-6"
+
+
+def test_explicit_runner_bypasses_factory(monkeypatch):
+    def boom(kind):
+        raise AssertionError("select_runner must not be called when a runner is passed")
+
+    monkeypatch.setattr("extractors.pdf_extractor.select_runner", boom)
+    facts = extract(PDF, runner=fake_runner_for(json.dumps(model_payload(confidence=0.7))))
+    # plain function without .identity -> provenance degrades to "unknown"
+    assert facts["project"]["extractor"] == "unknown"
+    tiled = extract_tiled(
+        TILED_PDF,
+        runner=tile_runner({"r1c1": _stair("Main stair", 0.7)}),
+        tiles=fake_tiles("r1c1"),
+    )
+    assert tiled["project"]["extractor"] == "unknown"
+
+
+def test_project_extractor_records_runner_identity():
+    fake = _identity_runner("api:claude-haiku-4-5-20251001", _stair("Main stair", 0.6))
+    facts = extract_tiled(TILED_PDF, runner=fake, tiles=fake_tiles("r1c1"))
+    assert facts["project"]["extractor"] == "api:claude-haiku-4-5-20251001"
+
+
+def test_confidence_cap_applies_with_api_identity_runner():
+    """EO1 regression: the cap is a property of the parse path, not the CLI —
+    facts arriving via an API-identity runner claiming 1.0 are still capped."""
+    fake = _identity_runner("api:claude-sonnet-4-6", _stair("Main stair", 1.0))
+    facts = extract_tiled(TILED_PDF, runner=fake, tiles=fake_tiles("r1c1"))
+    assert facts["project"]["extractor"].startswith("api:")
+    fact = facts["entities"][0]["attributes"]["riser_height_mm"]
+    assert fact["confidence"] == MAX_LLM_CONFIDENCE == 0.89
+    assert fact["confidence"] < 0.9  # engine CONFIDENCE_THRESHOLD
+
+    whole = extract(PDF, runner=_identity_runner(
+        "api:claude-sonnet-4-6", model_payload(confidence=1.0)))
+    attr = whole["entities"][0]["attributes"]["riser_height_mm"]
+    assert attr["confidence"] == MAX_LLM_CONFIDENCE
+
+
 def test_multipage_tile_sources_include_page(tmp_path):
     import fitz
     pdf = tmp_path / "one_drawing.pdf"

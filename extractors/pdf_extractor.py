@@ -22,8 +22,21 @@ import json
 import math
 import os
 import re
-import subprocess
 import tempfile
+
+if __package__ in (None, ""):  # executed as a script: extractors/ is sys.path[0],
+    import sys as _sys         # the repo root (for `import extractors.*`) is not.
+
+    _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Runner plumbing lives in extractors/runners.py; the CLI runners are
+# re-exported here for back-compat (existing imports, __main__ usage).
+from extractors.runners import (  # noqa: F401  (re-exports)
+    CLI_TIMEOUT_S,
+    run_claude,
+    run_claude_image,
+    select_runner,
+)
 
 # EO1 invariant: no LLM-extracted fact may ever reach the engine's
 # CONFIDENCE_THRESHOLD (0.9 in engine/checker.py). Capping at 0.89 guarantees
@@ -34,34 +47,6 @@ MAX_LLM_CONFIDENCE = 0.89
 EXTRACTION_PROMPT = '''You are a drawing-takeoff assistant. Extract ONLY dimensions explicitly annotated on this architectural drawing. Return JSON: {"entities": [{"entity_type": "...", "id": "...", "name": "...", "attributes": {"<fact>": {"value": <number>, "confidence": <0..1 your certainty>, "source": "<sheet> <where on sheet>"}}}]}
 Known entity_types and facts: stair_flight (riser_height_mm, tread_run_mm, clear_width_mm, headroom_mm, service), handrail (height_above_nosing_mm), guard (guard_height_mm, fall_height_mm, guard_context, max_opening_mm), room (room_use, ceiling_height_mm), window (overall_height_mm, overall_width_mm), door (clear_width_mm, height_mm).
 NEVER infer a value that is not printed on the drawing. If unsure, omit the fact. Each attribute may also include "page": <1-based page number the annotation appears on>. Output ONLY the JSON object.'''
-
-CLI_TIMEOUT_S = 300
-
-
-def run_claude(prompt: str, pdf_path: str) -> str:
-    """Run the `claude` CLI headless against a PDF; return the assistant text.
-
-    The CLI's --output-format json wraps the response in an envelope whose
-    "result" field holds the assistant's text.
-    """
-    abs_path = os.path.abspath(pdf_path)
-    full_prompt = f"{prompt}\n\nThe drawing file to read is at: {abs_path}"
-    proc = subprocess.run(
-        # --allowedTools "Read" grants the headless instance read-only access so
-        # it can open the drawing; without it the nested CLI is denied file access
-        # and returns prose instead of JSON.
-        ["claude", "-p", full_prompt, "--allowedTools", "Read", "--output-format", "json"],
-        capture_output=True,
-        text=True,
-        timeout=CLI_TIMEOUT_S,
-    )
-    if proc.returncode != 0:
-        stderr_excerpt = (proc.stderr or "").strip()[:500]
-        raise RuntimeError(
-            f"claude CLI exited with code {proc.returncode}: {stderr_excerpt}"
-        )
-    envelope = json.loads(proc.stdout)
-    return envelope["result"]
 
 
 def _strip_fences(text: str) -> str:
@@ -207,12 +192,19 @@ def _parse_entities(raw_text: str, default_source: str) -> list:
     return entities
 
 
-def extract(pdf_path: str, runner=run_claude, progress_cb=None) -> dict:
+def extract(pdf_path: str, runner=None, progress_cb=None) -> dict:
     """Extract annotated dimensions from a drawing PDF into a facts dict.
 
     Every returned fact carries confidence <= MAX_LLM_CONFIDENCE (EO1):
     the engine will report `uncertain` for all of them, forcing human review.
+
+    `runner=None` resolves via `select_runner("pdf")` at call time (API iff
+    ANTHROPIC_API_KEY, NBC_RUNNER override); passing a runner bypasses the
+    factory (tests, A/B harnesses). The runner's `.identity` is recorded in
+    `project.extractor` so the report says which model family produced it.
     """
+    if runner is None:
+        runner = select_runner("pdf")
     pdf_name = os.path.basename(pdf_path)
     if progress_cb:
         progress_cb("reading the drawing (single pass)", 0, 1)
@@ -236,6 +228,7 @@ def extract(pdf_path: str, runner=run_claude, progress_cb=None) -> dict:
         "project": {
             "name": f"{pdf_name} (drawing extraction)",
             "sources": [pdf_path],
+            "extractor": getattr(runner, "identity", "unknown"),
         },
         "entities": entities,
     }
@@ -252,30 +245,6 @@ def extract(pdf_path: str, runner=run_claude, progress_cb=None) -> dict:
 # --------------------------------------------------------------------------
 
 TILE_OVERLAP = 0.12  # 12% overlap so annotations on a tile seam aren't cut
-
-
-def run_claude_image(prompt: str, image_path: str) -> str:
-    """Run the `claude` CLI headless against a PNG tile; return assistant text.
-
-    Mirrors `run_claude` but points the nested CLI at an image crop. The
-    `--allowedTools Read` grant is required — without it the headless instance
-    is denied file access and returns prose instead of JSON.
-    """
-    abs_path = os.path.abspath(image_path)
-    full_prompt = f"{prompt}\n\nThe image to read is at: {abs_path}"
-    proc = subprocess.run(
-        ["claude", "-p", full_prompt, "--allowedTools", "Read", "--output-format", "json"],
-        capture_output=True,
-        text=True,
-        timeout=CLI_TIMEOUT_S,
-    )
-    if proc.returncode != 0:
-        stderr_excerpt = (proc.stderr or "").strip()[:500]
-        raise RuntimeError(
-            f"claude CLI exited with code {proc.returncode}: {stderr_excerpt}"
-        )
-    envelope = json.loads(proc.stdout)
-    return envelope["result"]
 
 
 def choose_grid(page_width_pt: float, page_height_pt: float) -> tuple:
@@ -485,7 +454,7 @@ def _extract_tiles(pdf_name, tiles, runner, tile_facts, skipped,
 
 def extract_tiled(
     pdf_path: str,
-    runner=run_claude_image,
+    runner=None,
     grid: tuple | None = None,
     dpi: int = 200,
     tiles: list | None = None,
@@ -509,8 +478,14 @@ def extract_tiled(
     Every fact is capped at MAX_LLM_CONFIDENCE per tile (EO1) before the
     global cross-page merge, and each fact's evidence keeps the page it was
     actually read from.
+
+    `runner=None` resolves via `select_runner("image")` ONCE, here at job
+    start (no mid-job fallback); its `.identity` lands in `project.extractor`.
     """
+    if runner is None:
+        runner = select_runner("image")
     pdf_name = os.path.basename(pdf_path)
+    extractor_identity = getattr(runner, "identity", "unknown")
     tile_facts: list = []
     skipped_tiles: list = []
 
@@ -525,6 +500,7 @@ def extract_tiled(
             "project": {
                 "name": f"{pdf_name} (tiled drawing extraction)",
                 "sources": [pdf_path],
+                "extractor": extractor_identity,
                 "tiles": [t["label"] for t in tiles],
                 "tiles_unparsed": skipped_tiles,
             },
@@ -569,6 +545,7 @@ def extract_tiled(
         "project": {
             "name": f"{pdf_name} (tiled drawing extraction)",
             "sources": [pdf_path],
+            "extractor": extractor_identity,
             "pages": {
                 "total": len(stats),
                 "processed": list(selection.selected),

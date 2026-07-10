@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Prototype for deterministic AI-assisted compliance checking of building permit applications against NBC 2020 Part 9 (NRC ISC Phase 2 challenge, proposal closes Aug 4 2026). Python, no package manager config — the only dependency is `ifcopenshell` (`pip install ifcopenshell --break-system-packages`).
+Prototype for deterministic AI-assisted compliance checking of building permit applications against NBC 2020 Part 9 (NRC ISC Phase 2 challenge, proposal closes Aug 4 2026). Python, no package manager config — dependencies: `ifcopenshell`, `anthropic` (`pip install ifcopenshell anthropic --break-system-packages`). The PDF extraction path prefers the direct Anthropic API (`extractors/runners.py`) when `ANTHROPIC_API_KEY` is set, else falls back to the `claude` CLI in headless mode — either way, extraction never needs a package manager beyond `pip`.
 
 `prompt_plan.md` holds the sprint plan and task list (V1–T7); `progress.md` is the per-session log — append a session entry when work is done.
 
