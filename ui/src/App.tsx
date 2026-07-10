@@ -20,6 +20,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Set<CheckStatus>>(new Set())
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  // Fact name the drawer should auto-focus in the evidence viewer — set when
+  // a row is opened via its ⌖ evidence affordance, cleared on plain row click.
+  const [evidenceFocus, setEvidenceFocus] = useState<string | null>(null)
   const [showAbout, setShowAbout] = useState(false)
 
   const loadSample = useCallback(() => {
@@ -29,6 +32,7 @@ export default function App() {
         setJobId(null)
         setSource(null)
         setSelectedKey(null)
+        setEvidenceFocus(null)
       })
       .catch((e: Error) => setError(e.message))
   }, [])
@@ -47,6 +51,7 @@ export default function App() {
     setJobId(job.job_id)
     setSource(`${job.filename} · ${job.ruleset_key.toUpperCase()} · ${job.mode}`)
     setSelectedKey(null)
+    setEvidenceFocus(null)
     setError(null)
   }, [])
 
@@ -137,7 +142,14 @@ export default function App() {
           <ResultsTable
             results={filtered}
             selectedKey={selected ? resultKey(selected) : null}
-            onSelect={(r) => setSelectedKey(resultKey(r))}
+            onSelect={(r) => {
+              setSelectedKey(resultKey(r))
+              setEvidenceFocus(null)
+            }}
+            onViewEvidence={(r) => {
+              setSelectedKey(resultKey(r))
+              setEvidenceFocus(r.facts_used.find((f) => f.evidence)?.fact ?? null)
+            }}
           />
         </div>
         {selected && (
@@ -146,6 +158,7 @@ export default function App() {
             ruleMeta={state.rules[selected.rule_id]}
             overrides={state.overrides}
             jobId={jobId}
+            initialEvidenceFocus={evidenceFocus ?? undefined}
             onOverride={handleOverride}
             onDeleteOverride={handleDeleteOverride}
             onClose={() => setSelectedKey(null)}

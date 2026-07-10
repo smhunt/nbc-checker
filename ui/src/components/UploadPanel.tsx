@@ -103,9 +103,11 @@ export function UploadPanel({ onResult }: Props) {
         )}
         <div className="progress-timing mono">
           <span>{formatElapsed(elapsed)} elapsed</span>
-          {remaining !== null && (
-            <span>{remaining > 0 ? formatEta(remaining) : 'finishing up…'}</span>
-          )}
+          {/* null eta_s = server has no basis for a number (last unit past
+              budget) — show "finishing up…" until a poll brings a number back. */}
+          <span>
+            {remaining !== null && remaining > 0 ? formatEta(remaining) : 'finishing up…'}
+          </span>
         </div>
         {job.message && <span className="upload-msg">{job.message}</span>}
       </div>

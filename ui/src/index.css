@@ -300,6 +300,18 @@ input {
   text-overflow: ellipsis;
 }
 
+/* Slim trailing column: ⌖ evidence affordance on rows whose facts carry
+   PDF evidence regions (IFC/JSON-sourced rows have none, cell stays empty). */
+.results-table .evidence-col,
+.results-table .evidence-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.results-table .evidence-cell .evidence-btn {
+  margin-left: 0;
+}
+
 .status-pill {
   display: inline-block;
   font-size: 11px;

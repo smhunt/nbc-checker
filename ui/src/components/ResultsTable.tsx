@@ -9,9 +9,18 @@ interface Props {
   results: CheckResult[]
   selectedKey: string | null
   onSelect: (r: CheckResult) => void
+  // Open the drawer for this row with its first evidence-carrying fact
+  // already focused in the drawing viewer.
+  onViewEvidence: (r: CheckResult) => void
 }
 
-export function ResultsTable({ results, selectedKey, onSelect }: Props) {
+// Only PDF-extracted facts (and overrides of them) carry evidence regions —
+// IFC- and JSON-sourced facts have none, so their rows get no view affordance.
+function hasEvidence(r: CheckResult): boolean {
+  return r.facts_used.some((f) => f.evidence)
+}
+
+export function ResultsTable({ results, selectedKey, onSelect, onViewEvidence }: Props) {
   if (results.length === 0) {
     return <p className="empty-note">No checks match the current filter.</p>
   }
@@ -25,6 +34,7 @@ export function ResultsTable({ results, selectedKey, onSelect }: Props) {
           <th>Provision</th>
           <th>Entity</th>
           <th>Detail</th>
+          <th className="evidence-col" aria-label="Evidence" />
         </tr>
       </thead>
       <tbody>
@@ -43,6 +53,20 @@ export function ResultsTable({ results, selectedKey, onSelect }: Props) {
             <td>{r.entity_name}</td>
             <td className="detail-cell" title={r.detail}>
               {r.detail}
+            </td>
+            <td className="evidence-cell">
+              {hasEvidence(r) && (
+                <button
+                  className="evidence-btn"
+                  title="View evidence on the drawing"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onViewEvidence(r)
+                  }}
+                >
+                  ⌖
+                </button>
+              )}
             </td>
           </tr>
         ))}

@@ -24,6 +24,10 @@ interface Props {
   ruleMeta: RuleMeta | undefined
   overrides: Overrides
   jobId: string | null
+  // Fact name to auto-focus in the evidence viewer when the drawer opens
+  // (same effect as clicking that fact's ⌖ view button). Optional — absent
+  // means the drawer opens with the viewer closed, as before.
+  initialEvidenceFocus?: string
   onOverride: (entityId: string, fact: string, value: string, note: string) => Promise<void>
   onDeleteOverride: (entityId: string, fact: string) => Promise<void>
   onClose: () => void
@@ -84,6 +88,7 @@ export function DetailDrawer({
   ruleMeta,
   overrides,
   jobId,
+  initialEvidenceFocus,
   onOverride,
   onDeleteOverride,
   onClose,
@@ -91,9 +96,15 @@ export function DetailDrawer({
   const notes = ruleMeta?.verification_notes
   const entityOverrides = overrides[result.entity_id] ?? {}
 
-  // Fact whose evidence region is open in the drawing viewer.
+  // Fact whose evidence region is open in the drawing viewer. When the row
+  // was opened via its ⌖ evidence affordance, start with that fact focused.
   const [focused, setFocused] = useState<{ fact: string; evidence: Evidence } | null>(null)
-  useEffect(() => setFocused(null), [result])
+  useEffect(() => {
+    const f = initialEvidenceFocus
+      ? result.facts_used.find((g) => g.fact === initialEvidenceFocus && g.evidence)
+      : undefined
+    setFocused(f ? { fact: f.fact, evidence: f.evidence! } : null)
+  }, [result, initialEvidenceFocus])
 
   // Drag-resizable width (pointer capture on the left-edge handle, same
   // pattern as EvidenceViewer's pan drag). Double-click resets to default.
