@@ -107,3 +107,38 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
 - Tag OBC rules with new_work_only scope so change-of-use projects check only new work
 - Partial-area/sloped-ceiling evaluation (needs area/topology facts)
 - Real-IFC hardening: vendor-pset mapping, i18n room-use classification
+
+## 2026-07-09/10 — Session 5 (Part 3 entry + PDF evidence drill-down)
+- **NBC 2020 Part 3 ruleset shipped** (`rules/nbc2020_part3_core.json`, 35 rules, 100%
+  verified verbatim against the official extract): fire separations (Table 3.1.3.1 pairings,
+  closure ratings, corridor separations, self-closing devices), occupancy classification +
+  occupant load (Table 3.1.17.1 rows, dwelling sleeping-room basis, posting), exits 3.4
+  (widths, rise/landings, handrails/guards, treads/risers, headroom, exit count),
+  accessibility 3.8 (entrances, path/ramp/door widths, slope, WC stalls, grab bars).
+  Closes the proposal's biggest EO2 gap ("Part 3 not yet covered" -> delivered evidence).
+- Four parallel encoding agents + main-session spot-verification of every quote. Agents
+  caught 8 brief-vs-code discrepancies (no 3.1.17.2; headroom is 3.4.3.4; ramp slope is
+  3.4.6.7; no 920 mm in Part 3 guards; 3.8 rewritten in 2020: 1000 mm path not 920,
+  850 mm doors not 800, ALL entrances barrier-free not 50%; stalls are 3.8.3.12) —
+  more proof encoding-from-memory fails and verification-against-text is the product.
+- Engine: `in`/`not_in` ops (set membership, e.g. valid occupancy groups); ruleset
+  schema + verification-contract test suite runs against every rules/*.json.
+- **PDF evidence drill-down shipped** (plan in docs/superpowers/plans/): facts carry
+  optional `evidence {doc, page, bbox}` (normalized top-left coords); engine passes it
+  through the audit trail untouched (EO1); tiled extractor converts LLM tile-fraction
+  bboxes to page coords via the deterministic clip-rect geometry (validation + page-level
+  fallback); page-PNG endpoints (traversal-hardened, dpi-whitelisted, cached); UI
+  EvidenceViewer zooms/animates to the fact's region with highlights; human overrides
+  copy evidence so confirmation keeps the drawing link. Sample handrail fact carries a
+  PyMuPDF-text-search-derived bbox for the demo.
+- Visual verification on nbc.dev.ecoworks.ca: UNCERTAIN handrail -> view on drawing ->
+  zoom to "HANDRAIL 920 mm ABOVE NOSING" annotation -> confirm with note -> deterministic
+  re-run -> PASS (27/11/16/0), evidence + note preserved in the override audit trail.
+- 338 tests passing. All work committed granularly and pushed.
+
+## Next session
+- Part 3 follow-ups recorded in verification_notes: 1100 mm stair tier (needs OR in
+  where-conditions or boolean fact), B2 vertical-rise 2400, closure-table remaining rows,
+  bf_control entity for 3.8.3.8, exterior walks 1600 mm
+- Multi-page PDF extraction loop (schema already carries 1-based page)
+- Real tiled-extraction run to eyeball LLM bbox quality on the casestudy sheet

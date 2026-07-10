@@ -143,7 +143,12 @@
         "height_above_nosing_mm": {
           "value": 920,
           "confidence": 0.82,
-          "source": "A-201 Stair Sections.pdf p.2 (LLM extraction)"
+          "source": "A-201_stair_section.pdf p.1 (LLM extraction: leader annotation upper-left of stair profile)",
+          "evidence": {
+            "doc": "A-201_stair_section.pdf",
+            "page": 1,
+            "bbox": [0.089, 0.2315, 0.2812, 0.2547]
+          }
         },
         "clearance_behind_mm": {
           "value": 40,

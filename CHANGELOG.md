@@ -5,7 +5,7 @@
 - NBC 2020 **Part 3 ruleset** (`rules/nbc2020_part3_core.json`) — first Part 3 categories per Challenge Notice EO2: fire separations, closures, corridor separations, self-closing devices, occupant load, occupancy classification; all verified verbatim against the official NRC text
 - Engine `in`/`not_in` operators (set-membership requirements, e.g. valid major-occupancy groups)
 - Ruleset schema + verification-contract test suite across all rulesets
-- **PDF evidence drill-down (in progress):** facts may carry an optional `evidence` `{doc, page, bbox}` region; engine passes it through the audit trail untouched; page-image endpoints; UI zoom-to-evidence viewer
+- **PDF evidence drill-down:** facts may carry an optional `evidence` `{doc, page, bbox}` region (normalized top-left coords); the engine passes it through the audit trail untouched; tiled extraction converts LLM tile-fraction bboxes to page coordinates deterministically; page-image endpoints (traversal-hardened, cached); the detail drawer's "view" buttons zoom the source sheet to the exact annotation with highlights; human overrides preserve the evidence link
 ### Changed
 - `facts_used` entries now include an `evidence` key (null when absent). Reports produced from identical inputs remain byte-identical, but `report_sha256` differs from pre-0.7 builds for the same facts file because the report schema gained a field.
 ### Fixed
