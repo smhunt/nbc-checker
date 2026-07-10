@@ -366,9 +366,12 @@ _WS_RE = re.compile(r"\s+")
 
 def _entity_key(entity: dict) -> tuple:
     """Dedupe key: (entity_type, normalized name-or-id). Case/space-insensitive
-    so 'Main Stair' and 'main  stair' collapse to one entity across tiles."""
+    so 'Main Stair' and 'main  stair' collapse to one entity across tiles.
+    A trailing parenthetical qualifier is stripped so the same element seen in
+    different views merges — 'Window A (schedule)' == 'Window A'."""
     etype = str(entity.get("entity_type", "unknown")).strip().lower()
     label = str(entity.get("name") or entity.get("id") or "").strip().lower()
+    label = re.sub(r"\s*\([^)]*\)$", "", label)
     label = _WS_RE.sub(" ", label)
     return (etype, label)
 

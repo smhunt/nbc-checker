@@ -407,3 +407,24 @@ def test_merge_tile_facts_pure_dedupe_and_highest_confidence():
     assert stair["attributes"]["clear_width_mm"]["value"] == 900  # unioned
     # deterministic, stable ids in first-seen order
     assert [e["id"] for e in merged] == ["pdf-entity-1", "pdf-entity-2"]
+
+
+def test_entity_key_strips_parenthetical_qualifier():
+    from extractors.pdf_extractor import _entity_key
+    a = _entity_key({"entity_type": "window", "name": "Window A (schedule)"})
+    b = _entity_key({"entity_type": "window", "name": "Window A"})
+    assert a == b
+
+
+def test_entity_key_keeps_distinct_letters():
+    from extractors.pdf_extractor import _entity_key
+    a = _entity_key({"entity_type": "window", "name": "Window A"})
+    b = _entity_key({"entity_type": "window", "name": "Window B"})
+    assert a != b
+
+
+def test_entity_key_internal_parens_untouched():
+    from extractors.pdf_extractor import _entity_key
+    a = _entity_key({"entity_type": "door", "name": "Door (main) entrance"})
+    b = _entity_key({"entity_type": "door", "name": "Door entrance"})
+    assert a != b
