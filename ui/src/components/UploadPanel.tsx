@@ -23,9 +23,13 @@ export function UploadPanel({ onResult }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [ruleset, setRuleset] = useState<'nbc' | 'obc'>('nbc')
   const [mode, setMode] = useState<'whole' | 'tiled'>('whole')
+  const [pages, setPages] = useState('auto')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  // Page-selection summary from the finished job (server 0.7+), kept after
+  // polling state is cleared so it can render next to the done message.
+  const [donePages, setDonePages] = useState<Job['pages'] | null>(null)
   // Latest polled job + when it arrived, so elapsed/ETA can tick locally
   // between polls. Null when idle or when the server sends old-shape jobs.
   const [polled, setPolled] = useState<{ job: Job; at: number } | null>(null)
@@ -48,8 +52,11 @@ export function UploadPanel({ onResult }: Props) {
     setBusy(true)
     setMessage('Uploading…')
     setPolled(null)
+    setDonePages(null)
     try {
-      let job = await uploadPlan(file, ruleset, mode)
+      // Backend rejects a malformed pages spec with a 400, which request()
+      // turns into a thrown Error → the catch below shows it in upload-err.
+      let job = await uploadPlan(file, ruleset, mode, pages.trim() || 'auto')
       setPolled({ job, at: Date.now() })
       setNow(Date.now())
       // Poll every 3s until done or error.
@@ -63,6 +70,7 @@ export function UploadPanel({ onResult }: Props) {
         setErr(job.error ?? 'Extraction failed.')
       } else {
         setMessage(job.message)
+        setDonePages(job.pages ?? null)
         onResult(job)
       }
     } catch (e) {
@@ -131,11 +139,28 @@ export function UploadPanel({ onResult }: Props) {
           <option value="tiled">Thorough (tiled, slower)</option>
         </select>
       </label>
+      <label title="Tiled mode: which pages to extract. auto = drawing pages only.">
+        Pages&nbsp;
+        <input
+          className="pages-input"
+          type="text"
+          value={pages}
+          onChange={(e) => setPages(e.target.value)}
+          placeholder="auto | all | 1,3-5"
+          disabled={busy}
+        />
+      </label>
       <button onClick={analyze} disabled={busy}>
         {busy ? 'Analyzing…' : 'Analyze plan'}
       </button>
       {progressBlock}
       {!progressBlock && message && <span className="upload-msg">{message}</span>}
+      {!progressBlock && donePages && (
+        <span className="upload-msg">
+          processed {donePages.selected} of {donePages.total} pages
+          {donePages.skipped ? ` — ${donePages.skipped} skipped (see report metadata)` : ''}
+        </span>
+      )}
       {err && <span className="upload-err">{err}</span>}
     </div>
   )

@@ -151,17 +151,22 @@ export interface Job extends Partial<State> {
   progress?: { done: number; total: number }
   elapsed_s?: number
   eta_s?: number | null
+  // Page-selection summary (server 0.7+, tiled multi-page runs). Present
+  // once extraction finishes; absent on old-shape job responses.
+  pages?: { total: number; selected: number; skipped: number }
 }
 
 export async function uploadPlan(
   file: File,
   ruleset: 'nbc' | 'obc',
   mode: 'whole' | 'tiled',
+  pages: string = 'auto',
 ): Promise<Job> {
   const form = new FormData()
   form.append('file', file)
   form.append('ruleset', ruleset)
   form.append('mode', mode)
+  form.append('pages', pages)
   return request<Job>('/api/upload', { method: 'POST', body: form })
 }
 

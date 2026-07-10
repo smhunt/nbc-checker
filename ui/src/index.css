@@ -125,7 +125,8 @@ input {
   border-bottom: 1px solid var(--border);
   font-size: 13px;
 }
-.upload-panel select {
+.upload-panel select,
+.upload-panel .pages-input {
   font: inherit;
   padding: 3px 6px;
   background: var(--bg);
@@ -133,6 +134,7 @@ input {
   border: 1px solid var(--border);
   border-radius: 4px;
 }
+.upload-panel .pages-input { width: 12ch; }
 .upload-panel button {
   font: inherit;
   padding: 5px 14px;
