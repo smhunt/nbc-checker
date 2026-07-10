@@ -254,7 +254,7 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str) -> None:
             if job is not None and last_tick["counted"] and done > job.progress_done:
                 job.tile_durations.append(round(now - last_tick["t"], 2))
             last_tick["t"] = now
-            last_tick["counted"] = stage.startswith("extracting tile")
+            last_tick["counted"] = "extracting tile" in stage
             STORE.update(job_id, stage=stage, progress_done=done, progress_total=total,
                          stage_changed_at=now)
 

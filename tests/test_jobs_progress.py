@@ -101,3 +101,46 @@ def test_job_public_carries_progress_fields():
     assert pub["elapsed_s"] >= 10
     expected = estimate_eta([12.0], remaining=8, seed_avg=25.0, in_stage_elapsed=0.0)
     assert abs(pub["eta_s"] - expected) < 0.5
+
+
+def _drawing_pdf(tmp_path, n_pages):
+    import fitz
+    pdf = tmp_path / f"{n_pages}p.pdf"
+    doc = fitz.open()
+    for i in range(n_pages):
+        page = doc.new_page(width=612, height=792)
+        page.insert_text((72, 72), f"FLOOR PLAN SCALE 1:50 SHEET {i + 1}")
+    doc.save(pdf)
+    return str(pdf)
+
+
+def test_multipage_progress_event_ordering(tmp_path):
+    pdf = _drawing_pdf(tmp_path, 2)
+    events = []
+    extract_tiled(pdf, runner=lambda p, i: _payload(), pages="all", grid=(1, 1),
+                  progress_cb=lambda s, d, t: events.append((s, d, t)))
+    assert events[0] == ("page 1/2 (pdf p1): rendering tiles", 0, 2)
+    assert events[1] == ("page 1/2 (pdf p1): extracting tile r1c1", 0, 2)
+    assert events[2] == ("page 2/2 (pdf p2): rendering tiles", 1, 2)
+    assert events[3] == ("page 2/2 (pdf p2): extracting tile r1c1", 1, 2)
+    assert events[-1] == ("merging extracted facts", 2, 2)
+    dones = [d for _, d, _ in events]
+    assert dones == sorted(dones)  # monotonic over ONE grand total
+
+
+def test_multipage_progress_cb_does_not_change_output(tmp_path):
+    pdf = _drawing_pdf(tmp_path, 2)
+    kwargs = dict(runner=lambda p, i: _payload(), pages="all", grid=(1, 1))
+    silent = extract_tiled(pdf, **kwargs)
+    noisy = extract_tiled(pdf, progress_cb=lambda *a: None, **kwargs)
+    assert silent == noisy
+
+
+def test_worker_duration_counter_survives_page_prefix():
+    """The upload worker counts tile durations by stage text; the page prefix
+    must not break the match."""
+    import inspect
+
+    from server import app as server_app
+    src = inspect.getsource(server_app._run_extraction)
+    assert '"extracting tile" in stage' in src
