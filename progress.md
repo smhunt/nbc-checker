@@ -158,3 +158,18 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   ground-truth annotation positions; expanded viewer highlighted the annotation from the
   uploaded job's own evidence. Drawer resize persisted (420->681, localStorage).
 - 377 tests passing. Sprint plan: docs/superpowers/plans/2026-07-10-ui-progress-sprint.md
+
+## 2026-07-10 — Session 5c (sample permit corpus)
+- Two research agents surveyed public sample/example permit drawing sets; 17 PDFs
+  (~122 MB) fetched via committed samples/fetch_permits.sh into gitignored
+  samples/external/permits/. Canadian: Calgary full 23-sheet new-home DP/BP set,
+  secondary suites x2, basement, garage, patio; Ottawa (OBC!) addition/sundeck/
+  accessory/basement; Edmonton + Alberta (open licence) + Winnipeg garage guides.
+  US (extraction density + Part 3): Cotati REAL approved sets (ADU 28MB, mixed-use
+  63MB), Lynnwood commercial TI, TRDI 37-sheet commercial CDs.
+- Not redistributed (Calgary prohibits reproduction; others unlicensed public
+  records) — fetch script preserves reproducibility. San Diego ADU plans fail via
+  curl (server aborts); Vancouver 403s non-browser clients; NIBS matched IFC+PDF
+  pairs (the ideal dual-extractor test) are OFFLINE — retry portal.nibs.org later.
+- Sample-facts cleanup: fictional 'drawings A-000' sources -> designer-declared
+  spec values (conf 1.0 now consistent with EO1 story).
