@@ -59,6 +59,9 @@ class FactLookup:
     confidence: float | None = None
     source: str | None = None
     present: bool = False
+    # Optional machine-usable provenance region ({doc, page, bbox?}) — passed
+    # through to the audit trail untouched; never influences pass/fail (EO1).
+    evidence: dict | None = None
 
 
 @dataclass
@@ -92,6 +95,7 @@ def _lookup(entity: dict, fact_name: str) -> FactLookup:
             confidence=raw.get("confidence", 1.0),
             source=raw.get("source"),
             present=True,
+            evidence=raw.get("evidence"),
         )
     return FactLookup(name=fact_name, value=raw, confidence=1.0, present=True)
 
@@ -185,6 +189,7 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
                 "fact": fl.name, "value": fl.value,
                 "confidence": fl.confidence, "source": fl.source,
                 "present": fl.present,
+                "evidence": fl.evidence,
             })
             if not fl.present:
                 status = _worse(status, Status.INFO_NOT_AVAILABLE)
@@ -208,6 +213,7 @@ def check_rule(rule: dict, entities: list[dict]) -> list[CheckResult]:
                     "fact": ref.name, "value": ref.value,
                     "confidence": ref.confidence, "source": ref.source,
                     "present": ref.present,
+                    "evidence": ref.evidence,
                 })
                 if not ref.present:
                     status = _worse(status, Status.INFO_NOT_AVAILABLE)

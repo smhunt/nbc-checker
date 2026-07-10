@@ -142,6 +142,30 @@ def test_not_in_operator():
     assert one(r, mk_entity(grp="F1")).status == Status.FAIL
 
 
+def test_evidence_passes_through_to_facts_used_untouched():
+    ev = {"doc": "A-201.pdf", "page": 1, "bbox": [0.41, 0.31, 0.47, 0.33]}
+    e = mk_entity(x_mm={"value": 150, "confidence": 0.95, "source": "pdf", "evidence": ev})
+    res = one(mk_rule(), e)
+    used = [f for f in res.facts_used if f["fact"] == "x_mm"]
+    assert used and used[0]["evidence"] == ev
+
+
+def test_absent_evidence_yields_none_in_facts_used():
+    res = one(mk_rule(), mk_entity(x_mm=150))
+    assert all(f["evidence"] is None for f in res.facts_used)
+
+
+def test_report_hash_stable_with_evidence():
+    import hashlib
+    rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
+    ev = {"doc": "d.pdf", "page": 2}
+    f = {"project": {}, "entities": [mk_entity(
+        x_mm={"value": 150, "confidence": 1.0, "source": "s", "evidence": ev})]}
+    h = [hashlib.sha256(json.dumps(run_ruleset(rs, f), sort_keys=True).encode()).hexdigest()
+         for _ in range(2)]
+    assert h[0] == h[1]
+
+
 def test_determinism():
     rs = {"ruleset_id": "t", "code_edition": "t", "rules": [mk_rule()]}
     f = {"project": {}, "entities": [mk_entity(x_mm=150)]}

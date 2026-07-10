@@ -50,7 +50,7 @@ PDF drawings ─→ LLM extractor (planned, confidence < 1.0) ──────
 
 ### Facts schema
 
-`{"project": {...}, "entities": [{"entity_type", "id", "name", "attributes": {...}}]}`. An attribute is either a plain value (treated as confidence 1.0) or `{"value", "confidence", "source"}`. All lengths in mm. Source strings cite provenance (`model.ifc#<GlobalId>` or PDF sheet + region).
+`{"project": {...}, "entities": [{"entity_type", "id", "name", "attributes": {...}}]}`. An attribute is either a plain value (treated as confidence 1.0) or `{"value", "confidence", "source"}` plus an optional `"evidence"` object `{"doc", "page", "bbox"?}` — `doc` is a basename only, `page` is 1-based, `bbox` is `[x0,y0,x1,y1]` normalized 0–1 with **top-left origin, y down** (fitz/raster space, not PDF user space). Evidence is machine-usable provenance for the UI drill-down; the engine passes it through to `facts_used` untouched and it never influences pass/fail. All lengths in mm. Source strings remain the human-readable provenance (`model.ifc#<GlobalId>` or PDF sheet + region).
 
 ## Non-negotiable invariants
 

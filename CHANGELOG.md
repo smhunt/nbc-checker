@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- NBC 2020 **Part 3 ruleset** (`rules/nbc2020_part3_core.json`) — first Part 3 categories per Challenge Notice EO2: fire separations, closures, corridor separations, self-closing devices, occupant load, occupancy classification; all verified verbatim against the official NRC text
+- Engine `in`/`not_in` operators (set-membership requirements, e.g. valid major-occupancy groups)
+- Ruleset schema + verification-contract test suite across all rulesets
+- **PDF evidence drill-down (in progress):** facts may carry an optional `evidence` `{doc, page, bbox}` region; engine passes it through the audit trail untouched; page-image endpoints; UI zoom-to-evidence viewer
+### Changed
+- `facts_used` entries now include an `evidence` key (null when absent). Reports produced from identical inputs remain byte-identical, but `report_sha256` differs from pre-0.7 builds for the same facts file because the report schema gained a field.
+### Fixed
+- Engine status dominance: a violated requirement can no longer be masked to `info_not_available` by a later missing fact in the same rule (FAIL > INFO_NOT_AVAILABLE > UNCERTAIN > PASS)
+
 ## [0.6.0] - 2026-07-07
 ### Added
 - **Upload your own PDF plan in the review UI** — pick a file, choose the code (NBC 2020 or Ontario OBC 2024) and extraction mode (Fast one-pass / Thorough tiled), and see the compliance report in the browser
