@@ -1,0 +1,140 @@
+{
+  "project": {
+    "name": "Sample Mixed-Use Building — Part 3 Demo (retail + offices + dwellings)",
+    "municipality": "Demo, Canada",
+    "sources": ["A-101/A-102 plans (schedules)", "A-601 door schedule", "model.ifc (BIM)"]
+  },
+  "entities": [
+    {
+      "entity_type": "fire_separation",
+      "id": "fs-C-D-01",
+      "name": "Wall W2 between residential suites and office tenancy",
+      "attributes": {
+        "separation_type": "major_occupancy",
+        "adjacent_occupancy_pair": "C-D",
+        "fire_resistance_rating_h": { "value": 1.0, "confidence": 0.95, "source": "A-101 wall type schedule, tag W2 (PDF sheet A-101, region: schedule table)" }
+      }
+    },
+    {
+      "entity_type": "fire_separation",
+      "id": "fs-C-E-01",
+      "name": "Floor assembly F1 between ground-floor retail and dwelling units above",
+      "attributes": {
+        "separation_type": "major_occupancy",
+        "adjacent_occupancy_pair": "C-E",
+        "fire_resistance_rating_h": { "value": 1.0, "confidence": 0.95, "source": "A-102 floor assembly schedule, tag F1 (PDF sheet A-102)" }
+      }
+    },
+    {
+      "entity_type": "fire_separation",
+      "id": "fs-corr-01",
+      "name": "Public corridor separation, Level 2 residential corridor",
+      "attributes": {
+        "separation_type": "public_corridor",
+        "serves_care_treatment_detention_or_residential": true
+      }
+    },
+    {
+      "entity_type": "fire_separation",
+      "id": "fs-A2-C-01",
+      "name": "Wall W5 between ground-floor restaurant and residential lobby",
+      "attributes": {
+        "separation_type": "major_occupancy",
+        "adjacent_occupancy_pair": "A2-C",
+        "fire_resistance_rating_h": { "value": 1.0, "confidence": 0.95, "source": "A-101 wall type schedule, tag W5 (PDF sheet A-101)" }
+      }
+    },
+    {
+      "entity_type": "fire_separation",
+      "id": "fs-corr-02",
+      "name": "Public corridor separation, office level corridor (sprinklered storey)",
+      "attributes": {
+        "separation_type": "public_corridor",
+        "serves_care_treatment_detention_or_residential": false,
+        "storey_sprinklered": true
+      }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-2h-01",
+      "name": "Door D07 in 2 h occupancy separation",
+      "attributes": {
+        "separation_rating_h": 2,
+        "closure_rating_min": { "value": 90, "confidence": 0.95, "source": "A-601 door schedule, mark D07 (PDF sheet A-601)" },
+        "has_self_closing_device": { "value": true, "confidence": 0.95, "source": "A-601 door schedule, hardware group HW-3 (PDF sheet A-601)" }
+      }
+    },
+    {
+      "entity_type": "fire_door",
+      "id": "door-1h-01",
+      "name": "Door D12 in 1 h corridor separation",
+      "attributes": {
+        "separation_rating_h": 1,
+        "closure_rating_min": { "value": 45, "confidence": 0.85, "source": "A-601 door schedule, mark D12 — rating column partially legible (LLM extraction, PDF sheet A-601)" }
+      }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "fa-office-200",
+      "name": "Office suite, 2nd floor",
+      "attributes": {
+        "occupancy_use": "office",
+        "major_occupancy": "D",
+        "floor_area_m2": 465.0,
+        "design_occupant_load": 50,
+        "area_per_occupant_m2": { "value": 9.3, "confidence": 1.0, "source": "derived: floor_area_m2 465.0 / design_occupant_load 50 (model.ifc#2Ok_office200)" },
+        "occupant_load_differs_from_table": false
+      }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "fa-restaurant-100",
+      "name": "Banquet hall (non-fixed seats), ground floor",
+      "attributes": {
+        "occupancy_use": "assembly_non_fixed_seats",
+        "major_occupancy": "A2",
+        "floor_area_m2": 150.0,
+        "design_occupant_load": 150,
+        "area_per_occupant_m2": { "value": 1.0, "confidence": 1.0, "source": "derived: floor_area_m2 150.0 / design_occupant_load 150 (model.ifc#1Xq_banquet)" },
+        "occupant_load_differs_from_table": true,
+        "has_occupant_load_posted": true
+      }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "fa-retail-main",
+      "name": "Retail unit, first storey",
+      "attributes": {
+        "occupancy_use": "mercantile_first_storey",
+        "major_occupancy": "E",
+        "floor_area_m2": 320.0
+      }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "fa-classroom-12",
+      "name": "Classroom 12",
+      "attributes": {
+        "occupancy_use": "classroom",
+        "floor_area_m2": 74.0,
+        "design_occupant_load": 50,
+        "area_per_occupant_m2": { "value": 1.48, "confidence": 0.85, "source": "A-101 floor plan, room schedule region (LLM-extracted area 74 m2 / stated load 50)" },
+        "occupant_load_differs_from_table": true,
+        "has_occupant_load_posted": false
+      }
+    },
+    {
+      "entity_type": "floor_area",
+      "id": "fa-unit-301",
+      "name": "Dwelling unit 301 (3 bedrooms)",
+      "attributes": {
+        "occupancy_use": "dwelling_unit",
+        "major_occupancy": "C",
+        "sleeping_room_count": 3,
+        "design_occupant_load": 6,
+        "persons_per_sleeping_room": { "value": 2.0, "confidence": 1.0, "source": "derived: design_occupant_load 6 / sleeping_room_count 3 (model.ifc#3Zr_unit301)" },
+        "occupant_load_differs_from_table": false
+      }
+    }
+  ]
+}

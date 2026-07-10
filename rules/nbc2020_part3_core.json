@@ -1,0 +1,334 @@
+{
+  "ruleset_id": "nbc2020-part3-core",
+  "code_edition": "NBC 2020",
+  "schema_version": "0.2.0",
+  "description": "First NBC 2020 Part 3 rule categories (challenge EO2: Part 3 + Part 9 typology coverage). Same verification discipline as the Part 9 ruleset: every rule carries verification_notes with verbatim quote from the official NRC text (reference/nbc2020.txt), sources, date, reviewer; verified_against_code_text may only be true when quote and sources are populated. Categories: fire separations (3.1.3/3.1.8/3.3.1.4), occupancy classification and occupant load (3.1.2/3.1.17). Exits (3.4) and barrier-free (3.8) follow.",
+  "rules": [
+    {
+      "rule_id": "NBC-3.1.3.1-separation-C-D",
+      "provision": "NBC 2020 Sentence 3.1.3.1.(1) and Table 3.1.3.1.",
+      "title": "Fire separation between Group C and Group D major occupancies",
+      "applies_to": {
+        "entity_type": "fire_separation",
+        "where": { "separation_type": "major_occupancy", "adjacent_occupancy_pair": "C-D" }
+      },
+      "requires": { "all": [ { "fact": "fire_resistance_rating_h", "op": ">=", "value": 1 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.3.1.(3): in a building conforming to Articles 3.2.8.2. to 3.2.8.8. (interconnected floor space), Sentence (1) does not apply at the vertical plane around the perimeter of an opening through the horizontal fire separation. Not machine-encoded — needs geometric facts." }
+      ],
+      "unit_system": "h",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (2) and (3), major occupancies shall be separated from adjoining major occupancies by fire separations having fire-resistance ratings conforming to Table 3.1.3.1. [Table 3.1.3.1. — Major Occupancy Fire Separations, Minimum Fire-Resistance Rating of Fire Separation, h: row C, column D = 1; row D, column C = 1]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.3.1.(1) and Table 3.1.3.1.; verbatim in reference/nbc2020.txt lines ~7111-7150, C row line ~7144)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Table is symmetric for this pairing (C row/D col and D row/C col both read 1 h). adjacent_occupancy_pair is a normalized fact: extractor must emit the two adjoining major occupancy classifications sorted alphanumerically and hyphen-joined (e.g. 'C-D', not 'D-C'). Table note (1): Section 3.3. contains ADDITIONAL separation requirements beyond major-occupancy separation."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.3.1-separation-C-E",
+      "provision": "NBC 2020 Sentence 3.1.3.1.(1) and Table 3.1.3.1.",
+      "title": "Fire separation between Group C and Group E major occupancies",
+      "applies_to": {
+        "entity_type": "fire_separation",
+        "where": { "separation_type": "major_occupancy", "adjacent_occupancy_pair": "C-E" }
+      },
+      "requires": { "all": [ { "fact": "fire_resistance_rating_h", "op": ">=", "value": 2 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.3.1.(2) (referenced by table note (5)): 'In a building not more than 3 storeys in building height, if not more than two dwelling units are contained together with a Group E major occupancy, the fire-resistance rating of the fire separation between the two major occupancies need not be more than 1 h.' NOT machine-encoded as a fact-based exception because engine exceptions grant PASS, not an alternate threshold — waiving here would skip the still-required 1 h check. A candidate companion rule with where {building_storeys <= 3, dwelling_unit_count <= 2} requiring >= 1 h is the correct future encoding." }
+      ],
+      "unit_system": "h",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (2) and (3), major occupancies shall be separated from adjoining major occupancies by fire separations having fire-resistance ratings conforming to Table 3.1.3.1. [Table 3.1.3.1.: row C, column E = 2 (5); row E, column C = 2 (5)] 2) In a building not more than 3 storeys in building height, if not more than two dwelling units are contained together with a Group E major occupancy, the fire-resistance rating of the fire separation between the two major occupancies need not be more than 1 h.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.3.1.(1)-(2) and Table 3.1.3.1.; verbatim in reference/nbc2020.txt lines ~7111-7159, C row line ~7144, Sentence (2) lines ~7121-7123)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "2 h CONFIRMED as the table value (with note (5) pointing to the Sentence (2) relaxation, deliberately left unencoded — see exceptions). A 1 h separation in a 3-storey mixed C/E building with <= 2 dwelling units will report FAIL under this rule and needs human review against Sentence (2); that is conservative, never lenient."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.3.1-separation-A2-C",
+      "provision": "NBC 2020 Sentence 3.1.3.1.(1) and Table 3.1.3.1.",
+      "title": "Fire separation between Group A Division 2 and Group C major occupancies",
+      "applies_to": {
+        "entity_type": "fire_separation",
+        "where": { "separation_type": "major_occupancy", "adjacent_occupancy_pair": "A2-C" }
+      },
+      "requires": { "all": [ { "fact": "fire_resistance_rating_h", "op": ">=", "value": 1 } ] },
+      "exceptions": [],
+      "unit_system": "h",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentences (2) and (3), major occupancies shall be separated from adjoining major occupancies by fire separations having fire-resistance ratings conforming to Table 3.1.3.1. [Table 3.1.3.1.: row A-2, column C = 1 (3); row C, column A-2 = 1 (3)] Notes to Table 3.1.3.1.: (3) Where the building or part thereof is constructed in accordance with Article 3.2.2.48. or 3.2.2.51., a fire separation with a 2 h fire-resistance rating is required between the Group C and Group A, Division 2 major occupancies.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.3.1.(1), Table 3.1.3.1. and note (3); verbatim in reference/nbc2020.txt lines ~7111-7156, A-2 row line ~7138)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "1 h CONFIRMED as the base table value. IMPORTANT LENIENCY: table note (3) RAISES the requirement to 2 h where the building is constructed per Article 3.2.2.48. or 3.2.2.51. (encapsulated mass timber construction paths). Checking >= 1 h only is lenient for those construction articles; needs a construction_article fact and a companion 2 h rule in a future revision. Pair fact normalized alphanumerically: 'A2-C'."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-1h-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 1 h fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 1 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 45 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions), and Sentence (1) also defers to Sentence 3.1.8.16.(1). Neither alternative path is machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h, closure_rating_min in min (code expresses closure ratings as '45 min', '1 h', '1.5 h' etc.; fact standardized to minutes)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Except as permitted by Sentence 3.1.8.12.(1), the fire-protection rating of a closure shall conform to Table 3.1.8.4. for the required fire-resistance rating of the fire separation. [Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 1 h — Minimum Fire-Protection Rating of Closure 45 min]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.8.4.(2) and Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8531-8560, table row line ~8556)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Table row '1 h -> 45 min' CONFIRMED. The code table mixes units (min for 45-min entries, h elsewhere); closure_rating_min is standardized to minutes so extractors must convert (1 h = 60, 1.5 h = 90). separation_rating_h is the REQUIRED fire-resistance rating of the separation the closure serves, not the as-built rating. Full table for reference: 45min->45min, 1h->45min, 1.5h->1h, 2h->1.5h, 3h->2h, 4h->3h; only the 1 h and 2 h rows are encoded as rules in this phase."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.4-closure-2h-separation",
+      "provision": "NBC 2020 Sentence 3.1.8.4.(2) and Table 3.1.8.4.",
+      "title": "Fire-protection rating of closure in a 2 h fire separation",
+      "applies_to": { "entity_type": "fire_door", "where": { "separation_rating_h": 2 } },
+      "requires": { "all": [ { "fact": "closure_rating_min", "op": ">=", "value": 90 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.1.8.4.(2) opens 'Except as permitted by Sentence 3.1.8.12.(1)' (wired glass and glass block as closures under conditions), and Sentence (1) also defers to Sentence 3.1.8.16.(1). Neither alternative path is machine-encoded." }
+      ],
+      "unit_system": "mixed: separation_rating_h in h, closure_rating_min in min (code expresses closure ratings as '45 min', '1 h', '1.5 h' etc.; fact standardized to minutes)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Except as permitted by Sentence 3.1.8.12.(1), the fire-protection rating of a closure shall conform to Table 3.1.8.4. for the required fire-resistance rating of the fire separation. [Table 3.1.8.4. — Fire-Protection Rating of Closures: Fire-Resistance Rating of Fire Separation 2 h — Minimum Fire-Protection Rating of Closure 1.5 h]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.8.4.(2) and Table 3.1.8.4.; verbatim in reference/nbc2020.txt lines ~8531-8560, table row line ~8558)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "Table row '2 h -> 1.5 h' CONFIRMED; 1.5 h encoded as 90 min per the standardized minutes unit for closure_rating_min."
+      }
+    },
+    {
+      "rule_id": "NBC-3.3.1.4-corridor-separation-restricted-occ",
+      "provision": "NBC 2020 Sentences 3.3.1.4.(1) and (2)",
+      "title": "Public corridor fire separation — corridor serving care, treatment, detention or residential occupancy",
+      "applies_to": {
+        "entity_type": "fire_separation",
+        "where": { "separation_type": "public_corridor", "serves_care_treatment_detention_or_residential": true }
+      },
+      "requires": { "all": [ { "fact": "fire_resistance_rating_h", "op": ">=", "value": 0.75 } ] },
+      "exceptions": [
+        { "description": "Sentence 3.3.1.4.(4) waivers for sprinklered floor areas ((a) remainder of storey with travel distance to exit <= 45 m, (b) rooms/suites off corridors complying with 3.3.1.9.(4) and 3.4.2.5.(1)(d), (c) required plumbing-fixture spaces) are not machine-encoded — (4)(a) itself is qualified by Sentences 3.3.3.5.(8) and 3.3.4.2.(1) for these occupancies, so not encoding is conservative. Sentence (3)'s sprinkler waiver explicitly does NOT apply where the corridor serves a care, treatment or detention occupancy or a residential occupancy, hence no sprinkler exception on this rule." }
+      ],
+      "unit_system": "h (45 min encoded as 0.75 h)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as otherwise required by this Part or as permitted by Sentence (4), a public corridor shall be separated from the remainder of the storey by a fire separation. 2) Except as permitted by Sentence (3) and Clauses (4)(a) and (b), the fire separation between a public corridor and the remainder of the storey shall have a fire-resistance rating not less than 45 min. 3) If a storey is sprinklered throughout, no fire-resistance rating is required for a fire separation between a public corridor and the remainder of the storey, provided the corridor does not serve a care, treatment or detention occupancy or a residential occupancy.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.3.1.4. Public Corridor Separations; verbatim in reference/nbc2020.txt lines ~14332-14356)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "45 min CONFIRMED (Sentence (2)); encoded as 0.75 h to keep one unit for the fire_resistance_rating_h fact across all fire_separation rules. serves_care_treatment_detention_or_residential is a boolean fact mirroring Sentence (3)'s exact occupancy carve-out; the extractor sets it true if the corridor serves ANY of those occupancies."
+      }
+    },
+    {
+      "rule_id": "NBC-3.3.1.4-corridor-separation-general",
+      "provision": "NBC 2020 Sentences 3.3.1.4.(1), (2) and (3)",
+      "title": "Public corridor fire separation — corridor not serving care, treatment, detention or residential occupancy",
+      "applies_to": {
+        "entity_type": "fire_separation",
+        "where": { "separation_type": "public_corridor", "serves_care_treatment_detention_or_residential": false }
+      },
+      "requires": { "all": [ { "fact": "fire_resistance_rating_h", "op": ">=", "value": 0.75 } ] },
+      "exceptions": [
+        { "fact": "storey_sprinklered", "op": "==", "value": true,
+          "description": "Sentence 3.3.1.4.(3): 'If a storey is sprinklered throughout, no fire-resistance rating is required for a fire separation between a public corridor and the remainder of the storey, provided the corridor does not serve a care, treatment or detention occupancy or a residential occupancy.' The occupancy proviso is already enforced by this rule's where-clause (serves_care_treatment_detention_or_residential == false), so the single sprinkler fact safely waives the rating here. Note the fire separation itself is still required by Sentence (1) — only the RATING is waived; presence is not separately checked by this rule." },
+        { "description": "Sentence 3.3.1.4.(4) waivers for sprinklered floor areas ((a) travel distance to exit <= 45 m, (b) corridors complying with 3.3.1.9.(4) and 3.4.2.5.(1)(d), (c) required plumbing-fixture spaces) waive the fire separation entirely under multi-fact conditions; not machine-encoded." }
+      ],
+      "unit_system": "h (45 min encoded as 0.75 h)",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) Except as permitted by Sentence (3) and Clauses (4)(a) and (b), the fire separation between a public corridor and the remainder of the storey shall have a fire-resistance rating not less than 45 min. 3) If a storey is sprinklered throughout, no fire-resistance rating is required for a fire separation between a public corridor and the remainder of the storey, provided the corridor does not serve a care, treatment or detention occupancy or a residential occupancy.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.3.1.4. Public Corridor Separations; verbatim in reference/nbc2020.txt lines ~14332-14356)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "The engine's single-fact exception semantics fit Sentence (3) only because the occupancy proviso is pushed into applies_to.where — do not copy this sprinkler exception onto the restricted-occupancy companion rule. storey_sprinklered means sprinklered THROUGHOUT the storey (code wording), not partial coverage."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.8.13-door-self-closing",
+      "provision": "NBC 2020 Sentence 3.1.8.13.(1)",
+      "title": "Self-closing device on doors in fire separations",
+      "applies_to": { "entity_type": "fire_door", "where": {} },
+      "requires": { "all": [ { "fact": "has_self_closing_device", "op": "==", "value": true } ] },
+      "exceptions": [
+        { "fact": "serves_freight_elevator_or_dumbwaiter", "op": "==", "value": true,
+          "description": "Sentence (1) carve-out in the provision text itself: 'other than doors to freight elevators and dumbwaiters'. Fact omitted (not false) for ordinary doors, so absence never waives." },
+        { "description": "Sentence 3.1.8.13.(2) exemptions not machine-encoded (multi-fact conditions): (a) classroom-to-corridor doors in buildings <= 3 storeys, (b) public-corridor-to-business-and-personal-services-room doors in buildings <= 3 storeys not in a dead-end corridor portion, (c)/(d) patients' sleeping room doors within complying fire compartments in hospitals or nursing homes with treatment per Article 3.3.3.5. A missing device on such doors reports FAIL and needs human review — conservative, never lenient." }
+      ],
+      "unit_system": "boolean",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Sentence (2), every door in a fire separation, other than doors to freight elevators and dumbwaiters, shall be equipped with a self-closing device designed to return the door to the closed position after each use.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Article 3.1.8.13. Self-closing Devices; verbatim in reference/nbc2020.txt lines ~8766-8789)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session spot check of official extract",
+        "notes": "fire_door entities are by definition doors located in required fire separations (extractor contract), so where is empty. Hold-open devices are separately permitted under Article 3.1.8.14. subject to release conditions — a held-open door with a conforming self-closing+release device still passes this rule; hold-open release conditions are not encoded."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-occupant-load-office",
+      "provision": "NBC 2020 Clause 3.1.17.1.(1)(c) and Table 3.1.17.1.",
+      "title": "Occupant load — offices (min. 1 person per 9.30 m2)",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupancy_use": "office" } },
+      "requires": { "all": [ { "fact": "area_per_occupant_m2", "op": "<=", "value": 9.3 } ] },
+      "exceptions": [
+        { "description": "Clause 3.1.17.1.(1)(c) closing qualifier: '...unless it can be shown that the area will be occupied by fewer persons.'", "fact": "demonstrated_lower_occupancy", "op": "==", "value": true }
+      ],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) The occupant load of a floor area or part of a floor area shall be based on ... c) the number of persons for which the area is designed, but not less than that determined from Table 3.1.17.1. for occupancies other than those described in Clauses (a) and (b), unless it can be shown that the area will be occupied by fewer persons. [Table 3.1.17.1., Business and personal services uses: offices — Area per person, m2: 9.30]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.17.1.(1) and Table 3.1.17.1.; verbatim in reference/nbc2020.txt lines ~9672-9678 and ~9718)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "The engine cannot divide, so the extractor computes area_per_occupant_m2 = floor_area_m2 / design_occupant_load deterministically. Code direction: design load shall be NOT LESS THAN area/9.30, i.e. design_occupant_load >= floor_area/9.30, equivalently area_per_occupant_m2 <= 9.30. A larger area-per-person means the design assumes FEWER people than the table minimum — a violation for egress sizing purposes unless the 'fewer persons' demonstration (encoded as the exception fact demonstrated_lower_occupancy) is made, in which case Sentence (2) posting applies."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-occupant-load-assembly-non-fixed-seats",
+      "provision": "NBC 2020 Clause 3.1.17.1.(1)(c) and Table 3.1.17.1.",
+      "title": "Occupant load — assembly space with non-fixed seats (min. 1 person per 0.75 m2)",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupancy_use": "assembly_non_fixed_seats" } },
+      "requires": { "all": [ { "fact": "area_per_occupant_m2", "op": "<=", "value": 0.75 } ] },
+      "exceptions": [
+        { "description": "Clause 3.1.17.1.(1)(c) closing qualifier: '...unless it can be shown that the area will be occupied by fewer persons.'", "fact": "demonstrated_lower_occupancy", "op": "==", "value": true }
+      ],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.17.1., Assembly uses: space with non-fixed seats — Area per person, m2: 0.75]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.17.1.; verbatim in reference/nbc2020.txt line ~9696)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "Distinct table rows exist for 'space with non-fixed seats and tables' (0.95) and 'standing space' (0.40) — this rule covers ONLY the seats-without-tables row. Spaces with fixed seats are governed by Clause (1)(a) (number of seats), not the table. area_per_occupant_m2 computed by extractor as floor_area_m2 / design_occupant_load."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-occupant-load-mercantile-first-storey",
+      "provision": "NBC 2020 Clause 3.1.17.1.(1)(c) and Table 3.1.17.1.",
+      "title": "Occupant load — mercantile, basements and first storeys (min. 1 person per 3.70 m2)",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupancy_use": ["mercantile_basement", "mercantile_first_storey"] } },
+      "requires": { "all": [ { "fact": "area_per_occupant_m2", "op": "<=", "value": 3.7 } ] },
+      "exceptions": [
+        { "description": "Clause 3.1.17.1.(1)(c) closing qualifier: '...unless it can be shown that the area will be occupied by fewer persons.'", "fact": "demonstrated_lower_occupancy", "op": "==", "value": true }
+      ],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.17.1., Mercantile uses: basements and first storeys — Area per person, m2: 3.70; second storeys having a principal entrance from a pedestrian thoroughfare or a parking area — 3.70; other storeys — 5.60]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.17.1.; verbatim in reference/nbc2020.txt lines ~9719-9723)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "3.70 also applies to second storeys with a principal entrance from a pedestrian thoroughfare or parking area (could be added to the where-list as mercantile_second_storey_principal_entrance); 'other storeys' use 5.60 and need a separate rule. This rule deliberately scopes to the unambiguous basement/first-storey rows."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-occupant-load-classroom",
+      "provision": "NBC 2020 Clause 3.1.17.1.(1)(c) and Table 3.1.17.1.",
+      "title": "Occupant load — classrooms (min. 1 person per 1.85 m2)",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupancy_use": "classroom" } },
+      "requires": { "all": [ { "fact": "area_per_occupant_m2", "op": "<=", "value": 1.85 } ] },
+      "exceptions": [
+        { "description": "Clause 3.1.17.1.(1)(c) closing qualifier: '...unless it can be shown that the area will be occupied by fewer persons.'", "fact": "demonstrated_lower_occupancy", "op": "==", "value": true }
+      ],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "[Table 3.1.17.1., Assembly uses: classrooms — Area per person, m2: 1.85]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Table 3.1.17.1.; verbatim in reference/nbc2020.txt line ~9702)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "Classrooms sit under 'Assembly uses' in the table. School shops and vocational rooms are a separate row (9.30) and laboratories in schools another (4.60) — do not map those uses to this rule."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-occupant-load-dwelling-sleeping-rooms",
+      "provision": "NBC 2020 Clause 3.1.17.1.(1)(b)",
+      "title": "Occupant load — dwelling units (2 persons per sleeping room)",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupancy_use": "dwelling_unit" } },
+      "requires": { "all": [ { "fact": "persons_per_sleeping_room", "op": ">=", "value": 2 } ] },
+      "exceptions": [],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) The occupant load of a floor area or part of a floor area shall be based on ... b) 2 persons per sleeping room in a dwelling unit, or ...",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Clause 3.1.17.1.(1)(b); verbatim in reference/nbc2020.txt line ~9674)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "Engine cannot multiply/divide, so the extractor computes persons_per_sleeping_room = design_occupant_load / sleeping_room_count deterministically. The clause fixes the load determination basis at 2 persons per sleeping room; a design occupant load below that basis under-sizes egress, hence >= 2. Table note (2) extends the dwelling-unit basis to suites of care occupancy. The 'fewer persons' qualifier in Clause (c) grammatically attaches to Clause (c) occupancies, not (b), so no exception is encoded here."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.2.1-major-occupancy-classification",
+      "provision": "NBC 2020 Sentence 3.1.2.1.(1) and Table 3.1.2.1.",
+      "title": "Classification — every floor area must declare a valid major occupancy group/division",
+      "applies_to": { "entity_type": "floor_area", "where": {} },
+      "requires": { "all": [ { "fact": "major_occupancy", "op": "in", "value": ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "C", "D", "E", "F1", "F2", "F3"] } ] },
+      "exceptions": [],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "1) Except as permitted by Articles 3.1.2.3. to 3.1.2.5., every building or part thereof shall be classified according to its major occupancy as belonging to one of the Groups or Divisions described in Table 3.1.2.1. (See Note A-3.1.2.1.(1).) [Table 3.1.2.1. Major Occupancy Classification: A-1 Assembly occupancies intended for the production and viewing of the performing arts; A-2 Assembly occupancies not elsewhere classified in Group A; A-3 Assembly occupancies of the arena type; A-4 Assembly occupancies in which occupants are gathered in the open air; B-1 Detention occupancies; B-2 Treatment occupancies; B-3 Care occupancies; C Residential occupancies; D Business and personal services occupancies; E Mercantile occupancies; F-1 High-hazard industrial occupancies; F-2 Medium-hazard industrial occupancies; F-3 Low-hazard industrial occupancies]",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.2.1.(1) and Table 3.1.2.1.; verbatim in reference/nbc2020.txt lines ~7049-7051 and ~7067-7080)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent + main-session upgrade to set-membership",
+        "notes": "Originally drafted as a presence check because the engine lacked set membership; the engine now supports the 'in' operator (added 2026-07-09), so this rule validates true membership in the Table 3.1.2.1 group list. Group codes are normalized without hyphens (A1 not A-1) per the project facts vocabulary (matches adjacent_occupancy_pair normalization). Exceptions 3.1.2.3.-3.1.2.5. (arena-type, police stations, convalescent homes) alter WHICH classification applies, not WHETHER one is required, so they are not encoded as exceptions here."
+      }
+    },
+    {
+      "rule_id": "NBC-3.1.17.1-2-occupant-load-posting",
+      "provision": "NBC 2020 Sentence 3.1.17.1.(2)",
+      "title": "Posting of occupant load — permanent sign where design load differs from Table 3.1.17.1.",
+      "applies_to": { "entity_type": "floor_area", "where": { "occupant_load_differs_from_table": true } },
+      "requires": { "all": [ { "fact": "has_occupant_load_posted", "op": "==", "value": true } ] },
+      "exceptions": [],
+      "unit_system": "m2",
+      "verified_against_code_text": true,
+      "verification_notes": {
+        "quote": "2) If a floor area or part thereof has been designed for an occupant load other than that determined from Table 3.1.17.1., a permanent sign indicating that occupant load shall be posted in a conspicuous location.",
+        "sources": [
+          "NBC 2020 official PDF, publications.gc.ca NR24-28/2020E-PDF (Div B Vol 1, Sentence 3.1.17.1.(2); verbatim in reference/nbc2020.txt lines ~9679-9681)"
+        ],
+        "verified_date": "2026-07-09",
+        "reviewer": "Claude Part 3 encoding agent (engine-validated) + main-session spot check of official extract",
+        "notes": "NBC 2020 contains NO Article 3.1.17.2 — posting lives in Sentence 3.1.17.1.(2). The actual sentence is NOT limited to assembly occupancies and has NO occupant-count trigger threshold: it applies to ANY floor area designed for a load other than the Table 3.1.17.1. value. occupant_load_differs_from_table is a deterministic extractor-computed boolean (design_occupant_load != table-derived load); if the extractor cannot determine it, applicability is undeterminable and the engine reports accordingly."
+      }
+    }
+  ]
+}
