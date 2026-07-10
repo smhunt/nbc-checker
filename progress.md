@@ -173,3 +173,9 @@ dwelling). The upload exposed three gaps, all now closed (parallel agents + inli
   pairs (the ideal dual-extractor test) are OFFLINE — retry portal.nibs.org later.
 - Sample-facts cleanup: fictional 'drawings A-000' sources -> designer-declared
   spec values (conf 1.0 now consistent with EO1 story).
+- Ottawa addition (real OBC sheet, p.6 floor plan) through tiled extraction: 7 entities,
+  11 facts, 11/11 with evidence bboxes, ALL conf <= 0.89 (EO1 held). Model read the
+  window schedule + normalized printed imperial (9'x7' -> 2743x2134 mm). Engine (OBC +
+  NBC): zero false verdicts — everything routed to info_not_available / uncertain
+  (kitchen room_use at 0.89 -> applicability review). Follow-ups: multi-page extraction
+  loop (checklist pages precede drawings), dedupe 'Window A (schedule)' vs 'Window A'.
