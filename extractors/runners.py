@@ -149,7 +149,8 @@ def _media_block(kind: str, path: str) -> dict:
     }
 
 
-def make_api_runner(kind: str, model: str | None = None, _client_factory=None):
+def make_api_runner(kind: str, model: str | None = None, _client_factory=None,
+                    usage_cb=None):
     """Direct Anthropic Messages API runner for `kind` ("pdf" | "image").
 
     The `anthropic` SDK is imported here (not at module import) so CLI-only
@@ -158,6 +159,14 @@ def make_api_runner(kind: str, model: str | None = None, _client_factory=None):
     explicitly — selection (`select_runner` saw a key) and auth can never
     disagree. `_client_factory` is a test seam standing in for
     `anthropic.Anthropic`; production code never passes it.
+
+    `usage_cb`, if given, is called `usage_cb(resp.usage)` after every
+    successful `messages.create` (before the refusal/max_tokens check, so a
+    usable-but-truncated response still reports its token counts). Additive
+    and optional — no caller in the extraction pipeline passes it; it exists
+    for diagnostics (`scripts/ab_extract_models.py`) that need per-call token
+    counts without duplicating the request/error-mapping logic here. Never
+    called on a request that raised (the SDK doesn't return usage for those).
     """
     _check_kind(kind)
     try:
@@ -207,6 +216,8 @@ def make_api_runner(kind: str, model: str | None = None, _client_factory=None):
             raise RuntimeError(
                 f"Anthropic API connection error ({type(exc).__name__})"
             ) from None
+        if usage_cb is not None:
+            usage_cb(getattr(resp, "usage", None))
         if resp.stop_reason in ("refusal", "max_tokens"):
             raise RuntimeError(
                 f"Anthropic API response unusable: stop_reason={resp.stop_reason}"
