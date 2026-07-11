@@ -24,6 +24,12 @@ interface Props {
   ruleMeta: RuleMeta | undefined
   overrides: Overrides
   jobId: string | null
+  // True while the report is a mid-extraction partial (progressive
+  // streaming): the server already 404s override/export against a job that
+  // has no `facts` yet (only `partial_facts`) — this is UX only, hiding the
+  // override form in favour of an explanatory note instead of letting the
+  // reviewer submit something the server will reject.
+  readOnly?: boolean
   // Fact name to auto-focus in the evidence viewer when the drawer opens
   // (same effect as clicking that fact's ⌖ view button). Optional — absent
   // means the drawer opens with the viewer closed, as before.
@@ -90,6 +96,7 @@ export function DetailDrawer({
   ruleMeta,
   overrides,
   jobId,
+  readOnly = false,
   initialEvidenceFocus,
   onOverride,
   onDeleteOverride,
@@ -283,17 +290,26 @@ export function DetailDrawer({
       )}
 
       <h3>Reviewer override</h3>
-      {reviewable.length === 0 && Object.keys(entityOverrides).length === 0 && (
+      {readOnly ? (
         <p className="empty-note">
-          No facts on this check need review — every fact is present at confidence ≥{' '}
-          {CONFIDENCE_THRESHOLD}.
+          Extraction is still in progress for this plan — overrides and export unlock once the
+          report is final.
         </p>
+      ) : (
+        <>
+          {reviewable.length === 0 && Object.keys(entityOverrides).length === 0 && (
+            <p className="empty-note">
+              No facts on this check need review — every fact is present at confidence ≥{' '}
+              {CONFIDENCE_THRESHOLD}.
+            </p>
+          )}
+          {reviewable.map((f) => (
+            <OverrideForm key={f.fact} fact={f} entityId={result.entity_id} onOverride={onOverride} />
+          ))}
+        </>
       )}
-      {reviewable.map((f) => (
-        <OverrideForm key={f.fact} fact={f} entityId={result.entity_id} onOverride={onOverride} />
-      ))}
 
-      {Object.keys(entityOverrides).length > 0 && (
+      {!readOnly && Object.keys(entityOverrides).length > 0 && (
         <>
           <h3>Active overrides for this entity</h3>
           {Object.entries(entityOverrides).map(([fact, o]) => (

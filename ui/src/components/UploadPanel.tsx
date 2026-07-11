@@ -4,6 +4,11 @@ import { getJob, uploadPlan } from '../api'
 
 interface Props {
   onResult: (job: Job) => void
+  // Progressive streaming (server 0.8+): called with every polled job that
+  // carries a page-barrier partial report, so the caller can show it while
+  // extraction is still running. Optional/additive — omitting it keeps the
+  // existing progress-only display unchanged.
+  onPartial?: (job: Job) => void
 }
 
 // m:ss, e.g. 83.4 → "1:23".
@@ -19,7 +24,7 @@ function formatEta(s: number): string {
 }
 
 // Upload a PDF plan, start extraction, and poll until the report is ready.
-export function UploadPanel({ onResult }: Props) {
+export function UploadPanel({ onResult, onPartial }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [ruleset, setRuleset] = useState<'nbc' | 'obc'>('nbc')
   const [mode, setMode] = useState<'whole' | 'tiled'>('whole')
@@ -65,6 +70,7 @@ export function UploadPanel({ onResult }: Props) {
         await new Promise((r) => setTimeout(r, 3000))
         job = await getJob(job.job_id)
         setPolled({ job, at: Date.now() })
+        if (job.partial && job.report) onPartial?.(job)
       }
       if (job.status === 'error') {
         setErr(job.error ?? 'Extraction failed.')

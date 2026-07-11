@@ -154,6 +154,13 @@ export interface Job extends Partial<State> {
   // Page-selection summary (server 0.7+, tiled multi-page runs). Present
   // once extraction finishes; absent on old-shape job responses.
   pages?: { total: number; selected: number; skipped: number }
+  // Progressive streaming (server 0.8+): present only on a mid-extraction
+  // response that carries a page-barrier partial report/facts (report,
+  // facts, rules are then populated on this same Job via the `State`
+  // fields it partially extends — but report_sha256 is deliberately absent,
+  // since a partial report can still change once a later page is read).
+  partial?: boolean
+  partial_pages?: { done: number; total: number }
 }
 
 export async function uploadPlan(

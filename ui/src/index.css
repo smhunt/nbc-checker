@@ -199,6 +199,18 @@ input {
   font-size: 11px;
 }
 
+/* progressive streaming: partial (mid-extraction) results banner */
+
+.partial-banner {
+  margin: 0 16px;
+  padding: 8px 12px;
+  border: 1px solid var(--status-uncertain);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--status-uncertain) 12%, var(--bg));
+  color: var(--text);
+  font-size: 12px;
+}
+
 /* ---------- summary bar ---------- */
 
 .summary-bar {

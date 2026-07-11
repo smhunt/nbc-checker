@@ -24,6 +24,10 @@ export default function App() {
   // a row is opened via its ⌖ evidence affordance, cleared on plain row click.
   const [evidenceFocus, setEvidenceFocus] = useState<{ fact: string; nonce: number } | null>(null)
   const [showAbout, setShowAbout] = useState(false)
+  // Progressive streaming: true while `state` holds a mid-extraction partial
+  // report (no report_sha256 yet, overrides forced empty, export locked).
+  const [isPartial, setIsPartial] = useState(false)
+  const [partialPages, setPartialPages] = useState<{ done: number; total: number } | null>(null)
 
   const loadSample = useCallback(() => {
     getState()
@@ -33,27 +37,74 @@ export default function App() {
         setSource(null)
         setSelectedKey(null)
         setEvidenceFocus(null)
+        setIsPartial(false)
+        setPartialPages(null)
       })
       .catch((e: Error) => setError(e.message))
   }, [])
 
   useEffect(loadSample, [loadSample])
 
-  const showJob = useCallback((job: Job) => {
-    if (!job.report) return
-    setState({
-      report: job.report,
-      facts: job.facts!,
-      overrides: job.overrides ?? {},
-      rules: job.rules ?? {},
-      report_sha256: job.report_sha256 ?? '',
-    })
-    setJobId(job.job_id)
-    setSource(`${job.filename} · ${job.ruleset_key.toUpperCase()} · ${job.mode}`)
-    setSelectedKey(null)
-    setEvidenceFocus(null)
-    setError(null)
-  }, [])
+  // Both showJob (final) and showPartial (mid-extraction) preserve the
+  // reviewer's selected row across refreshes of the SAME job — jarring to
+  // lose your place every 3s while a tiled job streams in. A different job
+  // (or the first result of this job) still resets selection, as before.
+  const preserveSelection = useCallback(
+    (job: Job) => isPartial && jobId === job.job_id,
+    [isPartial, jobId],
+  )
+
+  const showJob = useCallback(
+    (job: Job) => {
+      if (!job.report) return
+      const keep = preserveSelection(job)
+      setState({
+        report: job.report,
+        facts: job.facts!,
+        overrides: job.overrides ?? {},
+        rules: job.rules ?? {},
+        report_sha256: job.report_sha256 ?? '',
+      })
+      setJobId(job.job_id)
+      setSource(`${job.filename} · ${job.ruleset_key.toUpperCase()} · ${job.mode}`)
+      if (!keep) {
+        setSelectedKey(null)
+        setEvidenceFocus(null)
+      }
+      setIsPartial(false)
+      setPartialPages(null)
+      setError(null)
+    },
+    [preserveSelection],
+  )
+
+  // Partial (mid-extraction) result: same shape as showJob, but the report
+  // can still change (later pages may read a fact at higher confidence), so
+  // overrides are forced empty and report_sha256 blank — the determinism
+  // badge and override/export UI hide accordingly (see below / DetailDrawer).
+  const showPartial = useCallback(
+    (job: Job) => {
+      if (!job.report) return
+      const keep = preserveSelection(job)
+      setState({
+        report: job.report,
+        facts: job.facts!,
+        overrides: {},
+        rules: job.rules ?? {},
+        report_sha256: '',
+      })
+      setJobId(job.job_id)
+      setSource(`${job.filename} · ${job.ruleset_key.toUpperCase()} · ${job.mode}`)
+      if (!keep) {
+        setSelectedKey(null)
+        setEvidenceFocus(null)
+      }
+      setIsPartial(true)
+      setPartialPages(job.partial_pages ?? null)
+      setError(null)
+    },
+    [preserveSelection],
+  )
 
   const toggleFilter = useCallback((status: CheckStatus) => {
     setFilters((prev) => {
@@ -122,16 +173,28 @@ export default function App() {
             ← {source}
           </button>
         )}
-        <span
-          className="determinism-badge"
-          title="identical inputs → identical report"
-        >
-          <span className="dot">●</span>
-          {state.report_sha256.slice(0, 12)}
-        </span>
+        {/* Hidden while a partial (mid-extraction) report is showing — there
+            is no sha to prove determinism against yet. */}
+        {state.report_sha256 && (
+          <span
+            className="determinism-badge"
+            title="identical inputs → identical report"
+          >
+            <span className="dot">●</span>
+            {state.report_sha256.slice(0, 12)}
+          </span>
+        )}
       </header>
 
-      <UploadPanel onResult={showJob} />
+      <UploadPanel onResult={showJob} onPartial={showPartial} />
+
+      {isPartial && (
+        <div className="partial-banner">
+          Partial results — extraction in progress
+          {partialPages ? ` (page ${partialPages.done} of ${partialPages.total})` : ''}. Overrides
+          and export unlock when extraction completes.
+        </div>
+      )}
 
       <SummaryBar summary={report.summary} activeFilters={filters} onToggle={toggleFilter} />
 
@@ -159,6 +222,7 @@ export default function App() {
             ruleMeta={state.rules[selected.rule_id]}
             overrides={state.overrides}
             jobId={jobId}
+            readOnly={isPartial}
             initialEvidenceFocus={evidenceFocus ?? undefined}
             onOverride={handleOverride}
             onDeleteOverride={handleDeleteOverride}

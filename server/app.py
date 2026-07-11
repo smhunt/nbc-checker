@@ -217,19 +217,38 @@ def _rules_meta(ruleset: dict) -> dict:
     }
 
 
-def _job_state(job) -> dict:
-    """Build the same state shape as /api/state for a completed upload job."""
-    ruleset = _load_json(str(RULESETS[job.ruleset_key]))
-    effective_facts = apply_overrides(job.facts, job.overrides)
+def _report_state(ruleset_key: str, facts: dict, overrides: dict) -> dict:
+    """Pure: (ruleset, facts, overrides) -> {report, facts, rules}.
+
+    No sha, no overrides key in the output — the shared core of both the
+    final job state (`_job_state`, below) and the partial-during-extraction
+    state (`_job_partial_state`). Only `_job_state` hashes+signs the result;
+    a partial report is never signed (it can still change once a later page
+    reads the same fact at higher confidence).
+    """
+    ruleset = _load_json(str(RULESETS[ruleset_key]))
+    effective_facts = apply_overrides(facts, overrides)
     report = run_ruleset(ruleset, effective_facts)
-    sha = _hashlib.sha256(json.dumps(report, sort_keys=True).encode("utf-8")).hexdigest()
     return {
         "report": report,
         "facts": effective_facts,
-        "overrides": job.overrides,
         "rules": _rules_meta(ruleset),
-        "report_sha256": sha,
     }
+
+
+def _job_state(job) -> dict:
+    """Build the same state shape as /api/state for a completed upload job."""
+    state = _report_state(job.ruleset_key, job.facts, job.overrides)
+    sha = _hashlib.sha256(json.dumps(state["report"], sort_keys=True).encode("utf-8")).hexdigest()
+    return {**state, "overrides": job.overrides, "report_sha256": sha}
+
+
+def _job_partial_state(job) -> dict:
+    """Same report/facts/rules shape as `_job_state`, built from
+    `job.partial_facts` with overrides forced empty (overrides stay locked
+    until `job.facts` is set — see `server/jobs.py`'s module docstring) and
+    NO `report_sha256` key (the determinism badge is final-only)."""
+    return _report_state(job.ruleset_key, job.partial_facts, {})
 
 
 def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") -> None:
@@ -246,12 +265,21 @@ def _run_extraction(job_id: str, pdf_path: str, mode: str, pages_spec="auto") ->
         # — the facts are identical with or without it.
         _cb = make_progress_cb(STORE, job_id)
 
+        def _on_partial(pfacts: dict, pages_done: int, pages_total: int) -> None:
+            # json.loads(json.dumps(...)) deep-copies pfacts, severing any
+            # aliasing with extract_tiled's internal accumulator lists before
+            # the snapshot lands in the shared job store (belt-and-suspenders
+            # alongside extract_tiled's own per-call list copies).
+            snapshot = json.loads(json.dumps(pfacts))
+            STORE.update(job_id, partial_facts=snapshot,
+                         partial_pages={"done": pages_done, "total": pages_total})
+
         if mode == "tiled":
             # grid=None -> per-page adaptive choose_grid (letter 2x2, big sheets 3x3)
             workers = tile_concurrency()
             STORE.update(job_id, workers=workers)
             facts = extract_tiled(pdf_path, grid=None, pages=pages_spec, progress_cb=_cb,
-                                  workers=workers)
+                                  workers=workers, on_partial=_on_partial)
         else:
             facts = extract(pdf_path, progress_cb=_cb)
         STORE.update(job_id, stage="running deterministic checks")
@@ -317,6 +345,10 @@ def get_job(job_id: str) -> dict:
     out = job.public()
     if job.status == "done" and job.facts is not None:
         out.update(_job_state(job))
+    elif job.status == "extracting" and job.partial_facts is not None:
+        out.update(_job_partial_state(job))
+        out["partial"] = True
+        out["partial_pages"] = job.partial_pages
     return out
 
 

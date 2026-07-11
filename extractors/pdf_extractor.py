@@ -676,6 +676,7 @@ def extract_tiled(
     max_pages: int | None = None,
     progress_cb=None,
     workers: int | None = None,
+    on_partial=None,
 ) -> dict:
     """Tiled extraction over the DRAWING PAGES of a (multi-page) PDF.
 
@@ -704,6 +705,26 @@ def extract_tiled(
     default 4) is the per-page tile thread-pool size passed to
     `_extract_tiles`; `workers<=1` reproduces the exact pre-wave-3 serial
     behaviour (see `_extract_tiles`).
+
+    `on_partial(pfacts, pages_done, pages_total)` (wave 4, progressive
+    streaming): fired at the PAGE BARRIER of the multi-page loop below, once
+    `_extract_tiles` returns for page `pages_done` (1-based), for EVERY page
+    including the last (the final `return` below stays authoritative — the
+    last on_partial call and the return value describe the same state, just
+    reached via different code paths). `pfacts` mirrors this function's final
+    return shape exactly (`project` + `entities`), built by re-running the
+    pure `merge_tile_facts` over the tile facts accumulated so far, i.e. the
+    contiguous completed-page prefix in page order — wave 3's tile-level
+    parallelism is confined WITHIN a page (the outer page loop stays serial),
+    so nothing here needs to account for it. Every list handed to the
+    callback (`tiles`, `tiles_unparsed`, `tiles_skipped`, `entities`) is a
+    fresh copy taken at the moment of the call: `sent_labels`/`skipped_tiles`/
+    `blank_tiles` keep growing after the call returns, and copying now is
+    what keeps `on_partial` purely observational (a later page's tiles can
+    never mutate a snapshot already handed to the caller). `on_partial` is
+    never called from the `tiles=` bypass branch above — that branch has no
+    page loop (it is a single pre-rendered tile set with no page barrier to
+    fire at), so there is nothing to publish progressively.
     """
     if runner is None:
         runner = cached(select_runner("image"))
@@ -766,6 +787,26 @@ def extract_tiled(
         _extract_tiles(pdf_name, page_tiles, runner, tile_facts, skipped_tiles, blank_tiles,
                        sent_labels, progress_cb, prefix, done, grand_total, workers=workers)
         done += len(page_tiles)
+        if on_partial is not None:
+            pmerged = merge_tile_facts(tile_facts)
+            pfacts = {
+                "project": {
+                    "name": f"{pdf_name} (tiled drawing extraction)",
+                    "sources": [pdf_path],
+                    "extractor": extractor_identity,
+                    "pages": {
+                        "total": len(stats),
+                        "processed": list(selection.selected),
+                        "skipped": list(selection.skipped),
+                        "selection": spec if isinstance(spec, str) else list(spec),
+                    },
+                    "tiles": list(sent_labels),
+                    "tiles_unparsed": list(skipped_tiles),
+                    "tiles_skipped": list(blank_tiles),
+                },
+                "entities": pmerged["entities"],
+            }
+            on_partial(pfacts, ordinal, len(plans))
 
     if progress_cb:
         progress_cb("merging extracted facts", grand_total, grand_total)

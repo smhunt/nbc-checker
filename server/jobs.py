@@ -4,6 +4,16 @@ Extraction of a real drawing (especially tiled) takes seconds to minutes and
 shells out to the `claude` CLI, so uploads run on a background thread and the
 UI polls for status. Jobs are ephemeral (lost on server restart) — this is a
 review aid, not a system of record.
+
+Progressive streaming (wave 4): `Job.partial_facts`/`Job.partial_pages` hold
+the most recent page-barrier snapshot from `extractors.pdf_extractor.
+extract_tiled`'s `on_partial` callback while `status == "extracting"`. These
+are ephemeral previews only — `server/app.py::get_job` serves them with a
+`"partial": true` flag and NO `report_sha256` (the determinism badge is
+final-only; a value can still change once a later page reads it at higher
+confidence). `Job.facts` (and therefore overrides/export, which gate on it)
+stays `None` until extraction is fully done, so the review-changing surface
+is locked automatically for the whole streaming window.
 """
 
 from __future__ import annotations
@@ -67,6 +77,13 @@ class Job:
     facts: dict | None = None
     overrides: dict = field(default_factory=dict)
     error: str | None = None
+    # Progressive streaming (wave 4): most recent page-barrier snapshot from
+    # extract_tiled's on_partial callback. partial_facts mirrors the shape of
+    # `facts` (project + entities); partial_pages is {"done", "total"}. Both
+    # stay None for whole-PDF mode (no page loop -> no on_partial) and are
+    # superseded once `facts` is set (get_job's done branch takes priority).
+    partial_facts: dict | None = None
+    partial_pages: dict | None = None
     # Verbose progress: current stage, tile counters, timing for the ETA.
     stage: str = "queued"
     progress_done: int = 0

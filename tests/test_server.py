@@ -1,13 +1,16 @@
 """Review-server tests — override round-trip drives the EO4 loop:
 reviewer confirms an UNCERTAIN fact -> deterministic re-run flips the check."""
 
+import hashlib
 import json
+import threading
+import time
 
 import pytest
 from fastapi.testclient import TestClient
 
 from engine.checker import run_ruleset
-from server.app import _facts_path, _rules_path, app
+from server.app import RULESETS, _facts_path, _rules_path, app
 from server.overrides import apply_overrides, load_overrides, save_overrides
 
 
@@ -494,3 +497,110 @@ def test_upload_tiled_job_wires_worker_concurrency(upload_client, monkeypatch):
         data={"ruleset": "obc", "mode": "whole"},
     )
     assert STORE.get(r2.json()["job_id"]).workers == 1
+
+
+# --------------------------------------------------------------------------
+# Progressive streaming: real-thread mid-run integration test (wave 4, D3).
+#
+# Deliberately does NOT use the `upload_client` fixture above -- that
+# fixture monkeypatches `threading.Thread` to a synchronous shim so upload
+# tests don't need to poll. This test needs the OPPOSITE: a real background
+# thread that we can pause mid-extraction (via a real threading.Event) while
+# the main thread polls GET /api/jobs/{id} through actual HTTP requests, to
+# prove the partial-then-final contract holds under genuine concurrency, not
+# just sequential monkeypatched calls.
+# --------------------------------------------------------------------------
+
+
+def test_partial_visible_mid_run_then_final_matches_nonstreaming(client, monkeypatch):
+    import extractors.pdf_extractor as pe
+
+    reached_partial = threading.Event()
+    release = threading.Event()
+
+    partial_pfacts = {
+        "project": {
+            "name": "stub.pdf (tiled drawing extraction)", "sources": ["stub.pdf"],
+            "extractor": "cli:claude",
+            "pages": {"total": 2, "processed": [1, 2], "skipped": [], "selection": "all"},
+            "tiles": ["p1:r1c1"], "tiles_unparsed": [], "tiles_skipped": [],
+        },
+        "entities": [{
+            "entity_type": "stair_flight", "id": "s1", "name": "Stair",
+            "attributes": {"riser_height_mm": {"value": 190, "confidence": 0.8, "source": "p1"}},
+        }],
+    }
+    final_facts = {
+        "project": {
+            "name": "stub.pdf (tiled drawing extraction)", "sources": ["stub.pdf"],
+            "extractor": "cli:claude",
+            "pages": {"total": 2, "processed": [1, 2], "skipped": [], "selection": "all"},
+            "tiles": ["p1:r1c1", "p2:r1c1"], "tiles_unparsed": [], "tiles_skipped": [],
+        },
+        "entities": [
+            {
+                "entity_type": "stair_flight", "id": "s1", "name": "Stair",
+                "attributes": {"riser_height_mm": {"value": 190, "confidence": 0.8, "source": "p1"}},
+            },
+            {
+                "entity_type": "window", "id": "w1", "name": "Window",
+                "attributes": {"overall_width_mm": {"value": 900, "confidence": 0.7, "source": "p2"}},
+            },
+        ],
+    }
+
+    def stub_extract_tiled(pdf_path, **kwargs):
+        on_partial = kwargs["on_partial"]
+        on_partial(partial_pfacts, 1, 2)
+        reached_partial.set()
+        assert release.wait(timeout=10), "main thread never released the stub"
+        return final_facts
+
+    monkeypatch.setattr(pe, "extract_tiled", stub_extract_tiled)
+
+    up = client.post(
+        "/api/upload",
+        files={"file": ("plan.pdf", b"%PDF-1.4 fake", "application/pdf")},
+        data={"ruleset": "nbc", "mode": "tiled"},
+    )
+    assert up.status_code == 200
+    job_id = up.json()["job_id"]
+
+    # The real background thread runs stub_extract_tiled independently of
+    # this (main) thread -- wait for it to have published the partial before
+    # polling, then bound the poll loop so a broken contract fails fast
+    # rather than hanging.
+    assert reached_partial.wait(timeout=10)
+    deadline = time.time() + 10
+    body = None
+    while time.time() < deadline:
+        body = client.get(f"/api/jobs/{job_id}").json()
+        if body.get("partial"):
+            break
+        time.sleep(0.05)
+    assert body is not None and body.get("partial") is True
+    assert body["partial_pages"] == {"done": 1, "total": 2}
+    assert "report_sha256" not in body
+    assert any(res["entity_id"] == "s1" for res in body["report"]["results"])
+
+    # Release the stub so extraction can finish, then poll to "done".
+    release.set()
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        body = client.get(f"/api/jobs/{job_id}").json()
+        if body["status"] == "done":
+            break
+        time.sleep(0.05)
+    assert body["status"] == "done"
+    assert "partial" not in body
+    assert "partial_pages" not in body
+    assert "report_sha256" in body
+
+    # End-to-end determinism proof: the final job report/sha equal a plain
+    # non-streaming call to the engine over the SAME final facts.
+    ruleset = json.loads(RULESETS["nbc"].read_text())
+    expected_report = run_ruleset(ruleset, final_facts)
+    expected_sha = hashlib.sha256(
+        json.dumps(expected_report, sort_keys=True).encode("utf-8")).hexdigest()
+    assert body["report"] == expected_report
+    assert body["report_sha256"] == expected_sha
