@@ -326,3 +326,35 @@ make_progress_cb). 462 -> 480 tests passing.
 - Next: wave 4 (plan D, progressive streaming) lands on this stabilized
   per-page loop — the page barrier survives wave 3 unchanged since parallelism
   pools WITHIN a page and pages stay a serial outer loop.
+
+## 2026-07-10 — Session 5f (extraction speedups executed, waves 1-5)
+All 5 waves of docs/superpowers/plans/2026-07-10-extraction-speedups.md executed
+autonomously via one executor agent per wave, main session verifying (full suite +
+regression + secret scan) and committing between waves. 407 -> 494 tests.
+
+- Wave 1 (runners.py factory): select_runner(cli|api), .identity provenance, EO1 cap
+  regression test proves it holds regardless of runner.
+- Wave 2 (blank-skip + cache): classify_tile_content (zero-signal rule, scans
+  structurally fail-open); extract_cache.py (raw response only, so parser/cap fixes
+  re-apply on replay); make_progress_cb with 1.0s duration floor.
+- Wave 3 (parallel tiles): ThreadPoolExecutor, NBC_TILE_CONCURRENCY=4 default, futures
+  merged in INDEX order regardless of completion order -> proven byte-identical to
+  serial (reversed-completion-order test, 5x flake-checked). Projected 12-page job
+  ~14min -> ~3.5min.
+- Wave 4 (streaming): on_partial fires at the page barrier; Job.partial_facts separate
+  field auto-locks overrides/export (empirically verified 404, not assumed); real-thread
+  mid-run integration test proves final report == non-streaming report.
+- Wave 5 (A/B harness + docs, C4-C5 only): scripts/ab_extract_models.py ready
+  (--dry-run verified, zero network calls proven via socket monkeypatch); env vars
+  documented; C6 (live Haiku-vs-Sonnet measurement + DEFAULT_EXTRACT_MODEL decision)
+  BLOCKED — user-supplied ANTHROPIC_API_KEY returns 401, stored safely at
+  ~/.config/nbc-checker/env (600, not in repo) pending a working key.
+
+Live server restarted on the full stack; nbc.dev.ecoworks.ca verified 200.
+
+## Next session
+- Wave 5 C6: once a valid ANTHROPIC_API_KEY exists, run
+  scripts/ab_extract_models.py for real (Haiku vs Sonnet-4-6 on samples/A-201 +
+  a real corpus sheet), write docs/ab-model-results.md, decide DEFAULT_EXTRACT_MODEL
+- Live end-to-end timing run of the Calgary 23-sheet set to confirm the projected
+  ~4x speedup empirically (parallel + blank-skip + cache stacked)
